@@ -92,6 +92,7 @@ class Whatsapp::CallService
     update_message_status(status, duration_seconds: attrs[:duration_seconds])
     update_conversation_call_status(call.display_status)
     broadcast(:ended, status: call.display_status)
+    Whatsapp::UnansweredCallNotifier.new(call: call).perform
   end
 
   def update_message_status(status, duration_seconds: nil)

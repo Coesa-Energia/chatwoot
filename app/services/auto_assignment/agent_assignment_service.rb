@@ -68,7 +68,8 @@ class AutoAssignment::AgentAssignmentService
     # Hence taking an intersection of online agents and allowed member ids
 
     # the online user ids are string, since its from redis, allowed member ids are integer, since its from active record
-    @allowed_online_agent_ids ||= online_agent_ids & allowed_agent_ids&.map(&:to_s)
+    # Members switched out of the inbox's rotation keep access but are never picked.
+    @allowed_online_agent_ids ||= online_agent_ids & (allowed_agent_ids.to_a.map(&:to_i) & conversation.inbox.rotation_member_ids).map(&:to_s)
   end
 
   def round_robin_manage_service

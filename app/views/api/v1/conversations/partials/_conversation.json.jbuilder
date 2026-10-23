@@ -18,7 +18,6 @@ json.meta do
     end
     json.assignee_type 'User'
   end
-  json.partial! 'enterprise/api/v1/conversations/partials/assignee', conversation: conversation if ChatwootApp.enterprise?
   if conversation.team.present?
     json.team do
       json.partial! 'api/v1/models/team', formats: [:json], resource: conversation.team
@@ -64,6 +63,11 @@ json.unread_count conversation.unread_incoming_messages.count
 json.last_non_activity_message conversation.messages.where(account_id: conversation.account_id).non_activity_messages.first.try(:push_event_data)
 json.last_activity_at conversation.last_activity_at.to_i
 json.priority conversation.priority
+# The current agent's pinned/archived state. Loaded once per request: rows only exist for conversations
+# the agent pinned or archived, so this stays small.
+@conversation_user_states ||= Current.user.is_a?(User) ?ConversationUserState.where(user_id: Current.user.id).index_by(&:conversation_id) : {}
+json.pinned_at @conversation_user_states[conversation.id]&.pinned_at&.to_i
+json.archived_at @conversation_user_states[conversation.id]&.archived_at&.to_i
 json.waiting_since conversation.waiting_since.to_i.to_i
 sla_applicable = conversation.account.feature_enabled?('sla') && (!conversation.respond_to?(:sla_applicable?) || conversation.sla_applicable?)
 json.sla_policy_id sla_applicable ? conversation.sla_policy_id : nil

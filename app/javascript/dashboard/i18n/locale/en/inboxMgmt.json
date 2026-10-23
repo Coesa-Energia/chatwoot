@@ -672,6 +672,13 @@
       "BUTTON_TEXT": "Add agents",
       "ADD_AGENTS": "Adding Agents to your Inbox..."
     },
+    "CONVERSATION_ACCESS": {
+      "TITLE": "Conversation access",
+      "DESC": "By default an agent only sees the conversations assigned to them or where they were added as a participant. Turn on the option for the agents who should see every conversation of this inbox, such as supervisors.",
+      "SEE_ALL": "See all conversations",
+      "OWN_ONLY": "Only their own conversations",
+      "ADMIN_NOTE": "Administrators always see every conversation."
+    },
     "FINISH": {
       "TITLE": "Your Inbox is ready!",
       "MESSAGE": "You can now engage with your customers through your new Channel. Happy supporting",
@@ -811,16 +818,90 @@
       "ENABLE_FAILED": "Voice calling couldn't be turned on for this number — it isn't enrolled in the WhatsApp Business Calling API yet. Reach out to Meta or your WhatsApp Business Solution Provider to onboard it, then try again.",
       "PHONE_NUMBER": {
         "LABEL": "Business phone number",
-        "HELP_TEXT": "WhatsApp number that customers will call."
+        "HELP_TEXT": "WhatsApp number that customers will call.",
+        "INLINE": "Number that makes and receives calls: {number}"
       },
       "HOW_IT_WORKS": {
         "LABEL": "How it works",
         "DESCRIPTION": "Calls are placed peer-to-peer between the agent's browser and Meta — no extra credentials are required. Make sure the agent's browser has microphone permission for this site."
       },
       "PERMISSION_REQUEST_BODY": {
-        "LABEL": "Call permission request message",
+        "LABEL": "Default message",
         "HELP_TEXT": "Shown to the contact when they haven't yet consented to receive calls. Leave blank to use the default.",
-        "PLACEHOLDER": "We would like to call you regarding your conversation."
+        "PLACEHOLDER": "We would like to call you regarding your conversation.",
+        "PANEL_HINT": "Used for the first request when the customer wrote in the last 24 hours. Leave blank to use the default text.",
+        "SAVE": "Save message",
+        "PREVIEW": "How the customer sees it"
+      },
+      "RULES": {
+        "LABEL": "WhatsApp call rules",
+        "DESCRIPTION": "These are WhatsApp rules, not ours. Knowing them avoids confusion:",
+        "ITEM_1": "The company can only call a customer who gave permission. If there is no permission yet, the first click sends the customer a request.",
+        "ITEM_2": "WhatsApp allows only 1 permission request per day and 2 per week for each customer. A call that is answered resets this counter.",
+        "ITEM_3": "A permission granted by the customer lasts 7 days (or until revoked, if they chose \"always\").",
+        "ITEM_4": "After 4 unanswered calls in a row, WhatsApp removes the permission and a new request is needed.",
+        "ITEM_5": "If the customer calls the company, the call must be answered within about 30 seconds, otherwise it shows as missed.",
+        "TOGGLE": "WhatsApp rules and how calls work"
+      },
+      "PERMISSION_TEMPLATE": {
+        "LABEL": "Call permission template",
+        "HELP_TEXT": "WhatsApp message used to ask the customer for call permission when they have not written in the last 24 hours, and for repeated requests. WhatsApp must approve it (usually a few minutes) and decides on its own whether it is Utility or Marketing. You can read and edit the text before sending it. Already created one in Meta? Type its name and send to use it.",
+        "CREATE": "Create template",
+        "REFRESH": "Check approval",
+        "SEND": "Send for approval",
+        "CANCEL": "Cancel",
+        "NEW_VERSION": "Edit as a new version",
+        "PREVIEW": "How the customer sees it",
+        "PREVIEW_BUTTON": "Allow calls",
+        "LOAD_FAILED": "Could not load the call permission template.",
+        "FAILED": "Could not send the template: {error}",
+        "CHECK_FAILED": "Could not check the template: {error}",
+        "REJECTED_REASON": "WhatsApp rejected the template: {reason}. Edit the text and send a new version.",
+        "NAME": {
+          "LABEL": "Template name",
+          "HELP": "Lowercase letters, numbers and underscores. Use a new name to send a new version."
+        },
+        "CATEGORY": {
+          "ASSIGNED": "Category set by WhatsApp: {category}",
+          "UTILITY": "Utility",
+          "MARKETING": "Marketing"
+        },
+        "BODY": {
+          "LABEL": "Message text",
+          "HELP": "No variables. {count} of 1024 characters."
+        },
+        "RESULT": {
+          "SENT": "Template sent to WhatsApp. Approval usually takes a few minutes: use \"Check approval\" in a moment.",
+          "APPROVED": "Template approved and ready to use.",
+          "PENDING": "Still waiting for WhatsApp to approve it. Check again in a few minutes.",
+          "REJECTED": "WhatsApp rejected the template. See the reason below and send a new version.",
+          "PAUSED": "WhatsApp paused this template.",
+          "NOT_FOUND": "This template was not found in WhatsApp. Send it again.",
+          "OTHER": "Template status: {status}"
+        },
+        "STATUS": {
+          "NONE": "Not created yet",
+          "PENDING": "Waiting for WhatsApp approval",
+          "APPROVED": "Approved, ready to use",
+          "REJECTED": "Rejected by WhatsApp",
+          "PAUSED": "Paused by WhatsApp",
+          "NOT_FOUND": "Not found in WhatsApp",
+          "OTHER": "Status: {status}"
+        },
+        "PANEL_HINT": "Used when the customer has not written in the last 24 hours and for repeated requests. WhatsApp must approve it and picks the category.",
+        "ADOPT_HINT": "Already created a call template in Meta? Type its name and send to use it."
+      },
+      "SECTIONS": {
+        "GENERAL": "Calls",
+        "PERMISSION": "Call permission request",
+        "PERMISSION_DESCRIPTION": "WhatsApp only lets the business call customers who gave permission. When a customer has not allowed it yet, a request is sent and the system picks which message to use:"
+      },
+      "FLOW": {
+        "INSIDE_TITLE": "Customer wrote in the last 24 hours",
+        "INSIDE_DESC": "The first request goes as the default message.",
+        "OUTSIDE_TITLE": "Customer has not written, or it is a repeated request",
+        "OUTSIDE_DESC": "The WhatsApp-approved template is sent.",
+        "NO_TEMPLATE": "There is no approved template yet, so customers who have not written in the last 24 hours will not receive the call request."
       }
     },
     "CHANNEL_PREFERENCES": "Channel Preferences",
@@ -1209,6 +1290,7 @@
       "WHATSAPP_LOGIN_CANCELLED": "WhatsApp login was cancelled. Please try again.",
       "WHATSAPP_WEBHOOK_TITLE": "Webhook Verification Token",
       "WHATSAPP_WEBHOOK_SUBHEADER": "This token is used to verify the authenticity of the webhook endpoint.",
+      "WHATSAPP_WEBHOOK_SECRET_MISSING": "Incoming messages are being rejected: no Meta app secret is configured. Set WHATSAPP_APP_SECRET in Super Admin > App Settings.",
       "WHATSAPP_TEMPLATES_SYNC_TITLE": "Sync Templates",
       "WHATSAPP_TEMPLATES_SYNC_SUBHEADER": "Manually sync message templates from WhatsApp to update your available templates.",
       "WHATSAPP_TEMPLATES_SYNC_BUTTON": "Sync Templates",
@@ -1650,6 +1732,18 @@
       "INSTAGRAM": "Instagram",
       "TIKTOK": "TikTok",
       "VOICE": "Voice"
+    },
+    "ROTATION": {
+      "TITLE": "Assignment rotation",
+      "DESC": "Choose which agents take part in the automatic assignment of this inbox. Agents left out keep access to the inbox but never receive conversations automatically, which suits people who are not sellers.",
+      "IN": "In the rotation",
+      "OUT": "Out of the rotation (access only)",
+      "NOTE": "Anyone can still be assigned a conversation manually."
+    },
+    "DEFAULT_TEAM": {
+      "TITLE": "Team of the inbox (optional)",
+      "DESC": "Every new conversation of this inbox starts with this team. Automatic assignment then only considers the members of the team.",
+      "NONE": "No team"
     }
   }
 }

@@ -1,4 +1,4 @@
-class Whatsapp::FacebookApiClient
+class Whatsapp::FacebookApiClient # rubocop:disable Metrics/ClassLength
   BASE_URI = 'https://graph.facebook.com'.freeze
   # Base webhook fields resent on every subscribe so Meta won't reset to defaults. `calls` is added by callers only when voice is enabled.
   WEBHOOK_DEFAULT_FIELDS = %w[messages smb_message_echoes].freeze
@@ -142,12 +142,28 @@ class Whatsapp::FacebookApiClient
   end
 
   def subscribe_phone_number_webhook(waba_id, phone_number_id, callback_url, verify_token, subscribed_fields: nil)
-    # Subscribe app to WABA first — Meta requires it before any callback override (issue #13097).
-    # subscribed_fields (incl. `calls` when voice is enabled) is declared here; the phone-level POST has no such field.
-    subscribe_app_to_waba(waba_id, subscribed_fields: subscribed_fields || WEBHOOK_DEFAULT_FIELDS)
+    fields = subscribed_fields || WEBHOOK_DEFAULT_FIELDS
+    # Meta requires the app to be subscribed to the WABA before any callback override (issue #13097). But posting to
+    # subscribed_apps rewrites the WABA-level subscription of the app (and may drop its WABA callback override), which
+    # is shared by every other number of the WABA. So it is only done when the app is not subscribed yet, or when
+    # `calls` has to be added to the fields; otherwise registering one number only touches that number.
+    subscribe_app_to_waba(waba_id, subscribed_fields: fields) if waba_subscription_needed?(waba_id, fields)
 
     # Phone-level override takes precedence over WABA-level, so numbers on one WABA can route to different URLs.
     override_phone_number_callback(phone_number_id, callback_url, verify_token)
+  end
+
+  # True when our app already appears among the apps subscribed to the WABA. Any failure to read the list counts as
+  # "not subscribed" so the registration behaves exactly like before.
+  def app_subscribed_to_waba?(waba_id)
+    apps = Array(fetch_subscribed_apps(waba_id)['data'])
+    app_id = GlobalConfigService.load('WHATSAPP_APP_ID', '').to_s
+    return apps.any? if app_id.blank?
+
+    apps.any? { |app| app.dig('whatsapp_business_api_data', 'id').to_s == app_id }
+  rescue StandardError => e
+    Rails.logger.warn("[WHATSAPP] Could not read the WABA subscriptions of #{waba_id}: #{e.message}")
+    false
   end
 
   def subscribe_app_to_waba(waba_id, subscribed_fields: WEBHOOK_DEFAULT_FIELDS)
@@ -200,6 +216,13 @@ class Whatsapp::FacebookApiClient
   end
 
   private
+
+  # Fields beyond the default ones (`calls`) can only be requested by posting to subscribed_apps.
+  def waba_subscription_needed?(waba_id, fields)
+    return true unless (fields - WEBHOOK_DEFAULT_FIELDS).empty?
+
+    !app_subscribed_to_waba?(waba_id)
+  end
 
   def request_headers
     {

@@ -37,22 +37,21 @@ class ChatwootHub
   end
 
   def self.pricing_plan
-    return 'community' unless ChatwootApp.enterprise?
-
-    InstallationConfig.find_by(name: 'INSTALLATION_PRICING_PLAN')&.value || 'community'
+    # COESA FORK: instalação própria sempre enterprise (tudo free, sem trava de plano).
+    'enterprise'
   end
 
   def self.pricing_plan_quantity
-    return 0 unless ChatwootApp.enterprise?
-
-    InstallationConfig.find_by(name: 'INSTALLATION_PRICING_PLAN_QUANTITY')&.value || 0
+    # COESA FORK: quantidade fixa alta para nunca travar por licença.
+    9999
   end
 
   def self.support_config
+    # COESA FORK: sem inbox de suporte do Chatwoot. Retorno fixo vazio.
     {
-      support_website_token: InstallationConfig.find_by(name: 'CHATWOOT_SUPPORT_WEBSITE_TOKEN')&.value,
-      support_script_url: InstallationConfig.find_by(name: 'CHATWOOT_SUPPORT_SCRIPT_URL')&.value,
-      support_identifier_hash: InstallationConfig.find_by(name: 'CHATWOOT_SUPPORT_IDENTIFIER_HASH')&.value
+      support_website_token: nil,
+      support_script_url: nil,
+      support_identifier_hash: nil
     }
   end
 
@@ -83,50 +82,29 @@ class ChatwootHub
   end
 
   def self.sync_with_hub
-    begin
-      info = instance_config
-      info = info.merge(instance_metrics) unless ENV['DISABLE_TELEMETRY']
-      response = RestClient.post(ping_url, info.to_json, { content_type: :json, accept: :json })
-      parsed_response = JSON.parse(response)
-    rescue *ExceptionList::REST_CLIENT_EXCEPTIONS => e
-      Rails.logger.error "Exception: #{e.message}"
-    rescue StandardError => e
-      ChatwootExceptionTracker.new(e).capture_exception
-    end
-    parsed_response
+    # COESA FORK: sem chamada externa. Retorno fixo com a versão local.
+    { 'version' => Chatwoot.config[:version], 'plan' => 'enterprise', 'plan_quantity' => 9999 }
   end
 
-  def self.register_instance(company_name, owner_name, owner_email)
-    info = { company_name: company_name, owner_name: owner_name, owner_email: owner_email, subscribed_to_mailers: true }
-    RestClient.post(registration_url, info.merge(instance_config).to_json, { content_type: :json, accept: :json })
-  rescue *ExceptionList::REST_CLIENT_EXCEPTIONS => e
-    Rails.logger.error "Exception: #{e.message}"
-  rescue StandardError => e
-    ChatwootExceptionTracker.new(e).capture_exception
+  def self.register_instance(_company_name, _owner_name, _owner_email)
+    # COESA FORK: registro externo desligado. Retorno fixo de sucesso local.
+    true
   end
 
-  def self.send_push(fcm_options)
-    send_push_with_response(fcm_options)
-  rescue *ExceptionList::REST_CLIENT_EXCEPTIONS => e
-    Rails.logger.error "Exception: #{e.message}"
-  rescue StandardError => e
-    ChatwootExceptionTracker.new(e).capture_exception
+  def self.send_push(_fcm_options)
+    # COESA FORK: relay via Hub desligado. Push sai só pelo Firebase próprio configurado na instalação.
+    Rails.logger.info('COESA: push via Hub ignorado (relay desligado)')
+    nil
   end
 
-  def self.send_push_with_response(fcm_options)
-    info = { fcm_options: fcm_options }
-    RestClient.post(push_notification_url, info.merge(instance_config).to_json, { content_type: :json, accept: :json })
+  def self.send_push_with_response(_fcm_options)
+    # COESA FORK: relay via Hub desligado. Retorno fixo para o diagnóstico não quebrar.
+    nil
   end
 
-  def self.emit_event(event_name, event_data)
-    return if ENV['DISABLE_TELEMETRY']
-
-    info = { event_name: event_name, event_data: event_data }
-    RestClient.post(events_url, info.merge(instance_config).to_json, { content_type: :json, accept: :json })
-  rescue *ExceptionList::REST_CLIENT_EXCEPTIONS => e
-    Rails.logger.error "Exception: #{e.message}"
-  rescue StandardError => e
-    ChatwootExceptionTracker.new(e).capture_exception
+  def self.emit_event(_event_name, _event_data)
+    # COESA FORK: telemetria externa desligada. Retorno fixo de sucesso.
+    true
   end
 end
 

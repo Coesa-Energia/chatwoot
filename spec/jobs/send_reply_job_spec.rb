@@ -11,6 +11,41 @@ RSpec.describe SendReplyJob do
       .on_queue('high')
   end
 
+  context 'when a WhatsApp send is rate limited or cannot reach Meta' do
+    let(:whatsapp_channel) { create(:channel_whatsapp, provider: 'whatsapp_cloud', validate_provider_config: false, sync_templates: false) }
+    let(:conversation) { create(:conversation, inbox: whatsapp_channel.inbox) }
+    # let! so the records exist before perform_enqueued_jobs runs (their factories enqueue jobs too)
+    let!(:message) { create(:message, conversation: conversation, inbox: whatsapp_channel.inbox, message_type: :outgoing) }
+    let(:failing_service) { instance_double(Whatsapp::SendOnWhatsappService) }
+
+    before do
+      allow(Whatsapp::SendOnWhatsappService).to receive(:new).and_return(failing_service)
+    end
+
+    it 'retries with backoff and then succeeds' do
+      calls = 0
+      allow(failing_service).to receive(:perform) do
+        calls += 1
+        raise CustomExceptions::WhatsappRetryableError, { reason: 'rate_limited' } if calls < 3
+      end
+
+      perform_enqueued_jobs { described_class.perform_later(message.id) }
+
+      expect(calls).to eq(3)
+      expect(message.reload.status).not_to eq('failed')
+    end
+
+    it 'marks the message failed with a clear error when all attempts are used' do
+      allow(failing_service).to receive(:perform).and_raise(CustomExceptions::WhatsappRetryableError, { reason: 'rate_limited' })
+
+      perform_enqueued_jobs { described_class.perform_later(message.id) }
+
+      expect(failing_service).to have_received(:perform).exactly(5).times
+      expect(message.reload.status).to eq('failed')
+      expect(message.external_error).to eq(I18n.t('errors.whatsapp.retryable.rate_limited'))
+    end
+  end
+
   context 'when the job is triggered on a new message' do
     let(:process_service) { double }
 

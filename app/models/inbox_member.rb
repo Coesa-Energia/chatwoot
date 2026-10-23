@@ -2,11 +2,13 @@
 #
 # Table name: inbox_members
 #
-#  id         :integer          not null, primary key
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  inbox_id   :integer          not null
-#  user_id    :integer          not null
+#  id                    :integer          not null, primary key
+#  created_at            :datetime         not null
+#  in_rotation           :boolean          default(TRUE), not null
+#  see_all_conversations :boolean          default(FALSE), not null
+#  updated_at            :datetime         not null
+#  inbox_id              :integer          not null
+#  user_id               :integer          not null
 #
 # Indexes
 #
@@ -25,6 +27,7 @@ class InboxMember < ApplicationRecord
   after_create :add_agent_to_round_robin
   after_destroy :remove_agent_from_round_robin
   after_commit :invalidate_filtered_unread_count_visibility, on: [:create, :destroy]
+  after_update_commit :invalidate_filtered_unread_count_visibility_after_access_change, if: :saved_change_to_see_all_conversations?
 
   private
 
@@ -34,6 +37,10 @@ class InboxMember < ApplicationRecord
 
   def remove_agent_from_round_robin
     ::AutoAssignment::InboxRoundRobinService.new(inbox: inbox).remove_agent_from_queue(user_id) if inbox.present?
+  end
+
+  def invalidate_filtered_unread_count_visibility_after_access_change
+    invalidate_filtered_unread_count_visibility
   end
 
   def invalidate_filtered_unread_count_visibility

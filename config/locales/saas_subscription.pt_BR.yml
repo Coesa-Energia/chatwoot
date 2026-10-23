@@ -1,0 +1,15 @@
+pt_BR:
+  helpers:
+    label:
+      account:
+        saas_plan: 'Plano'
+        saas_trial_ends_at: 'Teste termina em'
+        saas_paid_until: 'Pago até'
+        saas_notes: 'Observações de cobrança'
+  super_admin:
+    accounts:
+      subscription: 'Plano e cobrança'
+      subscription_saved: 'Plano e cobrança salvos.'
+      subscription_hint: 'As contas são suspensas automaticamente %{days} dias após a data de "pago até" (ou do fim do teste, se não houver). Deixe as duas datas vazias para não expirar.'
+    account_suspension:
+      automatic_reason: 'Assinatura encerrada em %{date} (suspensão automática).'

@@ -78,7 +78,7 @@ class Seeders::AccountSeeder
     user_record = User.create_with(name: user['name'], password: 'Password1!.').find_or_create_by!(email: user['email'].to_s)
     user_record.skip_confirmation!
     user_record.save!
-    Avatar::AvatarFromUrlJob.perform_later(user_record, "https://xsgames.co/randomusers/avatar.php?g=#{user['gender']}")
+    # COESA FORK: sem avatar externo no seed (evita worker externo xsgames). Avatar fica vazio por padrão.
     user_record
   end
 
@@ -118,7 +118,7 @@ class Seeders::AccountSeeder
       contact = @account.contacts.find_or_initialize_by(email: contact_data['email'])
       if contact.new_record?
         contact.update!(contact_data.slice('name', 'email'))
-        Avatar::AvatarFromUrlJob.perform_later(contact, "https://xsgames.co/randomusers/avatar.php?g=#{contact_data['gender']}")
+        # COESA FORK: sem avatar externo no seed.
       end
       contact_data['conversations'].each do |conversation_data|
         inbox = @account.inboxes.find_by(channel_type: conversation_data['channel'])

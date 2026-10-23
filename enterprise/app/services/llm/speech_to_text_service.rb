@@ -12,8 +12,21 @@ class Llm::SpeechToTextService < Llm::LegacyBaseOpenAiService
 
   attr_reader :blob, :account, :transcription_model
 
-  # Transcription runs on Captain's OpenAI credentials and consumes its response credits.
+  # COESA: a transcription server set in Super Admin (self-hosted Whisper or any OpenAI-compatible API)
+  # replaces Captain here: no Captain feature or response credits needed, only the account toggle.
+  CUSTOM_SERVER_TIMEOUT = 300 # seconds: CPU-only Whisper can take a while on long audio
+
+  def self.config_value(name)
+    InstallationConfig.find_by(name: name)&.value.presence
+  end
+
+  def self.custom_server?
+    config_value('AUDIO_TRANSCRIPTION_API_URL').present?
+  end
+
+  # Transcription runs on Captain's OpenAI credentials and consumes its response credits (unless a custom server is set).
   def self.available_for?(account)
+    return account.audio_transcriptions.present? if custom_server?
     return false unless account.feature_enabled?('captain_integration')
     return false if account.audio_transcriptions.blank?
 
@@ -25,10 +38,14 @@ class Llm::SpeechToTextService < Llm::LegacyBaseOpenAiService
   end
 
   def initialize(blob:, account:)
-    super()
     @blob = blob
     @account = account
-    @transcription_model = Llm::FeatureRouter.resolve(feature: 'audio_transcription', account: account)[:model]
+    if self.class.custom_server?
+      setup_custom_server
+    else
+      super()
+      @transcription_model = Llm::FeatureRouter.resolve(feature: 'audio_transcription', account: account)[:model]
+    end
   end
 
   def perform
@@ -44,20 +61,34 @@ class Llm::SpeechToTextService < Llm::LegacyBaseOpenAiService
           parameters: {
             model: transcription_model,
             file: file,
-            temperature: 0.0
-          }
+            temperature: 0.0,
+            language: @language
+          }.compact
         )
         response['text']
       end
     end
 
-    account.increment_response_usage if transcribed_text.present?
+    account.increment_response_usage if transcribed_text.present? && !@custom_server
     transcribed_text
   ensure
     FileUtils.rm_f(temp_file_path) if temp_file_path.present?
   end
 
   private
+
+  def setup_custom_server
+    @custom_server = true
+    # A self-hosted Whisper usually takes no key; the client still requires a value.
+    @client = OpenAI::Client.new(
+      access_token: self.class.config_value('AUDIO_TRANSCRIPTION_API_KEY') || 'no-key',
+      uri_base: self.class.config_value('AUDIO_TRANSCRIPTION_API_URL'),
+      request_timeout: CUSTOM_SERVER_TIMEOUT,
+      log_errors: Rails.env.development?
+    )
+    @transcription_model = self.class.config_value('AUDIO_TRANSCRIPTION_MODEL') || 'whisper-1'
+    @language = self.class.config_value('AUDIO_TRANSCRIPTION_LANGUAGE')
+  end
 
   def fetch_audio_file
     temp_dir = Rails.root.join('tmp/uploads/audio-transcriptions')

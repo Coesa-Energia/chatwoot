@@ -1,0 +1,20 @@
+{
+  "CALL_FLOW": {
+    "CALL": "Ligar",
+    "CHOOSE": "Escolher como ligar",
+    "WHATSAPP": "Ligar pelo WhatsApp",
+    "PHONE": "Ligar pelo telefone",
+    "WHATSAPP_STATUS": {
+      "CAN_CALL": "Pode ligar",
+      "CAN_CALL_UNTIL": "Pode ligar até {date}",
+      "CALL_LIMIT": "Limite de ligações atingido, tente mais tarde",
+      "WILL_ASK": "Vamos pedir permissão ao cliente",
+      "REQUEST_LIMIT": "Limite de pedidos atingido, tente amanhã",
+      "REQUEST_LIMIT_UNTIL": "Limite de pedidos atingido, tente de novo depois de {date}"
+    },
+    "PHONE_STATUS": {
+      "CALLS": "Liga para {phone}",
+      "NO_PHONE": "Este cliente não tem telefone cadastrado"
+    }
+  }
+}

@@ -86,6 +86,24 @@ RSpec.describe 'DashboardAppsController', type: :request do
         expect(json_response['content'][0]['type']).to eq payload[:dashboard_app][:content][0][:type]
       end
 
+      it 'limits the app to the chosen inboxes of this account only' do
+        inbox = create(:inbox, account: account)
+        foreign_inbox = create(:inbox)
+
+        post "/api/v1/accounts/#{account.id}/dashboard_apps", headers: user.create_new_auth_token,
+                                                              params: payload.deep_merge(dashboard_app: { inbox_ids: [inbox.id, foreign_inbox.id] })
+
+        expect(response).to have_http_status(:success)
+        expect(response.parsed_body['inbox_ids']).to eq [inbox.id]
+        expect(DashboardApp.last.inbox_ids).to eq [inbox.id]
+      end
+
+      it 'shows the app in every inbox when no inbox is chosen' do
+        post "/api/v1/accounts/#{account.id}/dashboard_apps", headers: user.create_new_auth_token, params: payload
+
+        expect(response.parsed_body['inbox_ids']).to eq []
+      end
+
       it 'creates the dashboard app even if the URL does not have SSL' do
         expect do
           post "/api/v1/accounts/#{account.id}/dashboard_apps", headers: user.create_new_auth_token,

@@ -1,0 +1,6 @@
+# Garante LF nos entrypoints do Docker mesmo em checkout Windows (core.autocrlf).
+# Com CRLF o kernel não encontra o interpretador do shebang e o container sai
+# com "no such file or directory".
+docker/entrypoints/*.sh text eol=lf
+# Scripts executados dentro dos containers Linux (shebang quebra com CRLF).
+bin/* text eol=lf

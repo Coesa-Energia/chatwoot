@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_10_19_143116) do
+ActiveRecord::Schema[7.1].define(version: 2026_10_20_204252) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -221,6 +221,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_19_143116) do
     t.string "locale", default: "en", null: false
     t.string "draft_title"
     t.text "draft_content"
+    t.boolean "ai_only", default: false, null: false
     t.index ["account_id"], name: "index_articles_on_account_id"
     t.index ["associated_article_id"], name: "index_articles_on_associated_article_id"
     t.index ["author_id"], name: "index_articles_on_author_id"
@@ -987,6 +988,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_19_143116) do
     t.index ["user_id"], name: "index_conversation_participants_on_user_id"
   end
 
+  create_table "conversation_user_states", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "conversation_id", null: false
+    t.datetime "pinned_at"
+    t.datetime "archived_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_conversation_user_states_on_account_id"
+    t.index ["conversation_id"], name: "index_conversation_user_states_on_conversation_id"
+    t.index ["user_id", "conversation_id"], name: "index_conversation_user_states_on_user_id_and_conversation_id", unique: true
+  end
+
   create_table "conversations", id: :serial, force: :cascade do |t|
     t.integer "account_id", null: false
     t.integer "inbox_id", null: false
@@ -1188,6 +1202,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_19_143116) do
     t.bigint "user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "inbox_ids", default: [], null: false, array: true
     t.index ["account_id"], name: "index_dashboard_apps_on_account_id"
     t.index ["user_id"], name: "index_dashboard_apps_on_user_id"
   end
@@ -1318,6 +1333,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_19_143116) do
     t.integer "inbox_id", null: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.boolean "see_all_conversations", default: false, null: false
+    t.boolean "in_rotation", default: true, null: false
     t.index ["inbox_id", "user_id"], name: "index_inbox_members_on_inbox_id_and_user_id", unique: true
     t.index ["inbox_id"], name: "index_inbox_members_on_inbox_id"
   end
@@ -1345,8 +1362,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_19_143116) do
     t.integer "sender_name_type", default: 0, null: false
     t.string "business_name"
     t.jsonb "csat_config", default: {}, null: false
+    t.bigint "default_team_id"
     t.index ["account_id"], name: "index_inboxes_on_account_id"
     t.index ["channel_id", "channel_type"], name: "index_inboxes_on_channel_id_and_channel_type"
+    t.index ["default_team_id"], name: "index_inboxes_on_default_team_id"
     t.index ["portal_id"], name: "index_inboxes_on_portal_id"
   end
 

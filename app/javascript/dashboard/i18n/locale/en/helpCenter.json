@@ -1,6 +1,11 @@
 {
   "HELP_CENTER": {
     "TITLE": "Help Center",
+    "AI_ONLY": {
+      "LABEL": "AI only",
+      "BADGE": "AI only",
+      "HINT": "Only Captain (AI) uses this article. It is hidden from the public portal and from agents."
+    },
     "NEW_PAGE": {
       "DESCRIPTION": "Create self-service help center portals for your customers. Help them find answers quickly, without waiting. Streamline inquiries, boost agent efficiency, and elevate customer support.",
       "CREATE_PORTAL_BUTTON": "Create Portal"
@@ -548,7 +553,8 @@
           "PENDING_EDITS_TOOLTIP": "This published article has unpublished edits",
           "CATEGORY": {
             "UNCATEGORISED": "Uncategorised"
-          }
+          },
+          "MORE_ACTIONS": "Article actions"
         }
       },
       "ARTICLES_HEADER": {
@@ -851,6 +857,11 @@
       },
       "API": {
         "ERROR": "Error while saving article"
+      },
+      "NOT_FOUND": {
+        "TITLE": "Article not found",
+        "DESCRIPTION": "This article was removed or is not available to you.",
+        "BACK": "Back to articles"
       }
     },
     "PORTAL_SWITCHER": {

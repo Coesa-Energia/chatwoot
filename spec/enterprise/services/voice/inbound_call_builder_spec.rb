@@ -66,6 +66,31 @@ RSpec.describe Voice::InboundCallBuilder do
     end
   end
 
+  context 'when the caller has an open WhatsApp conversation' do
+    let(:whatsapp_channel) do
+      create(:channel_whatsapp, provider: 'whatsapp_cloud', account: account, validate_provider_config: false, sync_templates: false)
+    end
+    let(:contact) { create(:contact, account: account, phone_number: from_number) }
+    let!(:whatsapp_conversation) { create(:conversation, account: account, inbox: whatsapp_channel.inbox, contact: contact, status: :open) }
+
+    it 'logs the call in the WhatsApp conversation and keeps the voice inbox on the call' do
+      call = nil
+      expect { call = perform_builder }.not_to change(account.conversations, :count)
+
+      aggregate_failures do
+        expect(call.conversation).to eq(whatsapp_conversation)
+        expect(call.inbox).to eq(inbox)
+        expect(whatsapp_conversation.messages.voice_calls.last.call).to eq(call)
+      end
+    end
+
+    it 'opens a voice inbox conversation when the WhatsApp conversation is resolved' do
+      whatsapp_conversation.update!(status: :resolved)
+
+      expect(perform_builder.conversation.inbox).to eq(inbox)
+    end
+  end
+
   context 'when ringing phones' do
     it 'enqueues the ring push once the call is committed, when the account has both voice features' do
       account.enable_features!('channel_voice', 'mobile_voice_push')

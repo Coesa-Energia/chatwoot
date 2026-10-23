@@ -53,7 +53,7 @@ module Whatsapp::IncomingMessageServiceHelpers
   end
 
   def unprocessable_message_type?(message_type)
-    %w[reaction ephemeral request_welcome].include?(message_type)
+    %w[ephemeral request_welcome].include?(message_type)
   end
 
   def processed_waid(waid)
@@ -106,5 +106,11 @@ module Whatsapp::IncomingMessageServiceHelpers
     return false if messages_data.blank?
 
     Whatsapp::MessageDedupLock.new(messages_data.first[:id]).acquire!
+  end
+
+  def release_message_source_id_lock!
+    return if messages_data.blank?
+
+    Whatsapp::MessageDedupLock.new(messages_data.first[:id]).release!
   end
 end

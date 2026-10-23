@@ -10,19 +10,19 @@
     "LOCATION": "Localização",
     "BROWSER_LANGUAGE": "Idioma do navegador",
     "CONVERSATION_TITLE": "Detalhes da conversa",
-    "VIEW_PROFILE": "Visualizar Perfil",
+    "VIEW_PROFILE": "Visualizar perfil",
     "BROWSER": "Navegador",
-    "OS": "Sistema Operacional",
+    "OS": "Sistema operacional",
     "INITIATED_FROM": "A partir de",
     "INITIATED_AT": "Iniciado em",
     "IP_ADDRESS": "Endereço IP",
     "CREATED_AT_LABEL": "Criado",
-    "NEW_MESSAGE": "Nova Mensagem",
+    "NEW_MESSAGE": "Nova mensagem",
     "CALL": "Chamada",
     "CALL_INITIATED": "Efetuando chamada…",
     "CALL_FAILED": "Não foi possível iniciar a chamada. Tente novamente.",
-    "WHATSAPP_CALL_PERMISSION_REQUESTED": "Solicitação de permissão de chamada enviada ao contato. Tente novamente após a aceitação.",
-    "WHATSAPP_CALL_PERMISSION_PENDING": "Uma solicitação de permissão de chamada já foi enviada recentemente. Tente novamente após o contato aceitar.",
+    "WHATSAPP_CALL_PERMISSION_REQUESTED": "Pedido de permissão enviado ao cliente. Assim que ele aceitar no WhatsApp você será avisado e poderá ligar. O WhatsApp permite só 1 pedido por dia (2 por semana) para cada cliente.",
+    "WHATSAPP_CALL_PERMISSION_PENDING": "Já pedimos permissão a este cliente há pouco. Aguarde ele aceitar no WhatsApp. O WhatsApp limita a 1 pedido por dia para cada cliente.",
     "CLICK_TO_EDIT": "Click to edit",
     "VOICE_INBOX_PICKER": {
       "TITLE": "Escolha uma caixa de entrada de voz"
@@ -50,33 +50,33 @@
     },
     "MERGE_CONTACT": "Mesclar contatos",
     "CONTACT_ACTIONS": "Ações de contatos",
-    "MUTE_CONTACT": "Bloquear Contato",
-    "UNMUTE_CONTACT": "Desbloquear Contato",
-    "MUTED_SUCCESS": "Este contato foi bloqueado com sucesso. Você não será notificado por nenhuma conversação futura.",
-    "UNMUTED_SUCCESS": "Este contato foi desbloqueado com sucesso.",
-    "SEND_TRANSCRIPT": "Enviar Transcrição",
+    "MUTE_CONTACT": "Silenciar conversa",
+    "UNMUTE_CONTACT": "Reativar notificações",
+    "MUTED_SUCCESS": "Conversa silenciada. Você não vai mais receber notificações dela.",
+    "UNMUTED_SUCCESS": "Notificações desta conversa reativadas.",
+    "SEND_TRANSCRIPT": "Enviar transcrição",
     "EDIT_LABEL": "Alterar",
     "SIDEBAR_SECTIONS": {
-      "CUSTOM_ATTRIBUTES": "Atributos Personalizados",
+      "CUSTOM_ATTRIBUTES": "Atributos personalizados",
       "CONTACT_LABELS": "Etiquetas de contato",
       "PREVIOUS_CONVERSATIONS": "Conversas anteriores",
       "NO_RECORDS_FOUND": "Nenhum atributo encontrado"
     }
   },
   "EDIT_CONTACT": {
-    "BUTTON_LABEL": "Editar Contato",
+    "BUTTON_LABEL": "Editar contato",
     "TITLE": "Editar contato",
     "DESC": "Alterar detalhes do contato"
   },
   "DELETE_CONTACT": {
-    "BUTTON_LABEL": "Excluir Contato",
+    "BUTTON_LABEL": "Excluir contato",
     "TITLE": "Excluir contato",
     "DESC": "Excluir detalhes do contato",
     "CONFIRM": {
-      "TITLE": "Confirmar Exclusão",
+      "TITLE": "Confirmar exclusão",
       "MESSAGE": "Você tem certeza que deseja excluir ",
-      "YES": "Sim, Excluir",
-      "NO": "Não, Mantenha"
+      "YES": "Sim, excluir",
+      "NO": "Não, mantenha"
     },
     "API": {
       "SUCCESS_MESSAGE": "Contato excluído com sucesso",
@@ -88,11 +88,11 @@
       "SUBMIT": "Enviar",
       "CANCEL": "Cancelar",
       "AVATAR": {
-        "LABEL": "Avatar do Contato"
+        "LABEL": "Avatar do contato"
       },
       "NAME": {
         "PLACEHOLDER": "Insira o nome completo do contato",
-        "LABEL": "Nome Completo"
+        "LABEL": "Nome completo"
       },
       "BIO": {
         "PLACEHOLDER": "Insira a descrição do contato",
@@ -106,7 +106,7 @@
       },
       "PHONE_NUMBER": {
         "PLACEHOLDER": "Adicione o número de telefone do contato",
-        "LABEL": "Número de Telefone",
+        "LABEL": "Número de telefone",
         "HELP": "O número de telefone deve ser do formato E.164, por exemplo: +5511000000000 [+][código do país][código de área][número de telefone local].",
         "ERROR": "O número de telefone deve estar vazio ou no formato E.164",
         "DIAL_CODE_ERROR": "Por favor, selecione um código de discagem da lista",
@@ -122,7 +122,7 @@
       },
       "COUNTRY": {
         "PLACEHOLDER": "Digite o nome do país ",
-        "LABEL": "Nome do País",
+        "LABEL": "Nome do país",
         "SELECT_PLACEHOLDER": "Selecionar",
         "REMOVE": "Remover",
         "SELECT_COUNTRY": "Selecione o país"
@@ -169,7 +169,7 @@
         "LABEL": "Para"
       },
       "INBOX": {
-        "LABEL": "Caixa de Entrada",
+        "LABEL": "Caixa de entrada",
         "PLACEHOLDER": "Escolher a caixa de entrada de origem",
         "ERROR": "Selecione uma caixa de entrada"
       },
@@ -197,7 +197,7 @@
   "CONTACTS_PAGE": {
     "LIST": {
       "TABLE_HEADER": {
-        "SOCIAL_PROFILES": "Perfis Sociais"
+        "SOCIAL_PROFILES": "Perfis sociais"
       }
     }
   },
@@ -219,7 +219,7 @@
       "CREATE": "Adicionar atributo",
       "CANCEL": "Cancelar",
       "NAME": {
-        "LABEL": "Nome do Atributo Personalizado",
+        "LABEL": "Nome do atributo personalizado",
         "PLACEHOLDER": "Por exemplo: ID shopify",
         "ERROR": "Nome de atributo personalizado inválido"
       },
@@ -298,7 +298,7 @@
       "SEARCH_TITLE": "Pesquisar contatos",
       "ACTIVE_TITLE": "Contatos ativos",
       "SEARCH_PLACEHOLDER": "Pesquisar...",
-      "MESSAGE_BUTTON": "Enviar Mensagem",
+      "MESSAGE_BUTTON": "Enviar mensagem",
       "SEND_MESSAGE": "Enviar mensagem",
       "BLOCK_CONTACT": "Bloquear contato",
       "UNBLOCK_CONTACT": "Desbloquear contato",
@@ -372,12 +372,17 @@
           "DELETE_SEGMENT": {
             "TITLE": "Confirmar exclusão",
             "DESCRIPTION": "Tem certeza de que deseja excluir este filtro?",
-            "CONFIRM": "Sim, Excluir",
-            "CANCEL": "Não, Cancelar",
+            "CONFIRM": "Sim, excluir",
+            "CANCEL": "Não, cancelar",
             "SUCCESS_MESSAGE": "Filtro excluído com sucesso",
             "ERROR_MESSAGE": "Não foi possível excluir o filtro. Por favor, tente mais tarde."
           }
         }
+      },
+      "ARIA": {
+        "FILTER": "Filtrar contatos",
+        "SAVE_SEGMENT": "Salvar filtro como segmento",
+        "DELETE_SEGMENT": "Excluir segmento"
       }
     },
     "PAGINATION_FOOTER": {
@@ -508,7 +513,16 @@
           "SUCCESS_MESSAGE": "Avatar excluído com sucesso",
           "ERROR_MESSAGE": "Não foi possível excluir o avatar. Por favor, tente novamente mais tarde."
         }
-      }
+      },
+      "CONVERSATIONS": {
+        "TITLE": "Conversas",
+        "EMPTY_STATE": "Ainda não há conversas com este contato. Use \"Enviar mensagem\" para iniciar uma.",
+        "MORE": "e mais {count} na aba histórico"
+      },
+      "COPY_PHONE": "Copiar telefone",
+      "COPY_EMAIL": "Copiar e-mail",
+      "COPY_SUCCESS": "Copiado",
+      "COPY_ERROR": "Não foi possível copiar. Tente de novo."
     },
     "SIDEBAR": {
       "TABS": {
@@ -587,11 +601,24 @@
       "LIST_EMPTY_STATE_TITLE": "Não há contatos disponíveis nesta visualização 📋",
       "ACTIVE_EMPTY_STATE_TITLE": "Nenhum contato está ativo no momento 🌙"
     },
-    "LOAD_MORE": "Carregar mais"
+    "LOAD_MORE": "Carregar mais",
+    "OPEN_CONVERSATION": {
+      "BUTTON": "Abrir conversa",
+      "TITLE": "Qual caixa de entrada você quer usar?",
+      "EMPTY": "Este contato ainda não pode ser alcançado por nenhuma caixa de entrada. Cadastre antes um telefone ou e-mail no contato.",
+      "LOAD_ERROR": "Não foi possível carregar as caixas de entrada deste contato.",
+      "OPEN_ERROR": "Não foi possível abrir a conversa. Tente novamente."
+    },
+    "LIST": {
+      "NAME": "Nome",
+      "PHONE": "Telefone",
+      "EMAIL": "E-mail",
+      "LAST_ACTIVITY": "Última atividade"
+    }
   },
   "CONTACTS_BULK_ACTIONS": {
     "ASSIGN_LABELS": "Atribuir rótulo",
-    "REMOVE_LABELS": "Remover Etiquetas",
+    "REMOVE_LABELS": "Remover etiquetas",
     "ASSIGN_LABELS_SUCCESS": "Rótulos atribuídos com sucesso.",
     "ASSIGN_LABELS_FAILED": "Falha ao atribuir etiquetas",
     "REMOVE_LABELS_SUCCESS": "Etiquetas removidas com sucesso.",
@@ -632,7 +659,7 @@
       },
       "INBOX_SELECTOR": {
         "LABEL": "Via:",
-        "BUTTON": "Mostrar Caixas de Entrada"
+        "BUTTON": "Mostrar caixas de entrada"
       },
       "EMAIL_OPTIONS": {
         "SUBJECT_LABEL": "Assunto:",

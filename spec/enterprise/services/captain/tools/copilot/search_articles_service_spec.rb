@@ -87,6 +87,12 @@ RSpec.describe Captain::Tools::Copilot::SearchArticlesService do
         expect(result).to include(article2.to_llm_text)
       end
 
+      it 'includes AI-only articles' do
+        article1.update!(ai_only: true)
+
+        expect(service.execute(query: 'Test', category_id: nil, status: nil)).to include(article1.to_llm_text)
+      end
+
       context 'when filtered by category' do
         let(:category) { create(:category, slug: 'test-category', portal: portal, account: account) }
         let!(:article3) { create(:article, account: account, portal: portal, author: user, category: category, title: 'Test Article 3') }

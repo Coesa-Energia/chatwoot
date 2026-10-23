@@ -58,7 +58,13 @@ Rails.application.configure do
 
   # Use an evented file watcher to asynchronously detect changes in source code,
   # routes, locales, etc. This feature depends on the listen gem.
-  config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+  # Bind mounts from Windows/macOS hosts do not emit inotify events inside Docker,
+  # so set RAILS_FILE_WATCHER_POLLING=1 there to fall back to mtime polling.
+  config.file_watcher = if ENV['RAILS_FILE_WATCHER_POLLING'].present?
+                          ActiveSupport::FileUpdateChecker
+                        else
+                          ActiveSupport::EventedFileUpdateChecker
+                        end
 
   # Disable host check during development
   config.hosts = nil

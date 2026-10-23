@@ -69,6 +69,16 @@ class SuperAdmin::AccountsController < SuperAdmin::ApplicationController
     # rubocop:enable Rails/I18nLocaleTexts
   end
 
+  # Plan and billing dates. Extending the paid-until date of an account that was suspended for non-payment
+  # reactivates it, so receiving a payment is a single save.
+  def update_subscription
+    requested_resource.update!(subscription_params)
+    reactivate_after_payment(requested_resource)
+    redirect_to [namespace, requested_resource], notice: I18n.t('super_admin.accounts.subscription_saved')
+  rescue ActiveRecord::RecordInvalid => e
+    redirect_to [namespace, requested_resource], alert: e.message
+  end
+
   def destroy
     account = Account.find(params[:id])
 
@@ -79,6 +89,17 @@ class SuperAdmin::AccountsController < SuperAdmin::ApplicationController
   end
 
   private
+
+  def subscription_params
+    params.require(:account).permit(:saas_plan, :saas_trial_ends_at, :saas_paid_until, :saas_notes)
+  end
+
+  def reactivate_after_payment(account)
+    return unless account.suspended? && account.suspension_history.last&.dig('category') == 'non_payment'
+    return if account.subscription_ends_on.blank? || account.subscription_expired?
+
+    account.update!(status: :active)
+  end
 
   def validate_suspension_metadata
     return unless suspension_metadata_required?

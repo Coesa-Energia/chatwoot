@@ -338,7 +338,8 @@
           "ACTIONS": "Ações"
         },
         "EDIT_TOOLTIP": "Alterar aplicativo",
-        "DELETE_TOOLTIP": "Excluir aplicativo"
+        "DELETE_TOOLTIP": "Excluir aplicativo",
+        "ALL_INBOXES": "Todas as caixas de entrada"
       },
       "FORM": {
         "TITLE_LABEL": "Nome",
@@ -346,7 +347,10 @@
         "TITLE_ERROR": "É necessário um nome para o aplicativo",
         "URL_LABEL": "Endpoint",
         "URL_PLACEHOLDER": "Digite a URL do endpoint onde seu aplicativo está hospedado",
-        "URL_ERROR": "É necessário uma URL válida"
+        "URL_ERROR": "É necessário uma URL válida",
+        "INBOXES_LABEL": "Caixas de entrada",
+        "INBOXES_PLACEHOLDER": "Todas as caixas de entrada",
+        "INBOXES_HELP": "O app só aparece nas conversas das caixas escolhidas. Deixe vazio para mostrar em todas."
       },
       "CREATE": {
         "HEADER": "Adicionar um novo aplicativo",

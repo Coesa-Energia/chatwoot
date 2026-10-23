@@ -1,6 +1,11 @@
 {
   "HELP_CENTER": {
     "TITLE": "Centro de Ajuda",
+    "AI_ONLY": {
+      "LABEL": "Exclusivo para IA",
+      "BADGE": "Exclusivo para IA",
+      "HINT": "Só o Captain (IA) usa este artigo. Ele não aparece no site público nem para os vendedores."
+    },
     "NEW_PAGE": {
       "DESCRIPTION": "Crie portais centrais de ajuda de auto-serviço para seus clientes. Ajude-os a encontrar respostas rapidamente, sem esperar. Agilize dúvidas, aumente a eficiência dos agentes e eleve o suporte ao cliente.",
       "CREATE_PORTAL_BUTTON": "Criar portal"
@@ -18,7 +23,7 @@
       },
       "TITLES": {
         "ALL_ARTICLES": "Todos os artigos",
-        "MINE": "Meus Artigos",
+        "MINE": "Meus artigos",
         "DRAFT": "Artigos em rascunho",
         "ARCHIVED": "Artigos arquivados"
       },
@@ -58,7 +63,7 @@
       }
     },
     "ARTICLE_SETTINGS": {
-      "TITLE": "Configurações de Artigo",
+      "TITLE": "Configurações de artigo",
       "FORM": {
         "CATEGORY": {
           "LABEL": "Categoria",
@@ -115,7 +120,7 @@
       "ADD_NEW_LOCALE": "Adicionar uma nova localidade",
       "POPOVER": {
         "TITLE": "Portais",
-        "PORTAL_SETTINGS": "Configurações do Portal",
+        "PORTAL_SETTINGS": "Configurações do portal",
         "SUBTITLE": "Você tem vários portais e pode ter diferentes localidades para cada portal.",
         "CANCEL_BUTTON_LABEL": "Cancelar",
         "CHOOSE_LOCALE_BUTTON": "Escolher localidade"
@@ -130,14 +135,14 @@
             "DELETE": "Excluir"
           },
           "PORTAL_CONFIG": {
-            "TITLE": "Configurações do Portal",
+            "TITLE": "Configurações do portal",
             "ITEMS": {
               "NAME": "Nome",
               "DOMAIN": "Domínio personalizado",
               "SLUG": "Slug",
               "TITLE": "Título do portal",
               "THEME": "Cor do tema",
-              "SUB_TEXT": "Sub texto do Portal"
+              "SUB_TEXT": "Sub texto do portal"
             }
           },
           "AVAILABLE_LOCALES": {
@@ -174,10 +179,10 @@
         "HEADER_TEXT": "Alterar portal",
         "TABS": {
           "BASIC_SETTINGS": {
-            "TITLE": "Informação Básica"
+            "TITLE": "Informação básica"
           },
           "CUSTOMIZATION_SETTINGS": {
-            "TITLE": "Personalização do Portal"
+            "TITLE": "Personalização do portal"
           },
           "CATEGORY_SETTINGS": {
             "TITLE": "Categorias"
@@ -228,7 +233,7 @@
             "CREATE_BASIC_SETTING_BUTTON": "Criar configurações básicas do portal"
           },
           "CUSTOMIZATION_PAGE": {
-            "HEADER": "Personalização do Portal",
+            "HEADER": "Personalização do portal",
             "TITLE": "Personalização da central de ajuda",
             "UPDATE_PORTAL_BUTTON": "Atualizar configurações do portal"
           },
@@ -254,7 +259,7 @@
         },
         "SLUG": {
           "LABEL": "Slug",
-          "PLACEHOLDER": "Slug do Portal para URLs",
+          "PLACEHOLDER": "Slug do portal para URLs",
           "ERROR": "Slug é obrigatório"
         },
         "DOMAIN": {
@@ -264,7 +269,7 @@
           "ERROR": "Insira uma URL de domínio válida"
         },
         "HOME_PAGE_LINK": {
-          "LABEL": "Link da Página Inicial",
+          "LABEL": "Link da página inicial",
           "PLACEHOLDER": "Link da página inicial do portal",
           "HELP_TEXT": "O link usado para retornar do portal para a página inicial. Ex: {exampleURL}",
           "ERROR": "Digite uma URL de página inicial válida"
@@ -274,16 +279,16 @@
           "HELP_TEXT": "Esta cor será exibida como a cor do tema para o portal."
         },
         "PAGE_TITLE": {
-          "LABEL": "Título da Página",
+          "LABEL": "Título da página",
           "PLACEHOLDER": "Título da página do portal",
           "HELP_TEXT": "O título da página será usado no portal voltado para público.",
           "ERROR": "Título da página é obrigatório"
         },
         "HEADER_TEXT": {
-          "LABEL": "Texto do Cabeçalho",
+          "LABEL": "Texto do cabeçalho",
           "PLACEHOLDER": "Texto do cabeçalho do portal",
           "HELP_TEXT": "O texto do cabeçalho do Portal será usado no portal voltado para o público.",
-          "ERROR": "O texto do cabeçalho do Portal é obrigatório"
+          "ERROR": "O texto do cabeçalho do portal é obrigatório"
         },
         "API": {
           "SUCCESS_MESSAGE_FOR_BASIC": "Portal criado com sucesso.",
@@ -548,7 +553,8 @@
           "PENDING_EDITS_TOOLTIP": "Este artigo publicado possui alterações não publicadas",
           "CATEGORY": {
             "UNCATEGORISED": "Sem categoria"
-          }
+          },
+          "MORE_ACTIONS": "Ações do artigo"
         }
       },
       "ARTICLES_HEADER": {
@@ -563,7 +569,7 @@
           "ALL": "Todas as categorias"
         },
         "LOCALE": {
-          "ALL": "Todos os Idioma"
+          "ALL": "Todos os idioma"
         },
         "SEARCH_PLACEHOLDER": "Pesquisar artigos...",
         "NEW_ARTICLE": "Novo artigo"
@@ -765,10 +771,10 @@
           "LABEL": "Nome"
         },
         "PAGE_TITLE": {
-          "LABEL": "Título da Página"
+          "LABEL": "Título da página"
         },
         "HEADER_TEXT": {
-          "LABEL": "Texto do Cabeçalho"
+          "LABEL": "Texto do cabeçalho"
         },
         "API": {
           "SUCCESS_MESSAGE": "Conteúdo do idioma atualizado com sucesso",
@@ -851,6 +857,11 @@
       },
       "API": {
         "ERROR": "Erro ao salvar artigo"
+      },
+      "NOT_FOUND": {
+        "TITLE": "Artigo não encontrado",
+        "DESCRIPTION": "Este artigo foi removido ou não está disponível para você.",
+        "BACK": "Voltar para os artigos"
       }
     },
     "PORTAL_SWITCHER": {
@@ -867,7 +878,7 @@
       "CONFIRM_BUTTON_LABEL": "Criar",
       "NAME": {
         "LABEL": "Nome",
-        "PLACEHOLDER": "Guia do Usuário | Chatwoot",
+        "PLACEHOLDER": "Guia do usuário | Chatwoot",
         "MESSAGE": "Escolha um nome para o seu portal.",
         "ERROR": "O nome é obrigatório"
       },
@@ -894,15 +905,15 @@
           "ERROR": "O nome é obrigatório"
         },
         "HEADER_TEXT": {
-          "LABEL": "Texto do Cabeçalho",
+          "LABEL": "Texto do cabeçalho",
           "PLACEHOLDER": "Texto do cabeçalho do portal"
         },
         "PAGE_TITLE": {
-          "LABEL": "Título da Página",
+          "LABEL": "Título da página",
           "PLACEHOLDER": "Título da página do portal"
         },
         "HOME_PAGE_LINK": {
-          "LABEL": "Link da Página Inicial",
+          "LABEL": "Link da página inicial",
           "PLACEHOLDER": "Link da página inicial do portal",
           "ERROR": "Digite uma URL válida. O link da página inicial deve começar com 'http://' ou 'https://'."
         },
@@ -911,9 +922,9 @@
           "PLACEHOLDER": "Slug do portal"
         },
         "BRAND_COLOR": {
-          "LABEL": "Cor da Marca"
+          "LABEL": "Cor da marca"
         },
-        "SAVE_CHANGES": "Salvar Alterações"
+        "SAVE_CHANGES": "Salvar alterações"
       },
       "CONFIGURATION_FORM": {
         "CUSTOM_DOMAIN": {
@@ -984,7 +995,7 @@
           "ADD": "Adicionar link social",
           "REMOVE": "Excluir"
         },
-        "SAVE": "Salvar Alterações"
+        "SAVE": "Salvar alterações"
       },
       "INTEGRATIONS": {
         "HEADER": "Integrações",
@@ -1064,14 +1075,14 @@
       }
     },
     "PDF_UPLOAD": {
-      "TITLE": "Enviar Documento PDF",
+      "TITLE": "Enviar documento PDF",
       "DESCRIPTION": "Envie um documento PDF para gerar FAQs automaticamente com IA",
       "DRAG_DROP_TEXT": "Arraste e solte seu arquivo PDF aqui, clique para selecionar",
-      "SELECT_FILE": "Selecionar Arquivo PDF",
-      "ADDITIONAL_CONTEXT_LABEL": "Contexto Adicional (Opcional)",
+      "SELECT_FILE": "Selecionar arquivo PDF",
+      "ADDITIONAL_CONTEXT_LABEL": "Contexto adicional (Opcional)",
       "ADDITIONAL_CONTEXT_PLACEHOLDER": "Forneça qualquer contexto ou instruções adicionais para a geração de FAQs...",
       "UPLOADING": "Enviando...",
-      "UPLOAD": "Enviar e Processar",
+      "UPLOAD": "Enviar e processar",
       "CANCEL": "Cancelar",
       "ERROR_INVALID_TYPE": "Por favor, selecione um arquivo PDF válido",
       "ERROR_FILE_TOO_LARGE": "O tamanho do arquivo deve ser menor que 512MB",
@@ -1098,18 +1109,18 @@
       }
     },
     "CONTENT_GENERATION": {
-      "TITLE": "Geração de Conteúdo",
+      "TITLE": "Geração de conteúdo",
       "DESCRIPTION": "Envie documentos PDF para gerar conteúdo de FAQ automaticamente com IA",
-      "UPLOAD_TITLE": "Enviar Documento PDF",
+      "UPLOAD_TITLE": "Enviar documento PDF",
       "DRAG_DROP": "Arraste e solte seu arquivo PDF aqui, clique para selecionar",
-      "SELECT_FILE": "Selecionar Arquivo PDF",
+      "SELECT_FILE": "Selecionar arquivo PDF",
       "UPLOADING": "Processando documento...",
       "UPLOAD_SUCCESS": "Documento processado com sucesso!",
       "UPLOAD_ERROR": "Falha ao enviar o documento. Tente novamente.",
       "INVALID_FILE_TYPE": "Por favor, selecione um arquivo PDF válido",
       "FILE_TOO_LARGE": "O tamanho do arquivo deve ser menor que 512MB",
       "GENERATED_CONTENT": "Conteúdo gerado do FAQ",
-      "PUBLISH_SELECTED": "Publicar Selecionados",
+      "PUBLISH_SELECTED": "Publicar selecionados",
       "PUBLISHING": "Publicando...",
       "FROM_DOCUMENT": "A partir do documento",
       "NO_CONTENT": "Nenhum conteúdo gerado disponível. Envie um documento PDF para começar.",

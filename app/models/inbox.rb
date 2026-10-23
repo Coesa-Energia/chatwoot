@@ -11,6 +11,7 @@
 #  channel_type                  :string
 #  csat_config                   :jsonb            not null
 #  csat_survey_enabled           :boolean          default(FALSE)
+#  default_team_id               :bigint
 #  email_address                 :string
 #  enable_auto_assignment        :boolean          default(TRUE)
 #  enable_email_collect          :boolean          default(TRUE)
@@ -31,6 +32,7 @@
 # Indexes
 #
 #  index_inboxes_on_account_id                   (account_id)
+#  index_inboxes_on_default_team_id              (default_team_id)
 #  index_inboxes_on_channel_id_and_channel_type  (channel_id,channel_type)
 #  index_inboxes_on_portal_id                    (portal_id)
 #
@@ -41,6 +43,8 @@
 
 class Inbox < ApplicationRecord
   include Reportable
+  include InboxConversationAccess
+  include InboxDefaultTeam
   include Avatarable
   include OutOfOffisable
   include AccountCacheRevalidator
@@ -186,7 +190,9 @@ class Inbox < ApplicationRecord
     }
   end
 
-  def callback_webhook_url
+  # include_secret adds the 360dialog webhook token to the URL. Only pass it for administrators:
+  # anyone holding the token can post fake inbound messages.
+  def callback_webhook_url(include_secret: false)
     case channel_type
     when 'Channel::TwilioSms'
       "#{ENV.fetch('FRONTEND_URL', nil)}/twilio/callback"
@@ -195,7 +201,7 @@ class Inbox < ApplicationRecord
     when 'Channel::Line'
       "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/line/#{channel.line_channel_id}"
     when 'Channel::Whatsapp'
-      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/whatsapp/#{channel.phone_number}"
+      channel.callback_webhook_url(include_secret: include_secret)
     end
   end
 

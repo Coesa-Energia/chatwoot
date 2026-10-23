@@ -1,5 +1,6 @@
 class Messages::AudioTranscriptionJob < ApplicationJob
-  queue_as :low
+  # COESA: medium (was low) so the transcript reaches agents and AI bots in seconds, not after the backlog.
+  queue_as :medium
 
   discard_on Faraday::BadRequestError do |job, error|
     log_context = {

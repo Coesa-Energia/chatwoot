@@ -1,4 +1,4 @@
-<% authors = category.articles.published.order(position: :asc).filter_map(&:author).uniq %>
+<% authors = category.articles.published.visible_to_people.order(position: :asc).filter_map(&:author).uniq %>
 <% author_count = authors.size %>
 <% if author_count > 0 %>
   <div class="flex flex-row items-center gap-1">

@@ -10,7 +10,8 @@
       "NO_MESSAGES_AVAILABLE": "Oops! Not able to fetch messages",
       "SNOOZED_UNTIL": "Snoozed until",
       "SNOOZED_UNTIL_TOMORROW": "Snoozed until tomorrow",
-      "SNOOZED_UNTIL_NEXT_WEEK": "Snoozed until next week"
+      "SNOOZED_UNTIL_NEXT_WEEK": "Snoozed until next week",
+      "MORE_OPTIONS": "More options"
     },
     "ACTION_HEADER": {
       "SNOOZE": "Snooze notification",

@@ -700,3 +700,22 @@
   value: 'production'
   locked: false
 ## ---- End of mobile incoming-call push ---- ##
+# COESA: speech-to-text for voice notes and call recordings on any OpenAI-compatible server (self-hosted Whisper,
+# OpenAI, Groq...), independent of Captain. When AUDIO_TRANSCRIPTION_API_URL is set it replaces Captain for transcription.
+- name: AUDIO_TRANSCRIPTION_API_URL
+  display_title: 'Endereço do servidor de transcrição'
+  description: 'Servidor compatível com a API da OpenAI (Whisper próprio, OpenAI, Groq). Ex.: http://whisper.railway.internal:8000/v1 . Vazio = usa o Captain.'
+  locked: false
+- name: AUDIO_TRANSCRIPTION_API_KEY
+  display_title: 'Chave da API de transcrição (opcional)'
+  description: 'Deixe vazio para um Whisper próprio sem chave.'
+  locked: false
+  type: secret
+- name: AUDIO_TRANSCRIPTION_MODEL
+  display_title: 'Modelo de transcrição'
+  description: 'Nome do modelo no servidor. Ex.: Systran/faster-whisper-small (Whisper próprio), whisper-1 (OpenAI), whisper-large-v3-turbo (Groq).'
+  locked: false
+- name: AUDIO_TRANSCRIPTION_LANGUAGE
+  display_title: 'Idioma dos áudios (opcional)'
+  description: 'Código do idioma, ex.: pt. Informar deixa a transcrição mais rápida e precisa.'
+  locked: false

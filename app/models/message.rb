@@ -109,11 +109,12 @@ class Message < ApplicationRecord
   # [:external_created_at] : Can specify if the message was created at a different timestamp externally
   # [:external_error : Can specify if the message creation failed due to an error at external API
   # [:data] : Used for structured content types such as voice_call
+  # [:reactions] : WhatsApp emoji reactions, { 'contact' => '👍', 'business' => '❤️' }; see Whatsapp::IncomingReactionHandler
   store :content_attributes, accessors: [:submitted_email, :items, :submitted_values, :email, :in_reply_to, :deleted,
                                          :external_created_at, :story_sender, :story_id, :external_error,
                                          :translations, :translation_failed, :translation_provider, :source_language,
                                          :in_reply_to_external_id,
-                                         :is_unsupported, :data], coder: JSON
+                                         :is_unsupported, :data, :reactions], coder: JSON
 
   store :external_source_ids, accessors: [:slack], coder: JSON, prefix: :external_source_id
 

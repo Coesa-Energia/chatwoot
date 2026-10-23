@@ -1,9 +1,9 @@
 {
   "CALLS_PAGE": {
-    "HEADER": "Chamadas",
-    "ALL_CALLS": "Todas as chamadas",
-    "ALL_CALLS_COUNT": "Todas as chamadas ({count})",
-    "EMPTY_STATE": "Nenhuma chamada encontrada",
+    "HEADER": "Ligações",
+    "ALL_CALLS": "Todas as ligações",
+    "ALL_CALLS_COUNT": "Todas as ligações ({count})",
+    "EMPTY_STATE": "Nenhuma ligação encontrada",
     "SETUP": {
       "TITLE": "Faça e receba chamadas em um só lugar",
       "SUBTITLE": "Configure um canal de voz para começar a atender chamadas com sua equipe. Todas as chamadas, juntamente com suas gravações, aparecerão aqui.",
@@ -19,7 +19,7 @@
       "ASSIGNEE": "Agente atribuído",
       "ALL_ASSIGNEES": "Todos os atribuídos",
       "MORE_FILTERS": "Mais filtros",
-      "INBOX": "Caixa de Entrada",
+      "INBOX": "Caixa de entrada",
       "ALL_INBOXES": "Todas as caixas de entrada"
     },
     "STATUS": {

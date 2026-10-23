@@ -1,4 +1,5 @@
 class Api::V1::Accounts::Actions::ContactMergesController < Api::V1::Accounts::BaseController
+  before_action :check_admin_authorization?
   before_action :set_base_contact, only: [:create]
   before_action :set_mergee_contact, only: [:create]
 

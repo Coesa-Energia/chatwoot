@@ -43,7 +43,7 @@ class Public::Api::V1::Portals::CategoriesController < Public::Api::V1::Portals:
   end
 
   def load_category_articles
-    @articles = @category.articles.published.order(:position).includes(:author)
+    @articles = @category.articles.published.visible_to_people.order(:position).includes(:author)
     @category_authors = @articles.filter_map(&:author).uniq
   end
 end

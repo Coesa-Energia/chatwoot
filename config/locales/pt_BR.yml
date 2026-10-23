@@ -108,6 +108,7 @@ pt_BR:
       sso_not_enabled: O SSO via SAML não está habilitado para esta instalação
       multi_account_invitation_not_allowed: Usuários associados a outra conta não podem ser adicionados enquanto o SAML estiver habilitado
     conversations:
+      pinned_limit: "Você pode fixar até %{max} conversas. Desafixe uma para fixar outra."
       resolved: A conversa está resolvida e não aceita novas mensagens
       unread_counts:
         feature_not_enabled: O recurso de contagem de conversas não lidas não está habilitado para esta conta
@@ -169,6 +170,13 @@ pt_BR:
         outside_messaging_window: 'As informações de contato só podem ser solicitadas dentro da janela de atendimento ao cliente de 24 horas do WhatsApp.'
         template_not_configured: 'Fora da janela de atendimento ao cliente de 24 horas, é necessário usar um modelo aprovado do WhatsApp com o botão Solicitar informações de contato.'
         pending_request: 'Já existe uma solicitação de informações de contato pendente.'
+      send_unconfirmed: 'O WhatsApp não confirmou a entrega (tempo esgotado). A mensagem pode ter sido enviada ou não: confira a conversa antes de enviar novamente.'
+      reactions_unsupported: 'Reações só estão disponíveis para mensagens de canais WhatsApp Cloud.'
+      reaction_invalid: 'A reação deve ser um único emoji.'
+      reaction_failed: 'O WhatsApp não aceitou a reação. Tente novamente.'
+      retryable:
+        rate_limited: 'O WhatsApp está limitando a velocidade de envio deste número. A mensagem não foi entregue após várias tentativas automáticas; tente novamente em alguns minutos.'
+        connection: 'Não foi possível conectar ao WhatsApp após várias tentativas automáticas. A mensagem não foi entregue; tente novamente.'
       reauthorization:
         generic: 'Falha ao reautenticar o WhatsApp. Por favor, tente novamente.'
         not_supported: 'Reautenticação não é suportado por este tipo de canal WhatsApp.'
@@ -182,6 +190,28 @@ pt_BR:
         sdp_offer_required: 'sdp_offer é obrigatório'
         contact_phone_required: 'Número de telefone do contato é obrigatório'
         permission_request_failed: 'Falha ao enviar solicitação de permissão de chamada'
+        template:
+          invalid_name: 'O nome do modelo só pode ter letras minúsculas, números e sublinhado (_).'
+          body_variables: 'O texto do modelo não pode ter variáveis como {{1}}. Escreva o texto final.'
+          body_too_long: 'O texto do modelo está grande demais (máximo de %{max} caracteres).'
+          not_call_template: 'O modelo "%{name}" existe, mas não é um modelo de pedido de ligação.'
+        meta:
+          generic: 'Não foi possível completar a ligação agora. Tente novamente em instantes. Se continuar acontecendo, avise o administrador.'
+          code_label: 'código'
+          temporary_failure: 'O WhatsApp está instável neste momento. Aguarde alguns segundos e tente ligar de novo.'
+          test_number: 'Este número é um número de teste do WhatsApp e só pode ligar para quem está na lista permitida.'
+          payment_method: 'A conta do WhatsApp Business está sem forma de pagamento válida. Peça ao administrador para cadastrar uma no Meta Business.'
+          outside_window: 'O cliente não escreveu nas últimas 24 horas e o modelo de pedido de ligação ainda não está pronto. Peça ao administrador para criá-lo nas configurações da caixa de entrada (Ligações) e aguardar a aprovação do WhatsApp.'
+          calling_disabled: 'As ligações não estão ativadas neste número de WhatsApp. Peça ao administrador para ativar nas configurações da caixa de entrada.'
+          recipient_uncallable: 'Este contato não pode receber ligações pelo WhatsApp (não usa WhatsApp ou está com o aplicativo desatualizado).'
+          too_many_calls: 'Há ligações demais acontecendo ao mesmo tempo neste número. Tente de novo em instantes.'
+          already_in_call: 'Já existe uma ligação em andamento com este contato. Aguarde ela terminar.'
+          rate_limited: 'Foram iniciadas ligações demais em pouco tempo. Aguarde um pouco e tente de novo.'
+          permission_limit: 'Já pedimos permissão de ligação a este cliente recentemente. O WhatsApp só permite 1 pedido por dia e 2 por semana para cada cliente. Aguarde, ou peça para o cliente te chamar por mensagem ou ligar para o número.'
+          daily_limit: 'O limite diário de ligações iniciadas pela empresa foi atingido (100 ligações atendidas por 24 horas). Tente novamente amanhã.'
+          not_available: 'A ligação iniciada pela empresa ainda não está disponível para este número.'
+          quality_blocked: 'O WhatsApp bloqueou temporariamente as ligações deste número por avaliações de baixa qualidade. Aguarde a restrição acabar.'
+          permission_exists: 'Este cliente já deu permissão permanente para receber ligações. Você pode ligar direto.'
     google_translate:
       invalid_credentials: 'Esta chave do Google Cloud não está funcionando. Verifique o ID do projeto e o arquivo da chave e tente novamente.'
     openai:
@@ -337,6 +367,7 @@ pt_BR:
       whatsapp:
         list_button_label: 'Escolha um item'
         call_permission_request_body: 'Gostaríamos de ligar para você em relação à sua conversa.'
+        call_permission_template_body: 'Olá! Gostaríamos de ligar para você para continuar o seu atendimento. Toque no botão abaixo para permitir a ligação.'
         flow_response: 'Enviou uma resposta de um Flow'
         request_contact_info: 'Gostaria de compartilhar seu número de telefone conosco?'
         unsupported_message: 'Esta mensagem não está disponível.'
@@ -389,7 +420,9 @@ pt_BR:
         issue_unlinked: 'Problema linear %{issue_id} foi desvinculado por %{user_name}'
       whatsapp_call:
         permission_requested: 'Solicitação de permissão de chamada enviada para %{contact_name}.'
-        permission_granted: '%{contact_name} aceitou a solicitação de permissão de chamada.'
+        permission_granted: '%{contact_name} permitiu ligações. Atenção: se ele não atender 4 ligações seguidas, o WhatsApp remove a permissão (0 de 4 até agora).'
+        unanswered_call: 'Ligação sem resposta (%{count} de %{max} seguidas). Se %{contact_name} não atender %{max} seguidas, o WhatsApp remove a permissão de ligação.'
+        permission_revoked: '%{max} ligações seguidas sem resposta: o WhatsApp removeu a permissão de ligação de %{contact_name}. Para ligar de novo é preciso pedir permissão outra vez.'
       csat:
         not_sent_due_to_messaging_window: 'Pesquisa CSAT não foi enviada devido a restrições de envio de mensagens'
       auto_resolve:

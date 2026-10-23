@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/ClassLength
 class Conversations::UnreadCounts::Counter
   MANAGE_ALL_PERMISSION = 'conversation_manage'.freeze
   UNASSIGNED_PERMISSION = 'conversation_unassigned_manage'.freeze
@@ -102,8 +103,19 @@ class Conversations::UnreadCounts::Counter
     counts_for_grouped_keys(keys_by_id)
   end
 
+  # In an inbox where the agent only sees their own conversations, only conversations assigned to them count.
+  def effective_mode(inbox_id)
+    return permission_mode unless %i[base unassigned_and_mine].include?(permission_mode)
+
+    restricted_inbox_ids.include?(inbox_id) ? :mine : permission_mode
+  end
+
+  def restricted_inbox_ids
+    @restricted_inbox_ids ||= account_user&.administrator? ? [] : ::Inboxes::ConversationAccess.restricted_inbox_ids(user: user, account: account)
+  end
+
   def inbox_keys_for_mode(inbox_id)
-    case permission_mode
+    case effective_mode(inbox_id)
     when :base
       [store.inbox_key(account.id, inbox_id)]
     when :unassigned_and_mine
@@ -114,7 +126,7 @@ class Conversations::UnreadCounts::Counter
   end
 
   def label_inbox_keys_for_mode(label_id, inbox_id)
-    case permission_mode
+    case effective_mode(inbox_id)
     when :base
       [store.label_inbox_key(account.id, label_id, inbox_id)]
     when :unassigned_and_mine
@@ -128,7 +140,7 @@ class Conversations::UnreadCounts::Counter
   end
 
   def team_inbox_keys_for_mode(team_id, inbox_id)
-    case permission_mode
+    case effective_mode(inbox_id)
     when :base
       [store.team_inbox_key(account.id, team_id, inbox_id)]
     when :unassigned_and_mine
@@ -151,7 +163,7 @@ class Conversations::UnreadCounts::Counter
   end
 
   def assignment_mode?
-    %i[unassigned_and_mine mine].include?(permission_mode)
+    %i[unassigned_and_mine mine].include?(permission_mode) || restricted_inbox_ids.any?
   end
 
   def permission_mode
@@ -211,3 +223,4 @@ class Conversations::UnreadCounts::Counter
     @filtered_counter ||= ::Conversations::UnreadCounts::FilteredCounter.new(account: account, user: user)
   end
 end
+# rubocop:enable Metrics/ClassLength

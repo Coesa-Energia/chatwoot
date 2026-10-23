@@ -6,7 +6,8 @@ RSpec.describe 'Enterprise Conversation Messages API', type: :request do
   describe 'DELETE /api/v1/accounts/{account.id}/conversations/:conversation_id/messages/:id' do
     let(:message) { create(:message, account: account, content: 'Secret original content') }
     let(:conversation) { message.conversation }
-    let(:agent) { create(:user, account: account, role: :agent) }
+    # admins may delete incoming messages; agents only their own (covered in the OSS spec)
+    let(:agent) { create(:user, account: account, role: :administrator) }
 
     before do
       create(:inbox_member, inbox: conversation.inbox, user: agent)

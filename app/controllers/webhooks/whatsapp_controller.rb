@@ -2,6 +2,7 @@ class Webhooks::WhatsappController < ActionController::API
   include MetaTokenVerifyConcern
 
   before_action :verify_meta_signature!, only: :process_payload
+  before_action :verify_webhook_token!, only: :process_payload
 
   def process_payload
     if inactive_whatsapp_number?
@@ -12,7 +13,10 @@ class Webhooks::WhatsappController < ActionController::API
 
     return head :ok if tracking_events_only?
 
-    Webhooks::WhatsappEventsJob.perform_later(params.to_unsafe_hash)
+    # The 360dialog secret token is only for authentication; keep it out of the job arguments.
+    Whatsapp::WebhookPayloadSplitter.split(params.to_unsafe_hash.except(:token)).each do |payload|
+      Webhooks::WhatsappEventsJob.perform_later(payload)
+    end
     head :ok
   end
 
@@ -42,12 +46,37 @@ class Webhooks::WhatsappController < ActionController::API
     @whatsapp_channel ||= whatsapp_business_payload_channel || Channel::Whatsapp.find_by(phone_number: params[:phone_number])
   end
 
+  # Webhooks are always authenticated. WhatsApp Cloud (Meta) signs them, so a valid
+  # X-Hub-Signature-256 is required even for manual channels; with no app secret configured
+  # (channel app_secret or the global WHATSAPP_APP_SECRET) every webhook is rejected.
+  # 360dialog does not sign webhooks; see verify_webhook_token!.
   def meta_signature_verification_required?
-    return true if whatsapp_channel.blank?
-    return false unless whatsapp_channel.provider == 'whatsapp_cloud'
-    return true if channel_meta_app_secrets(whatsapp_channel).present?
+    whatsapp_channel.blank? || whatsapp_channel.provider == 'whatsapp_cloud'
+  end
 
-    whatsapp_channel.provider_config['source'] == 'embedded_signup'
+  def verify_meta_signature!
+    if meta_signature_verification_required? && meta_app_secrets.all?(&:blank?)
+      Rails.logger.warn(
+        "[WHATSAPP] Webhook rejected: no Meta app secret is configured for #{whatsapp_channel&.phone_number || params[:phone_number]}. " \
+        'Set WHATSAPP_APP_SECRET (Super Admin > App Settings) or the channel app_secret.'
+      )
+    end
+    super
+  end
+
+  # 360dialog posts to a URL that carries the channel's secret token (?token=...), generated
+  # when the channel is created. A channel without a secret rejects everything.
+  def verify_webhook_token!
+    return unless whatsapp_channel&.provider == 'default'
+    return if valid_webhook_secret?(params[:token])
+
+    Rails.logger.warn("[WHATSAPP] 360dialog webhook rejected: missing or invalid token for #{whatsapp_channel.phone_number}")
+    head :unauthorized
+  end
+
+  def valid_webhook_secret?(provided)
+    expected = whatsapp_channel.provider_config['webhook_secret'].to_s
+    expected.present? && ActiveSupport::SecurityUtils.secure_compare(expected, provided.to_s)
   end
 
   def whatsapp_business_payload_channel

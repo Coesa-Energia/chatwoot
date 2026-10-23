@@ -187,51 +187,91 @@ describe Whatsapp::FacebookApiClient do
     let(:phone_number_id) { 'test_phone_id' }
     let(:callback_url) { 'https://example.com/webhook' }
     let(:verify_token) { 'test_verify_token' }
+    let(:json_headers) { { 'Content-Type' => 'application/json' } }
+    let(:auth_headers) { { 'Authorization' => "Bearer #{access_token}", 'Content-Type' => 'application/json' } }
+    let(:subscribed_apps_url) { "https://graph.facebook.com/#{api_version}/#{waba_id}/subscribed_apps" }
+    let(:subscribed_apps_body) { { data: [{ whatsapp_business_api_data: { id: app_id, name: 'App' }, override_callback_uri: 'https://prod.example.com/x' }] } }
+    let!(:override_stub) do
+      stub_request(:post, "https://graph.facebook.com/#{api_version}/#{phone_number_id}")
+        .with(headers: auth_headers,
+              body: { webhook_configuration: { override_callback_uri: callback_url, verify_token: verify_token } }.to_json)
+        .to_return(status: 200, body: { success: true }.to_json, headers: json_headers)
+    end
 
-    context 'when successful' do
-      before do
-        # Step 1: Subscribe app to WABA with the default field list (`calls` is added only when voice is enabled).
-        # Pinning the body guards against regressions that drop a field and break delivery.
-        stub_request(:post, "https://graph.facebook.com/#{api_version}/#{waba_id}/subscribed_apps")
-          .with(
-            headers: { 'Authorization' => "Bearer #{access_token}", 'Content-Type' => 'application/json' },
-            body: { subscribed_fields: %w[messages smb_message_echoes] }.to_json
-          )
-          .to_return(
-            status: 200,
-            body: { success: true }.to_json,
-            headers: { 'Content-Type' => 'application/json' }
-          )
+    def stub_subscribed_apps_list(body)
+      stub_request(:get, subscribed_apps_url).with(headers: auth_headers).to_return(status: 200, body: body.to_json, headers: json_headers)
+    end
 
-        # Step 2: Override callback at phone number level
-        stub_request(:post, "https://graph.facebook.com/#{api_version}/#{phone_number_id}")
-          .with(
-            headers: { 'Authorization' => "Bearer #{access_token}", 'Content-Type' => 'application/json' },
-            body: { webhook_configuration: { override_callback_uri: callback_url, verify_token: verify_token } }.to_json
-          )
-          .to_return(
-            status: 200,
-            body: { success: true }.to_json,
-            headers: { 'Content-Type' => 'application/json' }
-          )
+    def stub_subscribe_post(fields)
+      stub_request(:post, subscribed_apps_url)
+        .with(headers: auth_headers, body: { subscribed_fields: fields }.to_json)
+        .to_return(status: 200, body: { success: true }.to_json, headers: json_headers)
+    end
+
+    context 'when the app is not subscribed to the WABA yet' do
+      it 'subscribes it with the default fields and then sets the number callback' do
+        stub_subscribed_apps_list(data: [])
+        subscribe_stub = stub_subscribe_post(%w[messages smb_message_echoes])
+
+        result = api_client.subscribe_phone_number_webhook(waba_id, phone_number_id, callback_url, verify_token)
+
+        expect(result['success']).to be(true)
+        expect(subscribe_stub).to have_been_requested
+        expect(override_stub).to have_been_requested
+      end
+    end
+
+    context 'when the app is already subscribed to the WABA' do
+      before { stub_subscribed_apps_list(subscribed_apps_body) }
+
+      it 'only sets the number callback and never rewrites the WABA subscription' do
+        subscribe_stub = stub_subscribe_post(%w[messages smb_message_echoes])
+
+        api_client.subscribe_phone_number_webhook(waba_id, phone_number_id, callback_url, verify_token)
+
+        expect(subscribe_stub).not_to have_been_requested
+        expect(override_stub).to have_been_requested
       end
 
-      it 'returns success response' do
-        result = api_client.subscribe_phone_number_webhook(waba_id, phone_number_id, callback_url, verify_token)
-        expect(result['success']).to be(true)
+      it 'posts the subscription when calls has to be added to the fields' do
+        fields = %w[messages smb_message_echoes calls]
+        subscribe_stub = stub_subscribe_post(fields)
+
+        api_client.subscribe_phone_number_webhook(waba_id, phone_number_id, callback_url, verify_token, subscribed_fields: fields)
+
+        expect(subscribe_stub).to have_been_requested
+        expect(override_stub).to have_been_requested
+      end
+    end
+
+    context 'when only another app is subscribed to the WABA' do
+      it 'subscribes our app' do
+        stub_subscribed_apps_list(data: [{ whatsapp_business_api_data: { id: 'another_app_id' } }])
+        subscribe_stub = stub_subscribe_post(%w[messages smb_message_echoes])
+
+        api_client.subscribe_phone_number_webhook(waba_id, phone_number_id, callback_url, verify_token)
+
+        expect(subscribe_stub).to have_been_requested
+      end
+    end
+
+    context 'when the subscriptions of the WABA cannot be read' do
+      it 'falls back to subscribing the app' do
+        stub_request(:get, subscribed_apps_url).to_return(status: 500, body: { error: 'boom' }.to_json)
+        subscribe_stub = stub_subscribe_post(%w[messages smb_message_echoes])
+
+        api_client.subscribe_phone_number_webhook(waba_id, phone_number_id, callback_url, verify_token)
+
+        expect(subscribe_stub).to have_been_requested
       end
     end
 
     context 'when app subscription fails' do
-      before do
-        stub_request(:post, "https://graph.facebook.com/#{api_version}/#{waba_id}/subscribed_apps")
-          .with(
-            headers: { 'Authorization' => "Bearer #{access_token}", 'Content-Type' => 'application/json' }
-          )
-          .to_return(status: 400, body: { error: 'App subscription to WABA failed' }.to_json)
-      end
-
       it 'raises an error' do
+        stub_subscribed_apps_list(data: [])
+        stub_request(:post, subscribed_apps_url).with(headers: auth_headers)
+                                                .to_return(status: 400, body: { error: 'App subscription to WABA failed' }.to_json)
+
         expect do
           api_client.subscribe_phone_number_webhook(waba_id, phone_number_id, callback_url, verify_token)
         end.to raise_error(/App subscription to WABA failed/)
@@ -239,28 +279,13 @@ describe Whatsapp::FacebookApiClient do
     end
 
     context 'when phone number callback override fails' do
-      before do
-        # Step 1 succeeds
-        stub_request(:post, "https://graph.facebook.com/#{api_version}/#{waba_id}/subscribed_apps")
-          .with(
-            headers: { 'Authorization' => "Bearer #{access_token}", 'Content-Type' => 'application/json' }
-          )
-          .to_return(
-            status: 200,
-            body: { success: true }.to_json,
-            headers: { 'Content-Type' => 'application/json' }
-          )
-
-        # Step 2 fails
-        stub_request(:post, "https://graph.facebook.com/#{api_version}/#{phone_number_id}")
-          .with(
-            headers: { 'Authorization' => "Bearer #{access_token}", 'Content-Type' => 'application/json' },
-            body: { webhook_configuration: { override_callback_uri: callback_url, verify_token: verify_token } }.to_json
-          )
-          .to_return(status: 400, body: { error: 'Phone number webhook callback override failed' }.to_json)
-      end
-
       it 'raises an error' do
+        stub_subscribed_apps_list(subscribed_apps_body)
+        stub_request(:post, "https://graph.facebook.com/#{api_version}/#{phone_number_id}")
+          .with(headers: auth_headers,
+                body: { webhook_configuration: { override_callback_uri: callback_url, verify_token: verify_token } }.to_json)
+          .to_return(status: 400, body: { error: 'Phone number webhook callback override failed' }.to_json)
+
         expect do
           api_client.subscribe_phone_number_webhook(waba_id, phone_number_id, callback_url, verify_token)
         end.to raise_error(/Phone number webhook callback override failed/)

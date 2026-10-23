@@ -15,6 +15,13 @@ class SendReplyJob < ApplicationJob
     'Channel::Api' => ::Messages::SendEmailNotificationService
   }.freeze
 
+  # WhatsApp rate limits and connection failures (the request never reached Meta) are safe to
+  # retry. Back off 10s, 20s, 30s, 40s; when attempts run out, mark the message as failed so
+  # the agent sees it and can resend.
+  retry_on CustomExceptions::WhatsappRetryableError, wait: ->(executions) { executions * 10.seconds }, attempts: 5 do |job, error|
+    Message.find_by(id: job.arguments.first)&.update!(status: :failed, external_error: error.message)
+  end
+
   def perform(message_id)
     message = Message.find(message_id)
     channel_name = message.conversation.inbox.channel.class.to_s

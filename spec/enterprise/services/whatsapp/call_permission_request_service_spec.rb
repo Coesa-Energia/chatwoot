@@ -17,6 +17,7 @@ describe Whatsapp::CallPermissionRequestService do
   before do
     allow(Whatsapp::Providers::WhatsappCloudService).to receive(:new).and_return(provider_service)
     allow(Conversations::ActivityMessageJob).to receive(:perform_later)
+    create(:message, account: account, inbox: inbox, conversation: conversation, message_type: :incoming)
   end
 
   it 'throttles permission requests for the same recipient' do
@@ -30,6 +31,16 @@ describe Whatsapp::CallPermissionRequestService do
     expect(first_status).to eq('permission_requested')
     expect(second_status).to eq('permission_pending')
     expect(provider_service).to have_received(:send_call_permission_request).once
+  end
+
+  it 'does not count an incoming call bubble as the customer writing' do
+    conversation.messages.update_all(content_type: Message.content_types[:voice_call]) # rubocop:disable Rails/SkipsModelValidations
+    allow(Whatsapp::CallPermissionTemplateService).to receive(:new)
+      .and_return(instance_double(Whatsapp::CallPermissionTemplateService, approved?: false))
+    allow(provider_service).to receive(:send_call_permission_request)
+
+    expect(described_class.new(conversation: conversation, recipient: 'IN.2081978709342942').perform).to eq('failed')
+    expect(provider_service).not_to have_received(:send_call_permission_request)
   end
 
   it 'throttles pre-upgrade permission requests stored directly on the conversation' do

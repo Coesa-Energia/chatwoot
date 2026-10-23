@@ -1,4 +1,4 @@
-module Enterprise::Whatsapp::Providers::WhatsappCloudService
+module Enterprise::Whatsapp::Providers::WhatsappCloudService # rubocop:disable Metrics/ModuleLength
   # Calls API + the call_permission_request interactive message both require Graph
   # API v17+; OSS phone_id_path is locked at v13.0 for legacy /messages compatibility.
   # Use the configured global version (defaulting to v22.0) for call-flow endpoints.
@@ -20,17 +20,53 @@ module Enterprise::Whatsapp::Providers::WhatsappCloudService
     call_api('terminate_call', call_action_body(call_id, 'terminate'))
   end
 
+  # Free-form permission request; Meta only delivers it inside the 24h customer-service window.
+  # Raises Voice::CallErrors::PermissionRequestFailed (readable message + Meta code) on failure.
   def send_call_permission_request(recipient, body_text = I18n.t('conversations.messages.whatsapp.call_permission_request_body'))
-    response = HTTParty.post(
-      "#{calls_phone_id_path}/messages", headers: api_headers, body: permission_request_body(recipient, body_text)
-    )
+    post_permission_message(permission_request_body(recipient, body_text), 'send_call_permission_request')
+  end
 
+  # Template-based permission request (call_permission_request component). Works outside the 24h window.
+  def send_call_permission_template(recipient, name, language)
+    post_permission_message(permission_template_body(recipient, name, language), 'send_call_permission_template')
+  end
+
+  # Registers the call-permission template on the WABA; Meta reviews it, so it starts out PENDING.
+  # Returns the parsed response, or raises Voice::CallErrors::CallFailed.
+  def create_call_permission_template(name:, language:, body:, category: 'UTILITY')
+    payload = call_permission_template_payload(name, language, body, category)
+    response = HTTParty.post("#{calls_business_account_path}/message_templates", headers: api_headers, body: payload.to_json)
+    return response.parsed_response if response.success?
+
+    Rails.logger.error "[WHATSAPP CALL] create_call_permission_template failed: status=#{response.code} body=#{response.body}"
+    error = parsed_meta_error(response)
+    raise Voice::CallErrors::CallFailed.new(meta_error_message(error, 'Failed to create template'), code: error['code'])
+  end
+
+  # The WABA's template with this name as Meta has it (status, body, rejection reason), or nil when it does
+  # not exist. Raises Voice::CallErrors::CallFailed when Meta cannot be reached.
+  def find_message_template(name)
+    response = HTTParty.get("#{calls_business_account_path}/message_templates", headers: api_headers, query: {
+                              name: name, fields: 'id,name,status,language,category,components,rejected_reason'
+                            })
     unless response.success?
-      Rails.logger.error "[WHATSAPP CALL] send_call_permission_request failed: status=#{response.code} body=#{response.body}"
-      return nil
+      Rails.logger.error "[WHATSAPP CALL] find_message_template failed: status=#{response.code} body=#{response.body}"
+      raise Voice::CallErrors::CallFailed.new(meta_error_message(parsed_meta_error(response), 'Failed to read template'),
+                                              code: parsed_meta_error(response)['code'])
     end
 
-    response.parsed_response
+    Array(response.parsed_response['data']).find { |template| template['name'] == name }
+  end
+
+  # What the contact allowed this number to do, plus Meta's request/call limits
+  # (GET /{phone}/call_permissions). Raises Voice::CallErrors::CallFailed on failure.
+  def fetch_call_permissions(recipient)
+    response = HTTParty.get("#{calls_phone_id_path}/call_permissions", headers: api_headers, query: call_permission_query(recipient))
+    return response.parsed_response if response.success?
+
+    Rails.logger.error "[WHATSAPP CALL] fetch_call_permissions failed: status=#{response.code} body=#{response.body}"
+    code = parsed_meta_error(response)['code']
+    raise Voice::CallErrors::CallFailed.new(Voice::CallErrors.friendly_message(code), code: code)
   end
 
   def initiate_call(recipient, sdp_offer)
@@ -64,6 +100,12 @@ module Enterprise::Whatsapp::Providers::WhatsappCloudService
     "#{base}/#{version}/#{whatsapp_channel.provider_config['phone_number_id']}"
   end
 
+  def calls_business_account_path
+    base = ENV.fetch('WHATSAPP_CLOUD_BASE_URL', 'https://graph.facebook.com')
+    version = GlobalConfigService.load('WHATSAPP_API_VERSION', WHATSAPP_CALLING_API_VERSION_FALLBACK)
+    "#{base}/#{version}/#{whatsapp_channel.provider_config['business_account_id']}"
+  end
+
   def call_action_body(call_id, action, sdp_answer = nil)
     body = { messaging_product: 'whatsapp', call_id: call_id, action: action }
     body[:session] = { sdp: sdp_answer, sdp_type: 'answer' } if sdp_answer
@@ -90,6 +132,38 @@ module Enterprise::Whatsapp::Providers::WhatsappCloudService
     }.to_json
   end
 
+  def permission_template_body(recipient, name, language)
+    {
+      messaging_product: 'whatsapp', recipient_type: 'individual', **recipient_params(recipient),
+      type: 'template', template: { name: name, language: { code: language } }
+    }.to_json
+  end
+
+  def call_permission_template_payload(name, language, body, category)
+    {
+      name: name, language: language, category: category, allow_category_change: true,
+      components: [{ type: 'BODY', text: body }, { type: 'call_permission_request' }]
+    }
+  end
+
+  def post_permission_message(body, action_name)
+    response = HTTParty.post("#{calls_phone_id_path}/messages", headers: api_headers, body: body)
+    return response.parsed_response if response.success?
+
+    Rails.logger.error "[WHATSAPP CALL] #{action_name} failed: status=#{response.code} body=#{response.body}"
+    code = parsed_meta_error(response)['code']
+    raise Voice::CallErrors::PermissionRequestFailed.new(Voice::CallErrors.friendly_message(code), code: code)
+  end
+
+  def call_permission_query(recipient)
+    recipient.to_s.match?(RegexHelper::WHATSAPP_BSUID_REGEX) ? { recipient: recipient } : { user_wa_id: recipient }
+  end
+
+  def parsed_meta_error(response)
+    parsed = response.parsed_response.is_a?(Hash) ? response.parsed_response : {}
+    parsed['error'].is_a?(Hash) ? parsed['error'] : {}
+  end
+
   def initiate_call_body(recipient, sdp_offer)
     {
       messaging_product: 'whatsapp', **call_recipient_params(recipient), action: 'connect',
@@ -105,14 +179,14 @@ module Enterprise::Whatsapp::Providers::WhatsappCloudService
     return response.parsed_response if response.success?
 
     Rails.logger.error "[WHATSAPP CALL] initiate_call failed: status=#{response.code} body=#{response.body}"
-    parsed = response.parsed_response.is_a?(Hash) ? response.parsed_response : {}
-    error = parsed['error'].is_a?(Hash) ? parsed['error'] : {}
+    error = parsed_meta_error(response)
     error_code = error['code']
-    error_msg = meta_error_message(error, 'Failed to initiate call')
+    if error_code == Voice::CallErrors::NO_CALL_PERMISSION_CODE
+      raise Voice::CallErrors::NoCallPermission,
+            meta_error_message(error, 'Failed to initiate call')
+    end
 
-    raise Voice::CallErrors::NoCallPermission, error_msg if error_code == Voice::CallErrors::NO_CALL_PERMISSION_CODE
-
-    raise Voice::CallErrors::CallFailed, error_msg
+    raise Voice::CallErrors::CallFailed.new(Voice::CallErrors.friendly_message(error_code), code: error_code)
   end
 
   # Meta often returns a blank error_user_msg (e.g. code 131044 business-eligibility);

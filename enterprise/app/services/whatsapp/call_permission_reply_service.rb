@@ -1,6 +1,7 @@
 class Whatsapp::CallPermissionReplyService
   REQUESTS_KEY = 'call_permission_requests'.freeze
   REQUESTED_AT_KEY = 'call_permission_requested_at'.freeze
+  GRANTED_AT_KEY = Whatsapp::UnansweredCallNotifier::GRANTED_AT_KEY
   MESSAGE_ID_KEY = 'call_permission_request_message_id'.freeze
 
   pattr_initialize [:inbox!, :params!]
@@ -71,6 +72,8 @@ class Whatsapp::CallPermissionReplyService
       attrs = attrs.except(REQUESTED_AT_KEY, MESSAGE_ID_KEY) if attrs[MESSAGE_ID_KEY] == context_id
       attrs = attrs.merge(REQUESTS_KEY => permission_requests)
       attrs = attrs.except(REQUESTS_KEY) if permission_requests.blank?
+      # Starts the "4 unanswered calls" count over for the permission just granted.
+      attrs = attrs.merge(GRANTED_AT_KEY => Time.current.iso8601)
       conversation.update!(additional_attributes: attrs)
     end
   end

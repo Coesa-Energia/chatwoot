@@ -64,6 +64,11 @@ class AgentBot < ApplicationRecord
     }
   end
 
+  # Lets ConversationFinder list an automation profile's account like it does for an administrator.
+  def assigned_inboxes
+    Inbox.where(account_id: account_id)
+  end
+
   def system_bot?
     account.nil?
   end

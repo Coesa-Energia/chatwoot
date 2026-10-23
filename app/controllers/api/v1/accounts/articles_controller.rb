@@ -7,7 +7,7 @@ class Api::V1::Accounts::ArticlesController < Api::V1::Accounts::BaseController
   before_action :discard_invalid_author, only: [:update]
 
   def index
-    @portal_articles = @portal.articles
+    @portal_articles = visible_articles
 
     set_article_count
 
@@ -62,7 +62,11 @@ class Api::V1::Accounts::ArticlesController < Api::V1::Accounts::BaseController
   end
 
   def fetch_article
-    @article = @portal.articles.find(params[:id])
+    @article = visible_articles.find(params[:id])
+  end
+
+  def visible_articles
+    @portal.articles.visible_to(policy(Article).update?)
   end
 
   def validate_author
@@ -108,9 +112,7 @@ class Api::V1::Accounts::ArticlesController < Api::V1::Accounts::BaseController
   def article_params
     params.require(:article).permit(
       :title, :slug, :position, :content, :description, :category_id, :author_id, :associated_article_id, :status,
-      :locale, :draft_title, :draft_content, meta: [:title,
-                                                    :description,
-                                                    { tags: [] }]
+      :locale, :draft_title, :draft_content, :ai_only, meta: [:title, :description, { tags: [] }]
     )
   end
 

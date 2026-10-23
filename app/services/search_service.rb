@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/ClassLength
 class SearchService
   pattr_initialize [:current_user!, :current_account!, :params!, :search_type!]
 
@@ -30,12 +31,17 @@ class SearchService
     @search_query ||= params[:q].to_s.strip
   end
 
+  CONVERSATION_SEARCH_SQL = <<~SQL.squish.freeze
+    cast(conversations.display_id as text) ILIKE :search OR contacts.name ILIKE :search OR contacts.email ILIKE :search
+    OR contacts.phone_number ILIKE ANY (ARRAY[:phone_search]) OR contacts.identifier ILIKE :search
+    OR conversations.additional_attributes->>'mail_subject' ILIKE :search
+  SQL
+
   def filter_conversations
-    conversations_query = current_account.conversations.where(inbox_id: accessable_inbox_ids)
-                                         .joins('INNER JOIN contacts ON conversations.contact_id = contacts.id')
-                                         .where("cast(conversations.display_id as text) ILIKE :search OR contacts.name ILIKE :search OR contacts.email
-                            ILIKE :search OR contacts.phone_number ILIKE :search OR contacts.identifier ILIKE :search
-                            OR conversations.additional_attributes->>'mail_subject' ILIKE :search", search: "%#{search_query}%")
+    conversations_query = visible_conversations.where(inbox_id: accessable_inbox_ids)
+                                               .joins('INNER JOIN contacts ON conversations.contact_id = contacts.id')
+                                               .where(CONVERSATION_SEARCH_SQL, search: "%#{search_query}%",
+                                                                               phone_search: PhoneSearchPatterns.for(search_query))
 
     if current_account.feature_enabled?('advanced_search')
       conversations_query = apply_time_filter(conversations_query,
@@ -83,7 +89,8 @@ class SearchService
       # split_query = search_query.split.map { |term| "#{term} | #{term}:*" }.join(' & ')
 
       # This will do entire sentence matching using phrase distance operator
-      tsquery = search_query.split.join(' <-> ')
+      tsquery = gin_tsquery
+      return base_query.none.page(params[:page]).per(15) if tsquery.blank?
 
       # Apply the text search using the GIN index
       base_query.where('content @@ to_tsquery(?)', tsquery)
@@ -97,6 +104,13 @@ class SearchService
     end
   end
 
+  # Phrase tsquery from the search text. Strips tsquery syntax characters (' : & | ! ( ) < >)
+  # from each term: left in, a query like "it's" or "a:b" raises a syntax error instead of
+  # returning results.
+  def gin_tsquery
+    search_query.split.filter_map { |term| term.gsub(/[^[:alnum:]_]/, '').presence }.join(' <-> ')
+  end
+
   def filter_messages_with_like
     base_query = message_base_query
     base_query = apply_message_filters(base_query)
@@ -107,9 +121,30 @@ class SearchService
   end
 
   def message_base_query
-    query = current_account.messages.where('created_at >= ?', search_window_start)
+    query = current_account.messages
+    query = query.where('messages.created_at >= ?', search_window_start) if search_window_days.positive?
     query = query.where(inbox_id: accessable_inbox_ids) unless should_skip_inbox_filtering?
-    query
+    restrict_to_visible_conversations(query)
+  end
+
+  # Conversations the user may open (agents restricted to their own conversations in some inboxes).
+  def visible_conversations
+    return current_account.conversations if account_user.administrator?
+
+    ::Inboxes::ConversationAccess.apply(current_account.conversations, user: current_user, account: current_account)
+  end
+
+  def restrict_to_visible_conversations(query)
+    return query if account_user.administrator?
+    return query if ::Inboxes::ConversationAccess.restricted_inbox_ids(user: current_user, account: current_account).empty?
+
+    query.where(conversation_id: visible_conversations.select(:id))
+  end
+
+  # How far back message/conversation search looks. Unlimited by default (like the WhatsApp app);
+  # set MESSAGE_SEARCH_WINDOW_DAYS to cap it if searches get slow on a very large database.
+  def search_window_days
+    ENV.fetch('MESSAGE_SEARCH_WINDOW_DAYS', 0).to_i
   end
 
   def apply_message_filters(query)
@@ -166,7 +201,8 @@ class SearchService
   def filter_contacts
     contacts_query = current_account.contacts.where(
       "name ILIKE :search OR email ILIKE :search OR phone_number
-      ILIKE :search OR identifier ILIKE :search", search: "%#{search_query}%"
+      ILIKE ANY (ARRAY[:phone_search]) OR identifier ILIKE :search",
+      search: "%#{search_query}%", phone_search: PhoneSearchPatterns.for(search_query)
     )
 
     contacts_query = apply_time_filter(contacts_query, 'last_activity_at') if current_account.feature_enabled?('advanced_search')
@@ -177,7 +213,8 @@ class SearchService
   end
 
   def filter_articles
-    articles_query = current_account.articles.text_search(search_query)
+    can_manage = ArticlePolicy.new({ user: current_user, account: current_account, account_user: account_user }, Article).update?
+    articles_query = current_account.articles.visible_to(can_manage).text_search(search_query)
     articles_query = apply_time_filter(articles_query, 'updated_at') if current_account.feature_enabled?('advanced_search')
 
     @articles = articles_query.page(params[:page]).per(15)
@@ -191,14 +228,16 @@ class SearchService
     query
   end
 
+  # Lower bound of the search window; epoch when unlimited (our default, see search_window_days).
   def search_window_start
-    Limits.search_time_range_limit_days.days.ago
+    search_window_days.positive? ? search_window_days.days.ago : Time.zone.at(0)
   end
 
   def cap_since_time(since_param)
     requested_time = Time.zone.at(since_param.to_i)
+    return requested_time unless search_window_days.positive?
 
-    # Silently cap to the search window start if requested time is too far back
+    # Silently cap to the configured window if requested time is too far back
     [requested_time, search_window_start].max
   end
 
@@ -211,3 +250,4 @@ class SearchService
 end
 
 SearchService.prepend_mod_with('SearchService')
+# rubocop:enable Metrics/ClassLength

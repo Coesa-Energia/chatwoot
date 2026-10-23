@@ -8,11 +8,13 @@ dispatch_conversation_monitors_job:
   class: 'Internal::DispatchConversationMonitorsJob'
   queue: scheduled_jobs
 
+# COESA FORK: verificação de versão/planos do Hub desligada. Job mantido como no-op para religar depois.
 # executed daily at 0000 UTC; schedules deferred jobs at stable times for each installation
 internal_check_new_versions_job:
   cron: '0 0 * * *'
   class: 'Internal::TriggerDailyScheduledItemsJob'
   queue: scheduled_jobs
+  enabled: false
 # # executed At every 5th minute..
 trigger_scheduled_items_job:
   cron: '*/5 * * * *'
@@ -92,3 +94,10 @@ remove_orphan_conversations_job:
   cron: '0 */12 * * *'
   class: 'Internal::RemoveOrphanConversationsJob'
   queue: housekeeping
+
+# executed daily at 0300 UTC
+# suspends accounts whose trial / paid-until date (SuperAdmin > Plan & billing) has passed, after a grace period
+suspend_expired_subscriptions_job:
+  cron: '0 3 * * *'
+  class: 'Internal::SuspendExpiredSubscriptionsJob'
+  queue: scheduled_jobs

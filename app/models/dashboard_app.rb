@@ -4,6 +4,7 @@
 #
 #  id         :bigint           not null, primary key
 #  content    :jsonb
+#  inbox_ids  :bigint           default([]), not null, is an Array
 #  title      :string           not null
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
@@ -19,8 +20,15 @@ class DashboardApp < ApplicationRecord
   belongs_to :user
   belongs_to :account
   validate :validate_content
+  before_validation :keep_account_inbox_ids
 
   private
+
+  # inbox_ids come from the request; keep only inboxes of this account. Empty = shown in every inbox.
+  def keep_account_inbox_ids
+    ids = Array(inbox_ids).compact_blank.map(&:to_i).uniq
+    self.inbox_ids = ids.empty? || account.nil? ? [] : account.inboxes.where(id: ids).pluck(:id)
+  end
 
   def validate_content
     has_invalid_data = self[:content].blank? || !self[:content].is_a?(Array)

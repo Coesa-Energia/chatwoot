@@ -13,6 +13,8 @@ class Api::V1::Accounts::InboxMembersController < Api::V1::Accounts::BaseControl
 
     ActiveRecord::Base.transaction do
       @inbox.add_members(agents_to_be_added_ids)
+      update_conversation_access
+      update_rotation
     end
     fetch_updated_agents
   end
@@ -44,6 +46,23 @@ class Api::V1::Accounts::InboxMembersController < Api::V1::Accounts::BaseControl
 
   def fetch_updated_agents
     @agents = Current.account.users.where(id: @inbox.members.select(:user_id))
+    @see_all_user_ids = @inbox.inbox_members.where(see_all_conversations: true).pluck(:user_id)
+    @rotation_user_ids = @inbox.rotation_member_ids
+  end
+
+  # Optional `rotation_user_ids`: the members that take part in automatic assignment. Left alone when absent.
+  def update_rotation
+    return unless params.key?(:rotation_user_ids)
+
+    @inbox.update_rotation(Array(params[:rotation_user_ids]))
+  end
+
+  # Optional `see_all_user_ids`: the members that may see every conversation of the inbox. The other members
+  # only see the conversations assigned to them or where they take part. Left alone when the param is absent.
+  def update_conversation_access
+    return unless params.key?(:see_all_user_ids)
+
+    @inbox.update_conversation_access(Array(params[:see_all_user_ids]))
   end
 
   def update_agents_list
@@ -54,6 +73,8 @@ class Api::V1::Accounts::InboxMembersController < Api::V1::Accounts::BaseControl
     ActiveRecord::Base.transaction do
       @inbox.add_members(agents_to_be_added_ids)
       @inbox.remove_members(agents_to_be_removed_ids)
+      update_conversation_access
+      update_rotation
     end
   end
 

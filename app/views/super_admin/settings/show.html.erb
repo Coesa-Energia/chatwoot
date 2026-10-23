@@ -30,11 +30,7 @@
         <%= render "icon_tile", icon: "i-lucide-badge-check", tone: "bg-n-teal-3 text-n-teal-11" %>
         <div class="min-w-0">
           <h2 class="text-heading-3"><%= t("super_admin.settings.current_plan") %></h2>
-          <p class="text-body-main text-n-slate-11"><%= SuperAdmin::FeaturesHelper.plan_details.html_safe %></p>
-        </div>
-        <div class="<%= summary_actions %>">
-          <%= render "button", label: t("super_admin.settings.refresh"), icon: "i-lucide-refresh-cw size-3.5", url: refresh_super_admin_settings_path, variant: :secondary %>
-          <%= render "button", label: t("super_admin.settings.manage"), icon_end: "i-lucide-arrow-up-right size-3.5", url: ChatwootHub.billing_url, target: "_blank", rel: "noopener noreferrer" %>
+          <p class="text-body-main text-n-slate-11"><%= t("super_admin.settings.current_plan_description") %></p>
         </div>
       </div>
     <% end %>

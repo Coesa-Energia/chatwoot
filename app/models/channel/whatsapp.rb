@@ -9,7 +9,7 @@
 #  phone_number                   :string           not null
 #  phone_number_health            :jsonb            not null
 #  phone_number_health_checked_at :datetime
-#  phone_number_health_error      :string
+#  phone_number_health_error      :string(500)
 #  provider                       :string           default("default")
 #  provider_config                :jsonb
 #  created_at                     :datetime         not null
@@ -86,6 +86,27 @@ class Channel::Whatsapp < ApplicationRecord
     super.except('business_management_token')
   end
 
+  # True when WhatsApp Cloud webhooks cannot be verified (no Meta app secret on the channel or
+  # global WHATSAPP_APP_SECRET), which makes every inbound webhook get rejected. Shown to
+  # administrators in the channel settings.
+  def webhook_secret_missing?
+    return false unless provider == 'whatsapp_cloud'
+
+    channel_secrets = MetaTokenVerifyConcern::CHANNEL_APP_SECRET_KEYS.filter_map { |key| provider_config[key].presence }
+    channel_secrets.empty? && GlobalConfigService.load('WHATSAPP_APP_SECRET', nil).blank?
+  end
+
+  # URL the provider posts inbound events to. 360dialog does not sign webhooks, so with
+  # include_secret the URL carries the channel's secret token (?token=...). Only expose that
+  # version to administrators and to 360dialog itself: anyone with the token can post fake messages.
+  def callback_webhook_url(include_secret: false)
+    url = "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/whatsapp/#{phone_number}"
+    secret = provider_config['webhook_secret']
+    return url unless include_secret && provider == 'default' && secret.present?
+
+    "#{url}?token=#{secret}"
+  end
+
   # Enables voice: turns calling on at Meta (idempotent), then re-registers webhooks
   # with the in-memory calling_enabled flag so the `calls` field is subscribed. The
   # flag is persisted only after registration succeeds, so a webhook failure can't
@@ -97,7 +118,8 @@ class Channel::Whatsapp < ApplicationRecord
     raise 'WhatsApp calling requires the channel_voice feature' unless account.feature_enabled?('channel_voice')
 
     provider_service.update_calling_status('ENABLED')
-    self.provider_config = provider_config.merge('calling_enabled' => true)
+    # Receiving calls is on by default whenever calling is switched on; admins can still mute it afterwards.
+    self.provider_config = provider_config.merge('calling_enabled' => true, 'inbound_calls_enabled' => true)
     webhook_setup_service.register_callback
     save!(validate: false)
   end
@@ -153,6 +175,8 @@ class Channel::Whatsapp < ApplicationRecord
 
   def ensure_webhook_verify_token
     provider_config['webhook_verify_token'] ||= SecureRandom.hex(16) if provider == 'whatsapp_cloud'
+    # 360dialog does not sign webhooks, so the webhook URL carries a secret token instead.
+    provider_config['webhook_secret'] ||= SecureRandom.hex(24) if provider == 'default'
   end
 
   def validate_provider_config

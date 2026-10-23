@@ -1,5 +1,15 @@
 {
   "CONVERSATION": {
+    "404": "Desculpe, não conseguimos encontrar a conversa. Por favor, tente novamente",
+    "CHAT_SEARCH": {
+      "OPEN": "Buscar na conversa",
+      "PLACEHOLDER": "Buscar nesta conversa",
+      "NO_RESULTS": "Nenhuma mensagem encontrada",
+      "OLDER": "Resultado anterior (mais antigo)",
+      "NEWER": "Próximo resultado (mais recente)",
+      "CLOSE": "Fechar busca",
+      "COUNT": "{current} de {total}"
+    },
     "REFERRAL": {
       "AD_LABEL": "Anúncio",
       "POST_LABEL": "Postagem",
@@ -9,15 +19,14 @@
     },
     "SELECT_A_CONVERSATION": "Por favor, selecione uma conversa no painel da esquerda",
     "CSAT_REPLY_MESSAGE": "Por favor, classifique a conversa",
-    "404": "Desculpe, não conseguimos encontrar a conversa. Por favor, tente novamente",
     "SWITCH_VIEW_LAYOUT": "Alternar o layout",
     "DASHBOARD_APP_TAB_MESSAGES": "Mensagens",
     "UNVERIFIED_SESSION": "A identidade deste usuário não foi verificada",
     "NO_MESSAGE_1": "Oh oh! Parece que não há mensagens de clientes na sua caixa de entrada.",
     "NO_MESSAGE_2": " para enviar uma mensagem para sua página!",
-    "NO_INBOX_1": "Hola! Parece que você não adicionou nenhuma caixa de entrada ainda.",
+    "NO_INBOX_1": "Olá! Parece que você não adicionou nenhuma caixa de entrada ainda.",
     "NO_INBOX_2": " para começar",
-    "NO_INBOX_AGENT": "Uh Oh! Parece que você não faz parte de nenhuma caixa de entrada. Por favor, contate seu administrador",
+    "NO_INBOX_AGENT": "Ops! Parece que você não faz parte de nenhuma caixa de entrada. Por favor, contate seu administrador",
     "SEARCH_MESSAGES": "Pesquisar por mensagens nas conversas",
     "VIEW_ORIGINAL": "Ver original",
     "VIEW_TRANSLATED": "Ver traduzido",
@@ -33,39 +42,53 @@
     },
     "SEARCH": {
       "TITLE": "Pesquisar mensagens",
-      "RESULT_TITLE": "Resultados da Pesquisa",
+      "RESULT_TITLE": "Resultados da pesquisa",
       "LOADING_MESSAGE": "Preparando dados...",
       "PLACEHOLDER": "Digite qualquer texto para pesquisar mensagens",
       "NO_MATCHING_RESULTS": "Nenhum resultado encontrado."
     },
-    "UNREAD_MESSAGES": "Mensagens não lidas",
-    "UNREAD_MESSAGE": "Mensagem não lida",
+    "UNREAD_MESSAGES": "mensagens não lidas",
+    "UNREAD_MESSAGE": "mensagem não lida",
+    "JUMP_TO_LATEST": "Ir para a última mensagem",
+    "PRIVATE_NOTE_HEADER": {
+      "TITLE": "Nota interna",
+      "TITLE_WITH_AUTHOR": "Nota interna · {author}",
+      "AUTOMATION": "Automação"
+    },
+    "EMPTY_CONVERSATION": {
+      "CAN_REPLY": "Ainda não há mensagens nesta conversa. Escreva abaixo para começar.",
+      "CANNOT_REPLY": "Ainda não há mensagens nesta conversa. Para começar, siga o aviso acima."
+    },
+    "TEMPLATE_BUTTONS": {
+      "SHOW_ALL": "Ver todas as opções",
+      "SHOW_LESS": "Ver menos"
+    },
     "CONTACT_HISTORY": {
       "OLDER": "Conversa anterior",
       "NEWER": "Próxima conversa",
       "OLDER_WITH": "Conversa anterior com {name} · {time}",
       "NEWER_WITH": "Próxima conversa com {name} · {time}",
       "CUSTOMER": "este cliente",
-      "REPLY_TO_OLDER": "Responder a esta conversa antiga",
-      "GO_TO_LATEST": "Ir para a última conversa"
+      "REPLY_TO_OLDER": "Responder nesta conversa anterior",
+      "GO_TO_LATEST": "Ir para a conversa mais recente"
     },
     "CLICK_HERE": "Clique aqui",
     "LOADING_INBOXES": "Carregando caixas de entrada",
     "LOADING_CONVERSATIONS": "Carregando conversas",
-    "CANNOT_REPLY": "Você não pode responder porque",
-    "24_HOURS_WINDOW": "Restrições de janela de mensagem de 24 horas",
-    "48_HOURS_WINDOW": "Restrição da janela de mensagens de 48 horas",
+    "CANNOT_REPLY": "Você não pode responder agora por causa das",
+    "24_HOURS_WINDOW": "regras da janela de 24 horas",
+    "48_HOURS_WINDOW": "regras da janela de 48 horas",
     "API_HOURS_WINDOW": "Você só pode responder a esta conversa em {hours} horas",
-    "NOT_ASSIGNED_TO_YOU": "Esta conversa não está atribuída a você. Gostaria de atribuir esta conversa a você mesmo?",
-    "ASSIGN_TO_ME": "Atribuir a mim",
+    "NOT_ASSIGNED_TO_YOU": "Esta conversa não está com você. Quer assumir?",
+    "ASSIGN_TO_ME": "Assumir",
     "BOT_HANDOFF_MESSAGE": "Esta conversa está sendo atendida por {assigneeName}.",
     "BOT_HANDOFF_FALLBACK_ASSIGNEE": "um agente de IA",
     "BOT_HANDOFF_ACTION": "Assumir atendimento",
     "BOT_HANDOFF_REOPEN_ACTION": "Marcar conversa como aberta",
     "BOT_HANDOFF_SUCCESS": "Uma conversa foi atribuída a você",
     "BOT_HANDOFF_ERROR": "Falha ao resolver conversas. Por favor, tente novamente.",
-    "TWILIO_WHATSAPP_CAN_REPLY": "Você só pode responder a esta conversa usando um modelo de mensagem devido a",
-    "TWILIO_WHATSAPP_24_HOURS_WINDOW": "Restrições de janela de mensagem de 24 horas",
+    "TWILIO_WHATSAPP_CAN_REPLY": "O cliente não escreve há mais de 24 horas. Para falar com ele, envie um modelo aprovado. Saiba mais sobre as",
+    "TWILIO_WHATSAPP_24_HOURS_WINDOW": "regras da janela de 24 horas",
     "OLD_INSTAGRAM_INBOX_REPLY_BANNER": "Esta conta do Instagram foi migrada para a nova caixa de entrada do canal do Instagram. Todas as novas mensagens serão mostradas lá. Você não poderá mais enviar mensagens desta conversa.",
     "INSTAGRAM_RESTRICTION_BANNER": "As mensagens do Instagram estão sendo afetadas por um problema na API da Meta, e não por uma falha no Chatwoot. Algumas mensagens ou ações podem sofrer atrasos ou ficar temporariamente indisponíveis. Estamos trabalhando em conjunto com a Meta para resolver a situação o mais rápido possível.",
     "INSTAGRAM_RESTRICTION_STATUS_LINK": "Ver atualizações de status",
@@ -152,8 +175,16 @@
       "TRANSCRIPT_SHOW_MORE": "Ver mais",
       "TRANSCRIPT_SHOW_LESS": "Mostrar menos"
     },
+    "QUICK_ACTIONS": {
+      "TAKE_OVER": "Assumir",
+      "TAKE_OVER_SUCCESS": "Agora esta conversa é sua",
+      "LABELS": "Etiquetas",
+      "NO_LABELS": "Nenhuma etiqueta criada ainda. Peça ao administrador para criar.",
+      "SEND_TEMPLATE": "Enviar modelo",
+      "CANNED_RESPONSES": "Respostas prontas"
+    },
     "HEADER": {
-      "RESOLVE_ACTION": "Resolver",
+      "RESOLVE_ACTION": "Finalizar",
       "REOPEN_ACTION": "Reabrir",
       "OPEN_ACTION": "Abrir",
       "MORE_ACTIONS": "Mais ações",
@@ -166,17 +197,24 @@
       "SNOOZED_UNTIL_NEXT_WEEK": "Adiada até a próxima semana",
       "SNOOZED_UNTIL_NEXT_REPLY": "Adiado até a próxima resposta",
       "WHATSAPP_CALL": "Iniciar chamada no WhatsApp",
-      "WHATSAPP_CALL_FAILED": "Não foi possível iniciar a chamada no WhatsApp.",
+      "WHATSAPP_CALL_FAILED": "Não foi possível iniciar a ligação no WhatsApp. Tente novamente em instantes.",
       "VOICE_CALL": "Iniciar chamada",
       "VOICE_CALL_FAILED": "Não foi possível iniciar a chamada.",
-      "WHATSAPP_CALL_PERMISSION_REQUESTED": "Solicitação de permissão de chamada enviada ao contato. Tente novamente após a aceitação.",
-      "WHATSAPP_CALL_PERMISSION_PENDING": "Uma solicitação de permissão de chamada já foi enviada recentemente. Tente novamente após o contato aceitar.",
+      "WHATSAPP_CALL_PERMISSION_REQUESTED": "Pedido de permissão enviado ao cliente. Assim que ele aceitar no WhatsApp você será avisado e poderá ligar. O WhatsApp permite só 1 pedido por dia (2 por semana) para cada cliente.",
+      "WHATSAPP_CALL_PERMISSION_PENDING": "Já pedimos permissão a este cliente há pouco. Aguarde ele aceitar no WhatsApp. O WhatsApp limita a 1 pedido por dia para cada cliente.",
       "SLA_STATUS": {
         "FRT": "FRT {status}",
         "NRT": "NRT {status}",
         "RT": "RT {status}",
         "MISSED": "perdidas",
         "DUE": "venceu"
+      },
+      "WHATSAPP_CALL_STATUS": {
+        "TEMPORARY": "Permissão de ligação ativa até {date}",
+        "PERMANENT": "O cliente permitiu ligações permanentemente",
+        "NONE_CAN_ASK": "O cliente ainda não permitiu ligações. Ao clicar, enviaremos um pedido de permissão",
+        "NONE_LIMIT": "O cliente ainda não permitiu ligações e o limite de pedidos foi atingido. Tente de novo depois de {date}",
+        "NONE_LIMIT_UNKNOWN_DATE": "O cliente ainda não permitiu ligações e o limite de pedidos foi atingido. Tente mais tarde"
       }
     },
     "RESOLVE_DROPDOWN": {
@@ -262,6 +300,10 @@
       "PENDING": "Deixar pendente",
       "RESOLVED": "Marcar como resolvida",
       "MARK_AS_UNREAD": "Marcar como não lida",
+      "PIN": "Fixar conversa",
+      "UNPIN": "Desafixar conversa",
+      "ARCHIVE": "Arquivar conversa",
+      "UNARCHIVE": "Desarquivar conversa",
       "MARK_AS_READ": "Marcar como lida",
       "REOPEN": "Reabrir conversa",
       "SNOOZE": {
@@ -270,7 +312,7 @@
         "TOMORROW": "Até amanhã",
         "NEXT_WEEK": "Até a próxima semana"
       },
-      "ASSIGN_AGENT": "Atribuir Agente",
+      "ASSIGN_AGENT": "Atribuir agente",
       "ASSIGN_LABEL": "Atribuir etiqueta",
       "SEARCH_LABELS": "Pesquisar etiquetas",
       "NO_LABELS_FOUND": "Nenhuma etiqueta encontrada",
@@ -300,22 +342,23 @@
       }
     },
     "FOOTER": {
+      "CONTENT_TEMPLATES": "Modelos de conteúdo",
       "MESSAGE_SIGN_TOOLTIP": "Assinatura de mensagem",
       "ENABLE_SIGN_TOOLTIP": "Ativar assinatura",
       "DISABLE_SIGN_TOOLTIP": "Desativar assinatura",
-      "MSG_INPUT": "Shift + enter para nova linha. Digite '/' para selecionar uma Resposta Pronta.",
-      "PRIVATE_MSG_INPUT": "A mensagem será visível apenas para agentes",
+      "MSG_INPUT": "Shift + enter para nova linha. Digite '/' para selecionar uma resposta pronta.",
+      "PRIVATE_MSG_INPUT": "Nota interna: só a equipe vê, o cliente não recebe",
       "MESSAGING_RESTRICTED": "Você não pode responder esta conversa",
-      "MESSAGING_RESTRICTED_WHATSAPP": "Você só pode responder usando uma mensagem de modelo devido à restrição da janela de 24 horas",
-      "MESSAGING_RESTRICTED_API": "Você só pode responder usando uma mensagem de template devido à restrição da janela de mensagens",
+      "MESSAGING_RESTRICTED_WHATSAPP": "O cliente não escreve há mais de 24 horas. Para falar com ele, envie um modelo aprovado.",
+      "MESSAGING_RESTRICTED_API": "Fora da janela de mensagens: só é possível responder com um modelo aprovado",
       "MESSAGE_SIGNATURE_NOT_CONFIGURED": "A assinatura da mensagem não está configurada. Por favor, configure-a nas configurações do perfil.",
       "COPILOT_MSG_INPUT": "Forneça instruções adicionais ao Copilot ou pergunte algo mais... Pressione Enter para enviar",
       "CLICK_HERE": "Clique aqui para atualizar",
-      "WHATSAPP_TEMPLATES": "Modelos do Whatsapp"
+      "WHATSAPP_TEMPLATES": "Modelos do WhatsApp"
     },
     "REPLYBOX": {
       "REPLY": "Responder",
-      "PRIVATE_NOTE": "Mensagem Privada",
+      "PRIVATE_NOTE": "Nota interna",
       "SEND": "Enviar",
       "CREATE": "Enviar",
       "INSERT_READ_MORE": "Saiba mais",
@@ -332,6 +375,7 @@
       "START_AUDIO_RECORDING": "Iniciar gravação de áudio",
       "STOP_AUDIO_RECORDING": "Parar gravação de áudio",
       "COPILOT_THINKING": "O Copilot está pensando",
+      "EXPAND_EDITOR": "Expandir editor",
       "EMAIL_HEAD": {
         "TO": "Para",
         "CC": {
@@ -363,7 +407,7 @@
         "REMOVE": "Remover citação"
       }
     },
-    "VISIBLE_TO_AGENTS": "Mensagem Privada: Apenas visível para você e seu time",
+    "VISIBLE_TO_AGENTS": "Nota interna: só a equipe vê, o cliente não recebe",
     "CHANGE_STATUS": "Estado da conversa mudou",
     "CHANGE_STATUS_FAILED": "Mudança de status da conversa falhou",
     "CHANGE_AGENT": "Novo agente atribuído",
@@ -377,13 +421,15 @@
     "FILE_TYPE_NOT_SUPPORTED": "O tipo de arquivo {fileName} não é suportado nesta conversa",
     "MESSAGE_ERROR": "Não foi possível enviar esta mensagem, por favor, tente novamente mais tarde",
     "SENT_BY": "Enviado por:",
+    "DAY_TODAY": "Hoje",
+    "DAY_YESTERDAY": "Ontem",
     "BOT": "Robôs",
     "NATIVE_APP": "Aplicativo nativo",
     "NATIVE_APP_ADVISORY": "Esta mensagem foi enviada a partir do aplicativo nativo. Responda pelo Chatwoot para manter a janela de mensagens ativa.",
     "SEND_FAILED": "Não foi possível enviar a mensagem! Tente novamente",
     "TRY_AGAIN": "tentar novamente",
     "ASSIGNMENT": {
-      "SELECT_AGENT": "selecionar Agente",
+      "SELECT_AGENT": "Selecionar agente",
       "REMOVE": "Excluir",
       "ASSIGN": "Atribuir"
     },
@@ -391,6 +437,8 @@
       "COPY": "Copiar",
       "REPLY_TO": "Responder mensagem",
       "FORWARD_EMAIL": "Encaminhar e-mail",
+      "REACT": "Reagir",
+      "REACTION_FAILED": "Não foi possível enviar a reação",
       "DELETE": "Excluir",
       "CREATE_A_CANNED_RESPONSE": "Adicionar às respostas prontas",
       "TRANSLATE": "Traduzir",
@@ -423,7 +471,7 @@
       }
     },
     "SIDEBAR": {
-      "CONTACT": "Contatos",
+      "CONTACT": "Contato",
       "COPILOT": "Copilot"
     },
     "VOICE_WIDGET": {
@@ -529,13 +577,13 @@
         "AUTHORIZED": "Autorizado",
         "PARTIALLY_PAID": "Parcialmente pago",
         "PAID": "Pago",
-        "PARTIALLY_REFUNDED": "Parcialmente Reembolsado",
+        "PARTIALLY_REFUNDED": "Parcialmente reembolsado",
         "REFUNDED": "Reembolsado",
         "VOIDED": "Anulado"
       },
       "FULFILLMENT_STATUS": {
         "FULFILLED": "Concluído",
-        "PARTIALLY_FULFILLED": "Parcialmente Concluído",
+        "PARTIALLY_FULFILLED": "Parcialmente concluído",
         "UNFULFILLED": "Não concluído"
       }
     }

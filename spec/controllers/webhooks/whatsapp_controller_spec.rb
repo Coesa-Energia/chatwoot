@@ -191,40 +191,97 @@ RSpec.describe 'Webhooks::WhatsappController', type: :request do
       expect(response).to have_http_status(:success)
     end
 
-    it 'skips signature validation for 360dialog channels' do
-      dialog_channel = create(:channel_whatsapp, provider: 'default', sync_templates: false, validate_provider_config: false)
-      allow(Webhooks::WhatsappEventsJob).to receive(:perform_later)
-      expect(Webhooks::WhatsappEventsJob).to receive(:perform_later)
+    context 'with a 360dialog channel (webhooks are not signed, the URL carries a secret token)' do
+      let(:dialog_channel) { create(:channel_whatsapp, provider: 'default', sync_templates: false, validate_provider_config: false) }
+      let(:dialog_secret) { dialog_channel.provider_config['webhook_secret'] }
 
-      post_unsigned_whatsapp_webhook("/webhooks/whatsapp/#{dialog_channel.phone_number}", body)
+      def post_to_360dialog(token_query)
+        post "/webhooks/whatsapp/#{dialog_channel.phone_number}#{token_query}",
+             params: body,
+             headers: { 'CONTENT_TYPE' => 'application/json' }
+      end
 
-      expect(response).to have_http_status(:success)
+      before { allow(Webhooks::WhatsappEventsJob).to receive(:perform_later) }
+
+      it 'generates a webhook secret for the channel' do
+        expect(dialog_secret).to be_present
+      end
+
+      it 'accepts webhooks that carry the channel secret token' do
+        post_to_360dialog("?token=#{dialog_secret}")
+
+        expect(response).to have_http_status(:success)
+        expect(Webhooks::WhatsappEventsJob).to have_received(:perform_later)
+      end
+
+      it 'does not pass the secret token on to the events job' do
+        post_to_360dialog("?token=#{dialog_secret}")
+
+        expect(Webhooks::WhatsappEventsJob).to have_received(:perform_later) do |payload|
+          expect(payload.to_h.keys.map(&:to_s)).not_to include('token')
+        end
+      end
+
+      it 'rejects webhooks without a token' do
+        post_to_360dialog('')
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(Webhooks::WhatsappEventsJob).not_to have_received(:perform_later)
+      end
+
+      it 'rejects webhooks with a wrong token' do
+        post_to_360dialog('?token=not-the-secret')
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(Webhooks::WhatsappEventsJob).not_to have_received(:perform_later)
+      end
+
+      it 'rejects everything, even an empty token, when the channel has no secret yet' do
+        dialog_channel.update_columns(provider_config: dialog_channel.provider_config.except('webhook_secret')) # rubocop:disable Rails/SkipsModelValidations
+
+        post_to_360dialog('?token=')
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(Webhooks::WhatsappEventsJob).not_to have_received(:perform_later)
+      end
     end
 
-    it 'skips signature validation for manual whatsapp cloud channels without an app secret' do
-      channel.update!(
-        provider_config: channel.provider_config.except('app_secret', 'app_secret_key', 'api_secret', 'client_secret', 'source')
-      )
-      allow(Webhooks::WhatsappEventsJob).to receive(:perform_later)
-      expect(Webhooks::WhatsappEventsJob).to receive(:perform_later)
+    context 'with a manual whatsapp cloud channel without an app secret' do
+      let(:channel_body) do
+        {
+          object: 'whatsapp_business_account',
+          entry: [{ changes: [{ value: { metadata: { display_phone_number: channel.phone_number.delete_prefix('+'),
+                                                     phone_number_id: channel.provider_config['phone_number_id'] } } }] }]
+        }.to_json
+      end
 
-      channel_body = {
-        object: 'whatsapp_business_account',
-        entry: [{
-          changes: [{
-            value: {
-              metadata: {
-                display_phone_number: channel.phone_number.delete_prefix('+'),
-                phone_number_id: channel.provider_config['phone_number_id']
-              }
-            }
-          }]
-        }]
-      }.to_json
+      before do
+        channel.update!(provider_config: channel.provider_config.except('app_secret', 'app_secret_key', 'api_secret', 'client_secret', 'source'))
+        allow(Webhooks::WhatsappEventsJob).to receive(:perform_later)
+      end
 
-      post_unsigned_whatsapp_webhook("/webhooks/whatsapp/#{channel.phone_number}", channel_body)
+      it 'rejects unsigned webhooks and logs why, instead of accepting them' do
+        allow(Rails.logger).to receive(:warn)
 
-      expect(response).to have_http_status(:success)
+        post_unsigned_whatsapp_webhook("/webhooks/whatsapp/#{channel.phone_number}", channel_body, env: {})
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(Webhooks::WhatsappEventsJob).not_to have_received(:perform_later)
+        expect(Rails.logger).to have_received(:warn).with(/no Meta app secret is configured/)
+      end
+
+      it 'rejects webhooks signed with an unknown secret' do
+        post_whatsapp_webhook("/webhooks/whatsapp/#{channel.phone_number}", channel_body, signature: signature_for(channel_body, 'wrong'), env: {})
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it 'accepts webhooks signed with the global app secret' do
+        post_whatsapp_webhook("/webhooks/whatsapp/#{channel.phone_number}", channel_body)
+
+        expect(response).to have_http_status(:success)
+        expect(Webhooks::WhatsappEventsJob).to have_received(:perform_later)
+      end
     end
 
     it 'returns unauthorized when signature is missing' do

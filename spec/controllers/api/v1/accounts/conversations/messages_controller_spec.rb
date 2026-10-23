@@ -282,9 +282,45 @@ RSpec.describe 'Conversation Messages API', type: :request do
 
     context 'when it is an authenticated user with access to conversation' do
       let(:agent) { create(:user, account: account, role: :agent) }
+      let(:message) do
+        create(:message, account: account, message_type: :outgoing, sender: agent, content_attributes: { bcc_emails: ['hello@chatwoot.com'] })
+      end
 
       before do
         create(:inbox_member, inbox: conversation.inbox, user: agent)
+      end
+
+      it 'does not let an agent delete a customer message' do
+        incoming = create(:message, account: account, conversation: conversation, inbox: conversation.inbox)
+
+        delete "/api/v1/accounts/#{account.id}/conversations/#{conversation.display_id}/messages/#{incoming.id}",
+               headers: agent.create_new_auth_token,
+               as: :json
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(incoming.reload.deleted).to be_falsey
+      end
+
+      it 'does not let an agent delete a message sent by another agent' do
+        other = create(:message, account: account, conversation: conversation, inbox: conversation.inbox, message_type: :outgoing)
+
+        delete "/api/v1/accounts/#{account.id}/conversations/#{conversation.display_id}/messages/#{other.id}",
+               headers: agent.create_new_auth_token,
+               as: :json
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it 'lets an administrator delete a customer message' do
+        admin = create(:user, account: account, role: :administrator)
+        incoming = create(:message, account: account, conversation: conversation, inbox: conversation.inbox)
+
+        delete "/api/v1/accounts/#{account.id}/conversations/#{conversation.display_id}/messages/#{incoming.id}",
+               headers: admin.create_new_auth_token,
+               as: :json
+
+        expect(response).to have_http_status(:success)
+        expect(incoming.reload.deleted).to be true
       end
 
       it 'deletes the message' do
@@ -310,7 +346,7 @@ RSpec.describe 'Conversation Messages API', type: :request do
 
       it 'deletes interactive messages' do
         interactive_message = create(
-          :message, message_type: :outgoing, content: 'test', content_type: 'input_select',
+          :message, message_type: :outgoing, sender: agent, content: 'test', content_type: 'input_select',
                     content_attributes: { 'items' => [{ 'title' => 'test', 'value' => 'test' }] },
                     conversation: conversation
         )

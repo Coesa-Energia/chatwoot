@@ -35,9 +35,7 @@ class Whatsapp::Providers::Whatsapp360DialogService < Whatsapp::Providers::BaseS
     response = HTTParty.post(
       "#{api_base_path}/configs/webhook",
       headers: { 'D360-API-KEY': whatsapp_channel.provider_config['api_key'], 'Content-Type': 'application/json' },
-      body: {
-        url: "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/whatsapp/#{whatsapp_channel.phone_number}"
-      }.to_json
+      body: { url: whatsapp_channel.callback_webhook_url(include_secret: true) }.to_json
     )
     response.success?
   end

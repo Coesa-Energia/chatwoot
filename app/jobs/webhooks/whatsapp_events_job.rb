@@ -1,5 +1,7 @@
 class Webhooks::WhatsappEventsJob < MutexApplicationJob
-  queue_as :low
+  # Inbound customer messages must not wait behind the other queues (Sidekiq queues are
+  # strictly ordered), so this runs on :high like SendReplyJob.
+  queue_as :high
   # Retry budget (19 × 2s = 38s) must exceed the 30s lock TTL set in `perform`, otherwise
   # a webhook that arrives just after the lock is acquired can exhaust retries before the
   # holder finishes and silently drop its message.

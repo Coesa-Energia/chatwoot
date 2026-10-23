@@ -140,6 +140,7 @@ en:
     conversations:
       anonymous_caller_reply: 'Messages cannot be sent because this caller’s phone number is unavailable.'
       resolved: Conversation is resolved and does not accept new messages
+      pinned_limit: "You can pin up to %{max} conversations. Unpin one to pin another."
       unread_counts:
         feature_not_enabled: Conversation unread counts feature not enabled for this account
     data_import:
@@ -191,6 +192,13 @@ en:
       phone_info_fetch_failed: 'Failed to fetch phone number information. Please try again.'
       phone_number_already_exists: 'Channel already exists for this phone number: %{phone_number}, please contact support if the error persists'
       message_outside_messaging_window: 'Message not sent because the WhatsApp 24-hour customer service window is closed and no template parameters were provided. Send an approved template message instead.'
+      send_unconfirmed: 'WhatsApp did not confirm the delivery (timeout). The message may or may not have been sent: check the conversation before sending it again.'
+      reactions_unsupported: 'Reactions are only available for messages of WhatsApp Cloud channels.'
+      reaction_invalid: 'The reaction must be a single emoji.'
+      reaction_failed: 'WhatsApp did not accept the reaction. Try again.'
+      retryable:
+        rate_limited: 'WhatsApp is limiting how fast messages can be sent from this number. The message was not delivered after several automatic attempts; try again in a few minutes.'
+        connection: 'Could not reach WhatsApp after several automatic attempts. The message was not delivered; please try again.'
       authentication_template_requires_phone: 'Authentication templates require a WhatsApp phone number and cannot be sent to a BSUID-only contact.'
       template_category_required_for_bsuid: 'Template category could not be verified for this BSUID-only contact.'
       contact_info_request:
@@ -213,6 +221,28 @@ en:
         sdp_offer_required: 'sdp_offer is required'
         contact_phone_required: 'Contact phone number is required'
         permission_request_failed: 'Failed to send call permission request'
+        template:
+          invalid_name: 'The template name can only have lowercase letters, numbers and underscores (_).'
+          body_variables: 'The template text cannot have variables like {{1}}. Write the final text.'
+          body_too_long: 'The template text is too long (maximum %{max} characters).'
+          not_call_template: 'The template "%{name}" exists but is not a call-permission template.'
+        meta:
+          generic: 'We could not complete the call right now. Please try again in a moment. If it keeps happening, tell your administrator.'
+          code_label: 'code'
+          temporary_failure: 'WhatsApp is temporarily unavailable. Wait a few seconds and try the call again.'
+          test_number: 'This number is a WhatsApp test number and can only call people on its allowed list.'
+          payment_method: 'The WhatsApp Business account has no valid payment method. Ask your administrator to add one in Meta Business.'
+          outside_window: 'The customer has not written in the last 24 hours and the call-permission template is not ready yet. Ask your administrator to create it in the inbox settings (Calls) and wait for WhatsApp to approve it.'
+          calling_disabled: 'Calls are not enabled for this WhatsApp number. Ask your administrator to turn on calling in the inbox settings.'
+          recipient_uncallable: 'This contact cannot receive WhatsApp calls (not on WhatsApp, or using an outdated app).'
+          too_many_calls: 'Too many calls are happening at the same time on this number. Try again shortly.'
+          already_in_call: 'There is already a call in progress with this contact. Wait for it to end.'
+          rate_limited: 'Too many calls were started in a short time. Wait a little and try again.'
+          permission_limit: 'We already asked this customer for call permission recently. WhatsApp allows 1 request per day and 2 per week per customer. Wait, or ask the customer to message you or call the number.'
+          daily_limit: 'The daily limit of calls started by the business was reached (100 connected calls per 24 hours). Try again tomorrow.'
+          not_available: 'Calling started by the business is not available for this number yet.'
+          quality_blocked: 'WhatsApp temporarily blocked calls from this number because of low quality ratings. Wait for the restriction to lift.'
+          permission_exists: 'This customer has already given permanent permission to be called. You can call directly.'
     google_translate:
       invalid_credentials: 'This Google Cloud key is not working. Check the project ID and key file and try again.'
     openai:
@@ -366,6 +396,7 @@ en:
       whatsapp:
         list_button_label: 'Choose an item'
         call_permission_request_body: 'We would like to call you regarding your conversation.'
+        call_permission_template_body: 'Hello! We would like to call you to continue helping you. Tap the button below to allow the call.'
         flow_response: 'Submitted a flow response'
         request_contact_info: 'Would you like to share your phone number with us?'
         unsupported_message: 'This message is unavailable.'
@@ -419,7 +450,9 @@ en:
         issue_unlinked: 'Linear issue %{issue_id} was unlinked by %{user_name}'
       whatsapp_call:
         permission_requested: 'Sent a call permission request to %{contact_name}.'
-        permission_granted: '%{contact_name} accepted the call permission request.'
+        permission_granted: '%{contact_name} allowed calls. Note: if they miss 4 calls in a row, WhatsApp removes the permission (0 of 4 so far).'
+        unanswered_call: 'Call not answered (%{count} of %{max} in a row). If %{contact_name} misses %{max} in a row, WhatsApp removes the call permission.'
+        permission_revoked: '%{max} calls in a row not answered: WhatsApp removed %{contact_name}''s call permission. To call again you need to ask for permission again.'
       csat:
         not_sent_due_to_messaging_window: 'CSAT survey not sent due to outgoing message restrictions'
       auto_resolve:
@@ -1059,9 +1092,8 @@ en:
       unauthorized_changes: 'Unauthorized premium changes detected in Chatwoot. To keep using them, please upgrade your plan.'
       contact_for_help: 'Contact for help:'
       agents_over_limit: 'You have %{count} agents. Please add more licenses to add more users.'
-      current_plan: 'Current plan'
-      refresh: 'Refresh'
-      manage: 'Manage'
+      current_plan: 'Plan active'
+      current_plan_description: 'All features are enabled on this installation. No subscription or licenses required.'
       installation_identifier: 'Installation Identifier'
       need_help: 'Need help?'
       need_help_description: 'Do you face any issues? We are here to help.'

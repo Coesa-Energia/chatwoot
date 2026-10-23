@@ -319,6 +319,8 @@ describe SearchService do
     end
 
     context 'when filtering contacts with time caps', :opensearch do
+      around { |example| with_modified_env(MESSAGE_SEARCH_WINDOW_DAYS: '90') { example.run } }
+
       let!(:old_contact) { create(:contact, name: 'Old Potter', email: 'old@test.com', account: account, last_activity_at: 100.days.ago) }
       let!(:recent_contact) { create(:contact, name: 'Recent Potter', email: 'recent@test.com', account: account, last_activity_at: 1.day.ago) }
 
@@ -326,7 +328,7 @@ describe SearchService do
         account.enable_features!('advanced_search')
       end
 
-      it 'caps since to 90 days ago and excludes older contacts' do
+      it 'caps since to the configured window and excludes older contacts' do
         params = { q: 'Potter', since: 100.days.ago.to_i, search_type: 'Contact' }
         search = described_class.new(current_user: user, current_account: account, params: params, search_type: 'Contact')
         results = search.perform[:contacts]
@@ -346,6 +348,8 @@ describe SearchService do
     end
 
     context 'when filtering conversations with time caps', :opensearch do
+      around { |example| with_modified_env(MESSAGE_SEARCH_WINDOW_DAYS: '90') { example.run } }
+
       let!(:old_conversation) { create(:conversation, contact: harry, inbox: inbox, account: account, last_activity_at: 100.days.ago) }
       let!(:recent_conversation) { create(:conversation, contact: harry, inbox: inbox, account: account, last_activity_at: 1.day.ago) }
 
@@ -353,7 +357,7 @@ describe SearchService do
         account.enable_features!('advanced_search')
       end
 
-      it 'caps since to 90 days ago and excludes older conversations' do
+      it 'caps since to the configured window and excludes older conversations' do
         params = { q: 'Harry', since: 100.days.ago.to_i, search_type: 'Conversation' }
         search = described_class.new(current_user: user, current_account: account, params: params, search_type: 'Conversation')
         results = search.perform[:conversations]
@@ -373,6 +377,8 @@ describe SearchService do
     end
 
     context 'when filtering articles with time caps', :opensearch do
+      around { |example| with_modified_env(MESSAGE_SEARCH_WINDOW_DAYS: '90') { example.run } }
+
       let!(:old_article) do
         create(:article, title: 'Old Magic Guide', account: account, portal: portal, author: user, status: 'published', updated_at: 100.days.ago)
       end
@@ -384,7 +390,7 @@ describe SearchService do
         account.enable_features!('advanced_search')
       end
 
-      it 'caps since to 90 days ago and excludes older articles' do
+      it 'caps since to the configured window and excludes older articles' do
         params = { q: 'Magic', since: 100.days.ago.to_i, search_type: 'Article' }
         search = described_class.new(current_user: user, current_account: account, params: params, search_type: 'Article')
         results = search.perform[:articles]
@@ -420,8 +426,8 @@ describe SearchService do
         # that the inboxes are not added to the search query
         base_query = admin_search.send(:message_base_query)
 
-        # Should only have the time filter, not inbox filter
-        expect(base_query.to_sql).to include('created_at >= ')
+        # No time filter by default (unlimited window), and no inbox filter
+        expect(base_query.to_sql).not_to include('created_at >= ')
         expect(base_query.to_sql).not_to include('inbox_id')
       end
     end
@@ -438,8 +444,8 @@ describe SearchService do
 
         base_query = search.send(:message_base_query)
 
-        # Should have both time and inbox filters
-        expect(base_query.to_sql).to include('created_at >= ')
+        # No time filter by default (unlimited window), but the inbox filter applies
+        expect(base_query.to_sql).not_to include('created_at >= ')
         expect(base_query.to_sql).to include('inbox_id')
       end
 
@@ -453,8 +459,8 @@ describe SearchService do
         it 'skips inbox filtering as optimization' do
           base_query = search.send(:message_base_query)
 
-          # Should only have the time filter, not inbox filter
-          expect(base_query.to_sql).to include('created_at >= ')
+          # No time filter by default (unlimited window), and no inbox filter
+          expect(base_query.to_sql).not_to include('created_at >= ')
           expect(base_query.to_sql).not_to include('inbox_id')
         end
       end

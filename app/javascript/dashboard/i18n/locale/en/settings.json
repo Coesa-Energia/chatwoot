@@ -316,6 +316,7 @@
     }
   },
   "SIDEBAR": {
+    "TOGGLE_MENU": "Show or hide the menu",
     "NO_ITEMS": "No items",
     "CURRENTLY_VIEWING_ACCOUNT": "Currently viewing:",
     "SWITCH": "Switch",
@@ -345,7 +346,7 @@
     "CAPTAIN_SETTINGS": "Settings",
     "HOME": "Home",
     "AGENTS": "Agents",
-    "AGENT_BOTS": "Bots",
+    "AGENT_BOTS": "Bots and automations",
     "AUDIT_LOGS": "Audit Logs",
     "INBOXES": "Inboxes",
     "WHATSAPP_TEMPLATES": "Templates",
@@ -365,7 +366,7 @@
     "CUSTOM_VIEWS_FOLDER": "Folders",
     "CUSTOM_VIEWS_SEGMENTS": "Segments",
     "ALL_CONTACTS": "All Contacts",
-    "TAGGED_WITH": "Tagged with",
+    "TAGGED_WITH": "Labels",
     "NEW_LABEL": "New label",
     "NEW_TEAM": "New team",
     "NEW_INBOX": "New inbox",
@@ -422,7 +423,8 @@
     "DOCS": "Read docs",
     "SECURITY": "Security",
     "CAPTAIN_AI": "Captain",
-    "CONVERSATION_WORKFLOW": "Conversation Workflow"
+    "CONVERSATION_WORKFLOW": "Conversation Workflow",
+    "NEW_CONVERSATION": "New conversation"
   },
   "DATA_IMPORTS": {
     "HEADER": "Data",
@@ -580,106 +582,17 @@
     }
   },
   "BILLING_SETTINGS": {
-    "PAYMENT_RECOVERY": {
-      "DESCRIPTION": "Your payment is past due. Update your payment method or pay the outstanding invoice in the billing portal to keep your subscription active.",
-      "ACTION": "Resolve payment"
-    },
     "TITLE": "Billing",
-    "DESCRIPTION": "Manage your subscription here, upgrade your plan and get more for your team.",
-    "CURRENT_PLAN": {
-      "TITLE": "Current Plan",
-      "PLAN_NOTE": "You are currently subscribed to the **{plan}** plan with **{quantity}** licenses",
-      "SEAT_COUNT": "Number of seats",
-      "RENEWS_ON": "Renews on",
-      "CANCELS_ON": "Cancels on",
-      "CURRENCY": "Currency"
-    },
-    "CURRENCY": {
-      "SELECT": {
-        "TITLE": "Choose your billing currency",
-        "DESCRIPTION": "Select the currency you'd like to be billed in. This can't be changed once your subscription is created."
-      },
-      "OPTIONS": {
-        "USD": "US Dollar (USD)",
-        "BRL": "Brazilian Real (BRL)"
-      }
-    },
-    "VIEW_PRICING": "View Pricing",
-    "MANAGE_SUBSCRIPTION": {
-      "TITLE": "Manage your subscription",
-      "DESCRIPTION": "View your previous invoices, edit your billing details, or cancel your subscription.",
-      "BUTTON_TXT": "Go to the billing portal"
-    },
-    "CAPTAIN": {
-      "TITLE": "Captain",
-      "DESCRIPTION": "Manage usage and credits for Captain AI.",
-      "BUTTON_TXT": "Buy more credits",
-      "DOCUMENTS": "Documents",
-      "RESPONSES": "Credits",
-      "UPGRADE": "Captain is not available on the free plan, upgrade now to get access to assistants, copilot and more.",
-      "REFRESH_CREDITS": "Refresh"
-    },
-    "CHAT_WITH_US": {
-      "TITLE": "Need help?",
-      "DESCRIPTION": "Do you face any issues in billing? We are here to help.",
-      "BUTTON_TXT": "Chat with us"
-    },
-    "NO_BILLING_USER": "Your billing account is being configured. Please refresh the page and try again.",
-    "SHOPIFY": {
-      "TITLE": "Billing through Shopify",
-      "DESCRIPTION": "Your Chatwoot subscription is billed and managed securely through Shopify.",
-      "UNAVAILABLE": "Shopify billing is unavailable right now. Please contact support if this continues.",
-      "LOADING": "Checking your Shopify subscription...",
-      "PLAN_TITLE": "Shopify subscription",
-      "PLAN_DESCRIPTION": "Choose or manage your Chatwoot plan securely in Shopify.",
-      "CURRENT_PLAN": "Current plan",
-      "SUBSCRIPTION_STATUS": "Status",
-      "PRICE": "Price",
-      "PER_MONTH": "{price} / month",
-      "PER_YEAR": "{price} / year",
-      "TRIAL_ENDS_ON": "Trial ends on",
-      "RENEWS_ON": "Renews on",
-      "ACCESS_UNTIL": "Access until",
-      "LAST_VERIFIED": "Last verified",
-      "VIEW_PLANS": "View plans in Shopify",
-      "MANAGE_PLAN": "Manage in Shopify",
-      "RETRY": "Try again",
-      "ERROR_TITLE": "We could not verify your Shopify subscription",
-      "ERROR_DESCRIPTION": "Try again in a moment. Your last verified access has not been changed.",
-      "STALE_TITLE": "Showing your last verified subscription",
-      "STALE_DESCRIPTION": "Shopify could not be reached. Your access has not been changed.",
-      "STATUS": {
-        "PENDING": "Pending",
-        "ACTIVE": "Active",
-        "TRIALING": "Trial",
-        "CANCELLED": "Cancellation scheduled",
-        "EXPIRED": "Expired",
-        "MISSING": "No active plan"
-      }
-    },
-    "TOPUP": {
-      "BUY_CREDITS": "Buy more credits",
-      "MODAL_TITLE": "Buy AI Credits",
-      "MODAL_DESCRIPTION": "Purchase additional credits for Captain AI.",
-      "CREDITS": "CREDITS",
-      "ONE_TIME": "one-time",
-      "POPULAR": "Most Popular",
-      "NOTE_TITLE": "Note:",
-      "NOTE_DESCRIPTION": "Credits are added immediately and expire in 6 months. An active subscription is required to use credits. Purchased credits are consumed after your monthly plan credits.",
-      "CANCEL": "Cancel",
-      "PURCHASE": "Purchase Credits",
-      "LOADING": "Loading options...",
-      "FETCH_ERROR": "Failed to load credit options. Please try again.",
-      "RETRY": "Retry",
-      "PURCHASE_ERROR": "Failed to process purchase. Please try again.",
-      "PURCHASE_SUCCESS": "Successfully added {credits} credits to your account",
-      "CONFIRM": {
-        "TITLE": "Confirm Purchase",
-        "DESCRIPTION": "You are about to purchase {credits} credits for {amount}.",
-        "INSTANT_DEDUCTION_NOTE": "Your saved card will be charged immediately upon confirmation.",
-        "GO_BACK": "Go Back",
-        "CONFIRM_PURCHASE": "Confirm Purchase"
-      }
+    "DESCRIPTION": "Your installation includes every feature for free, with no subscriptions, limits or credits.",
+    "FREE_PLAN": {
+      "TITLE": "Current plan",
+      "DESCRIPTION": "This installation runs on the community build. Everything is included at no cost.",
+      "PLAN": "Plan",
+      "PLAN_VALUE": "Community",
+      "SEATS": "Seats",
+      "SEATS_VALUE": "Unlimited",
+      "FEATURES": "Features",
+      "FEATURES_VALUE": "All included"
     }
   },
   "SECURITY_SETTINGS": {

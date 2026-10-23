@@ -1,6 +1,10 @@
 json.settings resource.settings
 json.reporting_timezone ActiveSupport::TimeZone[resource.reporting_timezone].tzinfo.name if resource.reporting_timezone.present?
 json.created_at resource.created_at
+json.logo_url resource.logo_url
+json.brand_display resource.brand_display
+json.collapsed_logo_url resource.collapsed_logo_url
+json.brand_text_image resource.brand_text_image
 if resource.custom_attributes.present?
   json.custom_attributes do
     json.plan_name resource.custom_attributes['plan_name']

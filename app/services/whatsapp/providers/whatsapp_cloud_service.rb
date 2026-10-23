@@ -1,4 +1,6 @@
 class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseService
+  include Whatsapp::Providers::MessageDelivery
+
   def send_message(phone_number, message)
     @message = message
 
@@ -23,13 +25,7 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
       template: template_body
     }
 
-    response = HTTParty.post(
-      "#{phone_id_path}/messages",
-      headers: api_headers,
-      body: request_body.to_json
-    )
-
-    process_response(response, message)
+    deliver_message("#{phone_id_path}/messages", request_body, message)
   end
 
   def sync_templates
@@ -93,7 +89,7 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
   end
 
   def media_url(media_id)
-    "#{api_base_path}/v13.0/#{media_id}"
+    "#{api_base_path}/#{Whatsapp::ApiVersion.current}/#{media_id}"
   end
 
   private
@@ -116,49 +112,58 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
     ENV.fetch('WHATSAPP_CLOUD_BASE_URL', 'https://graph.facebook.com')
   end
 
-  # TODO: See if we can unify the API versions and for both paths and make it consistent with out facebook app API versions
-  def phone_id_path(version = 'v13.0')
+  def phone_id_path(version = Whatsapp::ApiVersion.current)
     "#{api_base_path}/#{version}/#{whatsapp_channel.provider_config['phone_number_id']}"
   end
 
   def business_account_path
-    "#{api_base_path}/v14.0/#{whatsapp_channel.provider_config['business_account_id']}"
+    "#{api_base_path}/#{Whatsapp::ApiVersion.current}/#{whatsapp_channel.provider_config['business_account_id']}"
   end
 
   def send_text_message(phone_number, message)
-    response = HTTParty.post(
-      "#{phone_id_path}/messages",
-      headers: api_headers,
-      body: {
-        messaging_product: 'whatsapp',
-        context: whatsapp_reply_context(message),
-        **recipient_params(phone_number),
-        text: { body: message.outgoing_content },
-        type: 'text'
-      }.to_json
-    )
+    request_body = {
+      messaging_product: 'whatsapp',
+      context: whatsapp_reply_context(message),
+      **recipient_params(phone_number),
+      text: { body: message.outgoing_content },
+      type: 'text'
+    }
 
-    process_response(response, message)
+    deliver_message("#{phone_id_path}/messages", request_body, message)
   end
 
+  # WhatsApp takes one media item per message, so a message with several attachments is sent
+  # as several API calls. The text caption goes on the first one only. Returns the id of the
+  # first sent item (stored as the message source_id). Stops at the first failure; the error
+  # is already recorded on the message by then.
   def send_attachment_message(phone_number, message)
-    attachment = message.attachments.first
+    first_id = nil
+
+    message.attachments.each_with_index do |attachment, index|
+      # Only the first item may be retried automatically. Retrying after a later item failed
+      # would re-send the items that already went out.
+      message_id = send_single_attachment(phone_number, message, attachment, first: index.zero?)
+      return first_id if message_id.blank?
+
+      first_id ||= message_id
+    end
+
+    first_id
+  end
+
+  def send_single_attachment(phone_number, message, attachment, first:)
     normalize_opus_content_type(attachment)
     type = %w[image audio video].include?(attachment.file_type) ? attachment.file_type : 'document'
-    type_content = build_attachment_content(type, attachment, message)
-    response = HTTParty.post(
-      "#{phone_id_path('v24.0')}/messages",
-      headers: api_headers,
-      body: {
-        :messaging_product => 'whatsapp',
-        :context => whatsapp_reply_context(message),
-        **recipient_params(phone_number),
-        'type' => type,
-        type.to_s => type_content
-      }.to_json
-    )
+    type_content = build_attachment_content(type, attachment, message, with_caption: first)
+    request_body = {
+      :messaging_product => 'whatsapp',
+      :context => whatsapp_reply_context(message),
+      **recipient_params(phone_number),
+      'type' => type,
+      type.to_s => type_content
+    }
 
-    process_response(response, message)
+    deliver_message("#{phone_id_path}/messages", request_body, message, retryable: first)
   end
 
   def error_message(response)
@@ -185,10 +190,10 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
     Rails.logger.error("Failed to normalize blob #{blob.id} content_type from audio/opus to audio/ogg")
   end
 
-  def build_attachment_content(type, attachment, message)
+  def build_attachment_content(type, attachment, message, with_caption: true)
     # Referencing uploaded media by id avoids Meta's fwdproxy download, which is rate limited per ASN (error 131053).
     type_content = Whatsapp::MediaUploadService.new(whatsapp_channel, attachment).perform || { 'link' => attachment.download_url }
-    type_content['caption'] = message.outgoing_content unless %w[audio sticker].include?(type)
+    type_content['caption'] = message.outgoing_content if with_caption && %w[audio sticker].exclude?(type)
     type_content['filename'] = attachment.file.filename if type == 'document'
     type_content['voice'] = true if voice_message?(type, attachment)
     type_content
@@ -243,18 +248,14 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
   def send_interactive_text_message(phone_number, message)
     payload = create_payload_based_on_items(message)
 
-    response = HTTParty.post(
-      "#{phone_id_path}/messages",
-      headers: api_headers,
-      body: {
-        messaging_product: 'whatsapp',
-        **recipient_params(phone_number),
-        interactive: payload,
-        type: 'interactive'
-      }.to_json
-    )
+    request_body = {
+      messaging_product: 'whatsapp',
+      **recipient_params(phone_number),
+      interactive: payload,
+      type: 'interactive'
+    }
 
-    process_response(response, message)
+    deliver_message("#{phone_id_path}/messages", request_body, message)
   end
 end
 

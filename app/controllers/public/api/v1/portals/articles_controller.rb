@@ -10,7 +10,7 @@ class Public::Api::V1::Portals::ArticlesController < Public::Api::V1::Portals::B
 
   def index
     @search_query = list_params[:query]
-    @articles = @portal.articles.published.includes(:category, :author)
+    @articles = @portal.articles.published.visible_to_people.includes(:category, :author)
 
     @articles = @articles.where(locale: permitted_params[:locale]) if permitted_params[:locale].present?
 
@@ -71,11 +71,11 @@ class Public::Api::V1::Portals::ArticlesController < Public::Api::V1::Portals::B
   end
 
   def set_article
-    @article = @portal.articles.find_by!(slug: permitted_params[:article_slug])
+    @article = @portal.articles.visible_to_people.find_by!(slug: permitted_params[:article_slug])
   end
 
   def set_locale_switch_urls
-    articles = @article.translation_family.published.includes(:category)
+    articles = @article.translation_family.published.visible_to_people.includes(:category)
 
     @locale_switch_urls = articles.to_h do |article|
       url = helpers.generate_article_link(@portal.slug, article.slug, @theme_from_params, @is_plain_layout_enabled)

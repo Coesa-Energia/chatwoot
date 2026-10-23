@@ -157,6 +157,7 @@ class Whatsapp::IncomingCallService
       meta = (call.meta || {}).merge('ended_at' => Time.zone.now.to_i)
       update_call!(call, status, duration_seconds: duration, end_reason: reason, meta: meta)
       broadcast(call, 'voice_call.ended', status: call.display_status, duration_seconds: call.duration_seconds)
+      Whatsapp::UnansweredCallNotifier.new(call: call).perform
     end
   end
 

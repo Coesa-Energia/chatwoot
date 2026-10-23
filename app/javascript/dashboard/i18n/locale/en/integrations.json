@@ -95,13 +95,6 @@
     "WEBHOOK": {
       "SUBSCRIBED_EVENTS": "Subscribed Events",
       "LEARN_MORE": "Learn more about webhooks",
-      "PAYWALL": {
-        "TITLE": "Webhooks are available on paid plans",
-        "AVAILABLE_ON": "Use webhooks to receive real-time events from your Chatwoot account.",
-        "UPGRADE_PROMPT": "Upgrade to the Startups, Business, or Enterprise plan to use webhooks.",
-        "UPGRADE_NOW": "Upgrade now",
-        "CANCEL_ANYTIME": "Change or cancel your plan anytime."
-      },
       "SECRET": {
         "LABEL": "Secret",
         "COPY": "Copy secret to clipboard",
@@ -338,7 +331,8 @@
           "ACTIONS": "Actions"
         },
         "EDIT_TOOLTIP": "Edit app",
-        "DELETE_TOOLTIP": "Delete app"
+        "DELETE_TOOLTIP": "Delete app",
+        "ALL_INBOXES": "All inboxes"
       },
       "FORM": {
         "TITLE_LABEL": "Name",
@@ -346,7 +340,10 @@
         "TITLE_ERROR": "A name for the dashboard app is required",
         "URL_LABEL": "Endpoint",
         "URL_PLACEHOLDER": "Enter the endpoint URL where your app is hosted",
-        "URL_ERROR": "A valid URL is required"
+        "URL_ERROR": "A valid URL is required",
+        "INBOXES_LABEL": "Inboxes",
+        "INBOXES_PLACEHOLDER": "All inboxes",
+        "INBOXES_HELP": "The app only appears in conversations of the chosen inboxes. Leave empty to show it in every inbox."
       },
       "CREATE": {
         "HEADER": "Add a new dashboard app",

@@ -1,4 +1,6 @@
 class ConversationFinder
+  include ConversationFinder::QuickFilters
+
   attr_reader :current_user, :current_account, :params
 
   DEFAULT_STATUS = 'open'.freeze
@@ -63,9 +65,13 @@ class ConversationFinder
     set_assignee_type
 
     find_all_conversations
+    join_user_state
+    filter_by_archived
     filter_by_status unless params[:q]
     filter_by_team
     filter_by_labels
+    filter_by_unread
+    filter_by_awaiting_reply
     filter_by_query
     filter_by_source_id
   end
@@ -198,7 +204,7 @@ class ConversationFinder
 
   def conversations
     @conversations = conversations_base_query
-    @conversations = Conversations::SortService.apply(@conversations, params[:sort_by])
+    @conversations = pinned_first(Conversations::SortService.apply(@conversations, params[:sort_by]))
 
     if params[:updated_within].present?
       @conversations.where('conversations.updated_at > ?', Time.zone.now - params[:updated_within].to_i.seconds)

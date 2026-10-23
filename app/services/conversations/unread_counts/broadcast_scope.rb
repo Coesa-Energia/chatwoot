@@ -6,7 +6,7 @@ class Conversations::UnreadCounts::BroadcastScope
   end
 
   def perform
-    return [conversation.account, conversation.inbox.members] if conversation.present?
+    return [conversation.account, conversation.inbox.members_with_access_to(conversation)] if conversation.present?
 
     deleted_conversation_scope
   end

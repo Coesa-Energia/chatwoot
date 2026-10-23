@@ -65,6 +65,7 @@ class Conversations::MessageWindowService
   end
 
   def last_incoming_message
-    @last_incoming_message ||= @conversation.messages.where(account_id: @conversation.account_id).incoming&.last
+    # A call bubble is not the customer writing, so it doesn't open the window
+    @last_incoming_message ||= @conversation.messages.where(account_id: @conversation.account_id).incoming.where.not(content_type: :voice_call).last
   end
 end

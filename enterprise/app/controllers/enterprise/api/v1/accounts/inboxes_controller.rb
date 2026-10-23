@@ -1,4 +1,4 @@
-module Enterprise::Api::V1::Accounts::InboxesController
+module Enterprise::Api::V1::Accounts::InboxesController # rubocop:disable Metrics/ModuleLength
   extend ActiveSupport::Concern
   include Concerns::TwilioVoiceCredentials
 
@@ -42,6 +42,35 @@ module Enterprise::Api::V1::Accounts::InboxesController
     render_could_not_create_error(e.message)
   end
 
+  # The call-permission template as last known (name, text, approval status), without calling Meta.
+  def show_call_permission_template
+    return unless ensure_whatsapp_calling_supported
+
+    render json: call_permission_template_service.state
+  end
+
+  # Sends the (possibly edited) template to Meta for approval, or adopts an existing one by name.
+  def create_call_permission_template
+    return unless ensure_whatsapp_calling_supported
+
+    state = call_permission_template_service.create(name: params[:name], body: params[:body])
+    @inbox.update_account_cache
+    render json: state
+  rescue Whatsapp::CallPermissionTemplateService::InvalidTemplate, Voice::CallErrors::CallFailed => e
+    render_could_not_create_error(e.message)
+  end
+
+  # Re-reads the approval status from Meta.
+  def refresh_call_permission_template
+    return unless ensure_whatsapp_calling_supported
+
+    state = call_permission_template_service.refresh
+    @inbox.update_account_cache
+    render json: state
+  rescue Whatsapp::CallPermissionTemplateService::InvalidTemplate, Voice::CallErrors::CallFailed => e
+    render_could_not_create_error(e.message)
+  end
+
   # Both recording flags are always sent together, so the UI's current state is what gets saved.
   def set_call_recording
     return unless ensure_calling_supported
@@ -65,6 +94,10 @@ module Enterprise::Api::V1::Accounts::InboxesController
   private
 
   def inbox_scope = super.with_attached_out_of_hours_call_audio
+
+  def call_permission_template_service
+    Whatsapp::CallPermissionTemplateService.new(channel: @inbox.channel)
+  end
 
   def ensure_whatsapp_calling_supported
     channel = @inbox.channel

@@ -38,6 +38,10 @@
       <%= render "attributes", page: page, attributes: fields.values_at("id", "name", "locale", "status", "created_at", "updated_at") %>
     <% end %>
 
+    <%= render "card", title: t("super_admin.accounts.subscription") do %>
+      <%= render "subscription", account: account %>
+    <% end %>
+
     <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[repeat(auto-fit,minmax(20rem,1fr))]">
       <% if fields["limits"] %>
         <%= render "card", title: t("super_admin.accounts.limits") do %>

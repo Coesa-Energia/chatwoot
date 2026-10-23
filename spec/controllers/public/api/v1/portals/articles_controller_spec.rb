@@ -36,6 +36,17 @@ RSpec.describe 'Public Articles API', type: :request do
       expect(response_data.length).to eq(2)
     end
 
+    it 'excludes AI-only articles from the list' do
+      ai_only_article = create(:article, category: category_2, status: :published, ai_only: true, portal: portal, account_id: account.id,
+                                         author_id: agent.id)
+
+      get "/hc/#{portal.slug}/#{category_2.locale}/categories/#{category.slug}/articles.json"
+
+      ids = response.parsed_body['payload'].pluck('id')
+      expect(ids.length).to eq(2)
+      expect(ids).not_to include(ai_only_article.id)
+    end
+
     it 'get all articles with searched text query' do
       long_content = ([('intro ' * 30).strip, 'funny', ('tail ' * 30).strip].join(' ')).strip
       create(:article,
@@ -129,6 +140,14 @@ RSpec.describe 'Public Articles API', type: :request do
       expect(response).to have_http_status(:success)
       expect(response.body).to include(ChatwootMarkdownRenderer.new(article.content).render_article)
       expect(article.reload.views).to eq 0 # View count should not increment on show
+    end
+
+    it 'returns not found for an AI-only article' do
+      article.update!(ai_only: true)
+
+      get "/hc/#{portal.slug}/articles/#{article.slug}"
+
+      expect(response).to have_http_status(:not_found)
     end
 
     it 'does not increment the view count if the article is not published' do
@@ -249,6 +268,15 @@ RSpec.describe 'Public Articles API', type: :request do
       draft_article = create(:article, category: category, status: :draft, portal: portal, account_id: account.id, author_id: agent.id)
 
       get "/hc/#{portal.slug}/articles/#{draft_article.slug}.md"
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 for an AI-only article' do
+      ai_only_article = create(:article, category: category, status: :published, ai_only: true, portal: portal, account_id: account.id,
+                                         author_id: agent.id)
+
+      get "/hc/#{portal.slug}/articles/#{ai_only_article.slug}.md"
 
       expect(response).to have_http_status(:not_found)
     end

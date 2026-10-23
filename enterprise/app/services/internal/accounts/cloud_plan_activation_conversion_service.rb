@@ -7,14 +7,8 @@ class Internal::Accounts::CloudPlanActivationConversionService
   pattr_initialize [:account!, :previous_plan_name!, :current_plan_name!, :activated_at!, :conversion_value!, :currency_code!]
 
   def perform
-    return unless ChatwootApp.chatwoot_cloud?
-
-    return unless previous_plan_name == default_plan_name && current_plan_name != default_plan_name
-    return if marketing_attribution.blank? || marketing_attribution[PLAN_ACTIVATION_TRACKED_AT].present?
-    return if activated_at > account.created_at + 30.days
-
-    enqueue_conversion
-    mark_tracked
+    # COESA FORK: conversão de plano do cloud desligada. Retorno fixo.
+    true
   end
 
   private

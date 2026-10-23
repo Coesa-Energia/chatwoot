@@ -1,8 +1,8 @@
 {
   "AGENT_BOTS": {
-    "HEADER": "Robôs",
+    "HEADER": "Bots e automações",
     "LOADING_EDITOR": "Carregando Editor...",
-    "DESCRIPTION": "Robôs agentes são como os membros mais fabulosos de seu time. Eles podem lidar com as pequenas coisas, assim você pode focar nas coisas que importam. Dê uma chance a eles. Você pode gerenciar seus robôs a partir desta página ou criar novos usando o botão 'Criar Robô'.",
+    "DESCRIPTION": "Robôs recebem os eventos das conversas num webhook e podem responder. Sem URL de webhook, o robô funciona como um perfil de automação: ele só tem uma chave de API, e seus sistemas (cobrança, lembretes) enviam mensagens no nome dele, e não no de uma pessoa.",
     "LEARN_MORE": "Aprenda sobre os robôs agentes",
     "COUNT": "{n} robô | {n} robôs",
     "SEARCH_PLACEHOLDER": "Pesquisar robôs...",
@@ -35,6 +35,7 @@
     "LIST": {
       "404": "Nenhum robô encontrado. Você pode criar um robô clicando no botão 'Criar Robô'.",
       "LOADING": "Buscando robôs...",
+      "AUTOMATION_PROFILE": "Perfil de automação (somente API)",
       "TABLE_HEADER": {
         "DETAILS": "Detalhe do Robô",
         "URL": "URL do Webhook",
@@ -94,8 +95,9 @@
         "PLACEHOLDER": "O que esse robô faz?"
       },
       "WEBHOOK_URL": {
-        "LABEL": "URL do Webhook",
+        "LABEL": "URL do Webhook (opcional)",
         "PLACEHOLDER": "https://exemplo.com.br/webhook",
+        "HELP": "Deixe em branco para criar um perfil de automação: ele não recebe eventos e só age pela chave de API (token de acesso).",
         "REQUIRED": "URL Webhook é necessária"
       },
       "ERRORS": {

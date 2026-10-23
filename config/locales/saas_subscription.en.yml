@@ -1,0 +1,15 @@
+en:
+  helpers:
+    label:
+      account:
+        saas_plan: 'Plan'
+        saas_trial_ends_at: 'Trial ends on'
+        saas_paid_until: 'Paid until'
+        saas_notes: 'Billing notes'
+  super_admin:
+    accounts:
+      subscription: 'Plan & billing'
+      subscription_saved: 'Plan and billing saved.'
+      subscription_hint: 'Accounts are suspended automatically %{days} days after the paid-until date (or the trial end when there is no paid-until date). Leave both dates empty for no expiry.'
+    account_suspension:
+      automatic_reason: 'Subscription ended on %{date} (automatic suspension).'

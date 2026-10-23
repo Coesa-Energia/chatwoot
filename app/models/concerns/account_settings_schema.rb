@@ -16,6 +16,7 @@ module AccountSettingsSchema
         'translation_provider': { 'type': %w[string null], 'enum': ['captain', 'google_translate', nil] },
         'auto_resolve_label': { 'type': %w[string null] },
         'enforce_mfa': { 'type': %w[boolean null] },
+        'seller_mode': { 'type': %w[boolean null] },
         'keep_pending_on_bot_failure': { 'type': %w[boolean null] },
         'captain_auto_resolve_mode': { 'type': %w[string null], 'enum': ['evaluated', 'legacy', 'disabled', nil] },
         'conversation_required_attributes': {

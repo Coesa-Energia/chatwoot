@@ -11,8 +11,8 @@ class ManuallyManagedFeaturesField < Administrate::Field::Base
 
   def all_features
     # Business and Enterprise plan features only
-    Enterprise::Billing::HandleStripeEventService::BUSINESS_PLAN_FEATURES +
-      Enterprise::Billing::HandleStripeEventService::ENTERPRISE_PLAN_FEATURES
+    Internal::Accounts::InternalAttributesService::BUSINESS_PLAN_FEATURES +
+      Internal::Accounts::InternalAttributesService::ENTERPRISE_PLAN_FEATURES
   end
 
   def selected_features

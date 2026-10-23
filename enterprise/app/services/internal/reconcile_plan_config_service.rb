@@ -1,12 +1,7 @@
 class Internal::ReconcilePlanConfigService
+  # COESA FORK: reconciliação de plano desligada. Nunca reseta branding nem features.
   def perform
-    remove_premium_config_reset_warning
-    return if ChatwootHub.pricing_plan != 'community'
-
-    create_premium_config_reset_warning if premium_config_reset_required?
-
-    reconcile_premium_config
-    reconcile_premium_features
+    true
   end
 
   private

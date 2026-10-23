@@ -2,30 +2,51 @@
   "CHAT_LIST": {
     "LOADING": "Buscando conversas",
     "LOAD_MORE_CONVERSATIONS": "Carregar mais conversas",
-    "EOF": "Todas as conversas carregadas 🎉",
+    "EOF": "Não há mais conversas",
     "LIST": {
-      "404": "Não há conversas ativas neste grupo."
+      "404": "Nenhuma conversa por aqui."
     },
     "FAILED_TO_SEND": "Falha ao enviar",
-    "FETCH_ERROR": "Não foi possível carregar as conversas. Por favor, tente novamente.",
+    "FETCH_ERROR": "Não foi possível carregar as conversas. Tente de novo.",
     "TAB_HEADING": "Conversas",
+    "VOICE_DIAL": {
+      "BUTTON": "Ligar",
+      "PLACEHOLDER": "Busque o contato ou o número",
+      "EMPTY": "Nenhum contato com telefone",
+      "NEW_CALL": "Nova ligação",
+      "CHOOSE_INBOX": "Ligar por qual linha?",
+      "CHANGE_INBOX": "Trocar",
+      "WHATSAPP_HINT": "Abre a conversa e liga. Se o cliente ainda não deu permissão, o pedido é enviado.",
+      "NOT_ON_INBOX": "Este contato não pode ser chamado por esta caixa."
+    },
+    "CONTACT_SCOPE": "Todas as conversas deste contato",
+    "CONTACT_SCOPE_BACK": "Voltar à lista",
+    "QUICK_FILTERS": "Filtros rápidos",
+    "UNREAD_ONLY": "Não lidas",
+    "AWAITING_REPLY_ONLY": "Sem resposta",
+    "ARCHIVED_ONLY": "Arquivadas",
+    "ARCHIVED_NOTE": "As conversas arquivadas ficam aqui até você desarquivá-las.",
+    "BACK_TO_LIST": "Voltar às conversas",
+    "ARCHIVED_TOAST": "Conversa arquivada. Ela fica aqui até você desarquivar.",
+    "ARCHIVE_ERROR": "Não foi possível arquivar a conversa.",
+    "PIN_ERROR": "Não foi possível fixar a conversa.",
     "MENTION_HEADING": "Menções",
-    "UNATTENDED_HEADING": "Não Atendidas",
+    "UNATTENDED_HEADING": "Não atendidas",
     "SEARCH": {
-      "INPUT": "Pesquisar pessoas, conversas, respostas salvas .."
+      "INPUT": "Buscar contatos, conversas e respostas prontas"
     },
     "FILTER_ALL": "Todos",
     "ASSIGNEE_TYPE_TABS": {
       "me": "Minhas",
       "unassigned": "Não atribuídas",
-      "all": "Todos"
+      "all": "Todas"
     },
     "CHAT_STATUS_FILTER_ITEMS": {
       "open": {
         "TEXT": "Abertas"
       },
       "resolved": {
-        "TEXT": "Resolvidas"
+        "TEXT": "Finalizadas"
       },
       "pending": {
         "TEXT": "Pendentes"
@@ -49,38 +70,39 @@
       },
       "LAST_ACTIVITY": {
         "NOT_ACTIVE": "Última atividade:"
-      }
+      },
+      "YESTERDAY": "Ontem"
     },
     "SORT_ORDER_ITEMS": {
       "last_activity_at_asc": {
-        "TEXT": "Última atividade: Mais antigas primeiro"
+        "TEXT": "Última atividade: mais antigas primeiro"
       },
       "last_activity_at_desc": {
-        "TEXT": "Última atividade: Recentes primeiro"
+        "TEXT": "Última atividade: mais recentes primeiro"
       },
       "created_at_desc": {
-        "TEXT": "Criado em: Recentes primeiro"
+        "TEXT": "Criação: mais recentes primeiro"
       },
       "created_at_asc": {
-        "TEXT": "Criado em: Antigos primeiro"
+        "TEXT": "Criação: mais antigas primeiro"
       },
       "priority_desc": {
-        "TEXT": "Prioridade: Altas primeiro"
+        "TEXT": "Prioridade: mais altas primeiro"
       },
       "priority_asc": {
-        "TEXT": "Prioridade: Baixas primeiro"
+        "TEXT": "Prioridade: mais baixas primeiro"
       },
       "waiting_since_asc": {
-        "TEXT": "Resposta pendente: Longas primeiro"
+        "TEXT": "Esperando resposta: há mais tempo primeiro"
       },
       "waiting_since_desc": {
-        "TEXT": "Resposta pendente: Curtas primeiro"
+        "TEXT": "Esperando resposta: há menos tempo primeiro"
       },
       "priority_desc_created_at_asc": {
-        "TEXT": "Prioridade: Maior primeiro, Criação: Mais antiga primeiro"
+        "TEXT": "Prioridade mais alta, depois as mais antigas"
       },
       "unread": {
-        "TEXT": "Contagem de não lidas: Maior primeiro"
+        "TEXT": "Mais mensagens não lidas primeiro"
       }
     },
     "ATTACHMENTS": {
@@ -137,12 +159,19 @@
     "SENT": "Enviado com sucesso",
     "READ": "Lido com sucesso",
     "DELIVERED": "Entregue com sucesso",
-    "NO_MESSAGES": "Nova Mensagem",
+    "NO_MESSAGES": "Nova mensagem",
     "NO_CONTENT": "Nenhum conteúdo disponível",
-    "HIDE_QUOTED_TEXT": "Ocultar Texto Citado",
-    "SHOW_QUOTED_TEXT": "Mostrar Texto Citado",
+    "HIDE_QUOTED_TEXT": "Ocultar texto citado",
+    "SHOW_QUOTED_TEXT": "Mostrar texto citado",
     "MESSAGE_READ": "Lida",
     "SENDING": "Enviando",
-    "UNREAD_COUNT_OVERFLOW": "9+"
+    "UNREAD_COUNT_OVERFLOW": "9+",
+    "EMPTY_STATE": {
+      "UNREAD": "Nenhuma conversa não lida. Tudo em dia.",
+      "AWAITING_REPLY": "Nenhum cliente esperando resposta.",
+      "QUICK_FILTERS": "Nenhuma conversa com esses filtros.",
+      "ARCHIVED": "Nenhuma conversa arquivada.",
+      "SHOW_ALL": "Mostrar todas as conversas"
+    }
   }
 }

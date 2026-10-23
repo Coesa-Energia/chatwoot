@@ -1,0 +1,26 @@
+<%# Plan and billing dates of the account. A separate form so it works whatever fields the main account form has. %>
+<%# locals: (account:) -%>
+<%= form_with url: subscription_super_admin_account_path(account), method: :patch, scope: :account, html: { class: "grid gap-4 p-4" } do |f| %>
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div class="space-y-1.5">
+      <%= f.label :saas_plan, t("helpers.label.account.saas_plan"), class: "text-label text-n-slate-12" %>
+      <%= f.text_field :saas_plan, value: account.saas_plan, class: ui(:input) %>
+    </div>
+    <div class="space-y-1.5">
+      <%= f.label :saas_trial_ends_at, t("helpers.label.account.saas_trial_ends_at"), class: "text-label text-n-slate-12" %>
+      <%= f.date_field :saas_trial_ends_at, value: account.saas_trial_ends_at, class: ui(:input) %>
+    </div>
+    <div class="space-y-1.5">
+      <%= f.label :saas_paid_until, t("helpers.label.account.saas_paid_until"), class: "text-label text-n-slate-12" %>
+      <%= f.date_field :saas_paid_until, value: account.saas_paid_until, class: ui(:input) %>
+    </div>
+  </div>
+  <div class="space-y-1.5">
+    <%= f.label :saas_notes, t("helpers.label.account.saas_notes"), class: "text-label text-n-slate-12" %>
+    <%= f.text_area :saas_notes, value: account.saas_notes, rows: 3, class: ui(:input) %>
+  </div>
+  <p class="text-body-main text-n-slate-11"><%= t("super_admin.accounts.subscription_hint", days: Accounts::SuspendExpiredSubscriptionsService::DEFAULT_GRACE_DAYS) %></p>
+  <div>
+    <%= render "button", label: t("super_admin.actions.save_changes"), submit: f %>
+  </div>
+<% end %>

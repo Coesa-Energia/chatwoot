@@ -79,12 +79,78 @@ describe Whatsapp::Providers::WhatsappCloudService do
         .to raise_error(Voice::CallErrors::NoCallPermission, 'No call permission')
     end
 
-    it 'raises Voice::CallErrors::CallFailed with a fallback message when the error body is non-JSON' do
+    it 'raises Voice::CallErrors::CallFailed with a plain-language fallback when the error body is non-JSON' do
       stub_request(:post, calls_url).to_return(status: 502, body: '<html>502 Bad Gateway</html>',
                                                headers: { 'Content-Type' => 'text/html' })
 
       expect { service.initiate_call('15551234567', 'sdp_offer') }
-        .to raise_error(Voice::CallErrors::CallFailed, 'Failed to initiate call')
+        .to raise_error(Voice::CallErrors::CallFailed, I18n.t('errors.whatsapp.calls.meta.generic'))
+    end
+
+    it 'translates known Meta codes into readable messages and keeps the code' do
+      stub_request(:post, calls_url).to_return(
+        status: 400, body: { error: { code: 131_014, message: 'Request processing error' } }.to_json, headers: headers
+      )
+
+      expect { service.initiate_call('15551234567', 'sdp_offer') }.to raise_error(Voice::CallErrors::CallFailed) do |error|
+        expect(error.message).to eq(I18n.t('errors.whatsapp.calls.meta.temporary_failure'))
+        expect(error.code).to eq(131_014)
+      end
+    end
+  end
+
+  describe 'permission request failures' do
+    it 'raises PermissionRequestFailed with a readable message when Meta refuses the request' do
+      stub_request(:post, messages_url).to_return(status: 400, body: { error: { code: 138_009 } }.to_json, headers: headers)
+
+      expect { service.send_call_permission_request('15551234567') }.to raise_error(Voice::CallErrors::PermissionRequestFailed) do |error|
+        expect(error.message).to eq(I18n.t('errors.whatsapp.calls.meta.permission_limit'))
+        expect(error.code).to eq(138_009)
+      end
+    end
+  end
+
+  describe '#send_call_permission_template' do
+    it 'sends the template message to the recipient' do
+      stub_request(:post, messages_url)
+        .with(body: hash_including(type: 'template', to: '15551234567', template: { name: 'tpl', language: { code: 'pt_BR' } }))
+        .to_return(status: 200, body: { messages: [{ id: 'wamid.tpl' }] }.to_json, headers: headers)
+
+      expect(service.send_call_permission_template('15551234567', 'tpl', 'pt_BR')).to eq('messages' => [{ 'id' => 'wamid.tpl' }])
+    end
+  end
+
+  describe '#create_call_permission_template' do
+    let(:templates_url) { "https://graph.facebook.com/v22.0/#{whatsapp_channel.provider_config['business_account_id']}/message_templates" }
+
+    it 'posts a BODY plus call_permission_request component and lets Meta change the category' do
+      stub_request(:post, templates_url).to_return(status: 200, body: { id: '1', status: 'PENDING' }.to_json, headers: headers)
+
+      service.create_call_permission_template(name: 'tpl', language: 'pt_BR', body: 'Oi')
+
+      expect(a_request(:post, templates_url).with do |request|
+        body = JSON.parse(request.body)
+        body['allow_category_change'] == true &&
+          body['components'] == [{ 'type' => 'BODY', 'text' => 'Oi' }, { 'type' => 'call_permission_request' }]
+      end).to have_been_made
+    end
+  end
+
+  describe '#fetch_call_permissions' do
+    let(:permissions_url) { 'https://graph.facebook.com/v22.0/123456789/call_permissions' }
+
+    it 'queries by user_wa_id' do
+      stub_request(:get, permissions_url).with(query: { user_wa_id: '15551234567' })
+                                         .to_return(status: 200, body: { permission: { status: 'temporary' } }.to_json, headers: headers)
+
+      expect(service.fetch_call_permissions('15551234567')).to eq('permission' => { 'status' => 'temporary' })
+    end
+
+    it 'queries by recipient for a BSUID' do
+      stub_request(:get, permissions_url).with(query: { recipient: 'IN.2081978709342942' })
+                                         .to_return(status: 200, body: { permission: { status: 'no_permission' } }.to_json, headers: headers)
+
+      expect(service.fetch_call_permissions('IN.2081978709342942')['permission']['status']).to eq('no_permission')
     end
   end
 end

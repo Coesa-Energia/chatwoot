@@ -40,6 +40,32 @@
         "TITLE": "General settings",
         "NOTE": ""
       },
+      "BRAND": {
+        "TITLE": "Brand",
+        "NOTE": "Your logo and how your brand appears at the top of the sidebar.",
+        "TITLE_COLLAPSED": "Collapsed menu image",
+        "NOTE_COLLAPSED": "Shown when the sidebar is collapsed.",
+        "LOGO_MAIN": "Main logo",
+        "TEXT_IMAGE": "Image next to the name",
+        "TEXT_IMAGE_MAIN": "Main logo",
+        "TEXT_IMAGE_COLLAPSED": "Collapsed menu image",
+        "LOGO": "Logo",
+        "UPLOAD": "Upload logo",
+        "REPLACE": "Replace",
+        "TRIM": "Trim margins",
+        "REMOVE": "Remove",
+        "HINT": "PNG, JPG, WebP or GIF up to 2 MB. A square image works best.",
+        "DISPLAY": "Show in the sidebar",
+        "DISPLAY_OPTIONS": {
+          "LOGO_NAME": "Logo and name",
+          "LOGO_NAME_INLINE": "Logo beside the name",
+          "LOGO": "Logo only",
+          "NAME": "Name only"
+        },
+        "UPDATE_SUCCESS": "Brand updated",
+        "UPDATE_ERROR": "Could not update the brand",
+        "FILE_ERROR": "Choose a PNG, JPG, WebP or GIF image up to 2 MB"
+      },
       "ACCOUNT_ID": {
         "TITLE": "Account ID",
         "NOTE": "This ID is required if you are building an API based integration"
@@ -124,6 +150,14 @@
       "AUTO_RESOLVE_IGNORE_WAITING": {
         "LABEL": "Exclude unattended conversations",
         "HELP": "When enabled, the system will skip resolving conversations that are still waiting for an agent's reply."
+      },
+      "SELLER_MODE": {
+        "TITLE": "Seller mode",
+        "NOTE": "Agents see a simpler dashboard focused on WhatsApp sales: no snooze, pending, priority, SLA, macros, mentions or teams; in Captain and the help center they only ask and read. Administrators always see everything.",
+        "API": {
+          "SUCCESS": "Seller mode updated",
+          "ERROR": "Could not update seller mode"
+        }
       },
       "AUDIO_TRANSCRIPTION": {
         "TITLE": "Transcribe Audio Messages",

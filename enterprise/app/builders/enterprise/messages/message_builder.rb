@@ -7,7 +7,8 @@ module Enterprise::Messages::MessageBuilder
     super
   end
 
+  # WhatsApp too: a phone (Twilio) call is logged in the contact's WhatsApp thread even when WhatsApp calling is off
   def voice_call_inbox?
-    @conversation.inbox.channel.try(:voice_enabled?)
+    @conversation.inbox.whatsapp? || @conversation.inbox.channel.try(:voice_enabled?)
   end
 end

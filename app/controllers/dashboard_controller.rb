@@ -50,6 +50,29 @@ class DashboardController < ActionController::Base
 
   def set_global_config
     @global_config = GlobalConfig.get(*GLOBAL_CONFIG_KEYS).merge(app_config)
+    # Only whether a transcription server is set (never its URL or key): lets the account page offer the toggle.
+    @global_config['AUDIO_TRANSCRIPTION_SERVER'] = InstallationConfig.find_by(name: 'AUDIO_TRANSCRIPTION_API_URL')&.value.present?
+    apply_account_brand
+  end
+
+  # COESA: the login page, tab title and favicon use the brand of the account that has a logo
+  # (Settings > Account > Marca) wherever the Super Admin branding is still Chatwoot's default, key by key.
+  # The collapsed-sidebar icon becomes the favicon.
+  def apply_account_brand
+    account = Account.installation_brand_account
+    return if account.blank?
+
+    thumbnail = account.collapsed_logo_url || account.logo_url
+    brand = { 'INSTALLATION_NAME' => account.name, 'LOGO' => account.logo_url, 'LOGO_DARK' => account.logo_url,
+              'LOGO_THUMBNAIL' => thumbnail }
+    brand.each { |key, value| @global_config[key] = value if default_brand_value?(key) }
+    @brand_favicon = @global_config['LOGO_THUMBNAIL'] if @global_config['LOGO_THUMBNAIL'] == thumbnail
+    @global_config['BRAND_DISPLAY'] = account.brand_display
+  end
+
+  def default_brand_value?(key)
+    value = @global_config[key].to_s
+    key == 'INSTALLATION_NAME' ? value == 'Chatwoot' : value.blank? || value.start_with?('/brand-assets/')
   end
 
   def set_dashboard_scripts

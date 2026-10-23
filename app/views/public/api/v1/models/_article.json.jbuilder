@@ -32,8 +32,8 @@ if article.author.present?
 end
 
 json.associated_articles do
-  if article.associated_articles.any?
-    json.array! article.associated_articles.each do |associated_article|
+  if article.associated_articles.visible_to_people.any?
+    json.array! article.associated_articles.visible_to_people.each do |associated_article|
       json.partial! 'public/api/v1/models/hc/associated_article', formats: [:json], article: associated_article
     end
   end

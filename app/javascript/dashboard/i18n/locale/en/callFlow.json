@@ -1,0 +1,20 @@
+{
+  "CALL_FLOW": {
+    "CALL": "Call",
+    "CHOOSE": "Choose how to call",
+    "WHATSAPP": "Call on WhatsApp",
+    "PHONE": "Call by phone",
+    "WHATSAPP_STATUS": {
+      "CAN_CALL": "You can call",
+      "CAN_CALL_UNTIL": "You can call until {date}",
+      "CALL_LIMIT": "Call limit reached, try again later",
+      "WILL_ASK": "We will ask the customer for permission",
+      "REQUEST_LIMIT": "Request limit reached, try tomorrow",
+      "REQUEST_LIMIT_UNTIL": "Request limit reached, try again after {date}"
+    },
+    "PHONE_STATUS": {
+      "CALLS": "Calls {phone}",
+      "NO_PHONE": "This customer has no phone number saved"
+    }
+  }
+}

@@ -119,7 +119,10 @@ RSpec.describe 'WhatsApp Calls API', type: :request do
     let(:contact) { create(:contact, account: account, phone_number: '+15551234567') }
     let!(:contact_inbox) { create(:contact_inbox, contact: contact, inbox: inbox, source_id: '15551234567') }
     let(:initiate_conversation) do
-      create(:conversation, account: account, inbox: inbox, contact: contact, contact_inbox: contact_inbox)
+      create(:conversation, account: account, inbox: inbox, contact: contact, contact_inbox: contact_inbox).tap do |conversation|
+        # The customer wrote recently, so the free-form permission request is deliverable.
+        create(:message, account: account, inbox: inbox, conversation: conversation, message_type: :incoming)
+      end
     end
 
     it 'creates an outbound Call and returns calling status' do
@@ -334,6 +337,37 @@ RSpec.describe 'WhatsApp Calls API', type: :request do
       end.not_to(change { call.message.attachments.count })
 
       expect(response).to have_http_status(:unprocessable_entity)
+    end
+  end
+
+  describe 'GET /api/v1/accounts/:account_id/whatsapp_calls/permission_status' do
+    let(:status_conversation) do
+      contact = create(:contact, account: account, phone_number: '+15551234567')
+      contact_inbox = create(:contact_inbox, contact: contact, inbox: inbox, source_id: '15551234567')
+      create(:conversation, account: account, inbox: inbox, contact: contact, contact_inbox: contact_inbox)
+    end
+
+    it 'returns what the contact allowed and the request limits' do
+      allow(provider_service).to receive(:fetch_call_permissions).with('15551234567').and_return(
+        'permission' => { 'status' => 'permanent' }, 'actions' => [{ 'action_name' => 'start_call', 'can_perform_action' => true }]
+      )
+
+      get "/api/v1/accounts/#{account.id}/whatsapp_calls/permission_status",
+          params: { conversation_id: status_conversation.display_id }, headers: agent.create_new_auth_token
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to include('status' => 'permanent', 'can_call' => true)
+    end
+
+    it 'degrades to unknown when WhatsApp cannot be reached' do
+      allow(provider_service).to receive(:fetch_call_permissions)
+        .and_raise(Voice::CallErrors::CallFailed.new('temporary', code: 2))
+
+      get "/api/v1/accounts/#{account.id}/whatsapp_calls/permission_status",
+          params: { conversation_id: status_conversation.display_id }, headers: agent.create_new_auth_token
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body['status']).to eq('unknown')
     end
   end
 end

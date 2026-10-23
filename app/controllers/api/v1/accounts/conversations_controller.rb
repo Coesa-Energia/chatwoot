@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/ClassLength
 class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseController
   include Events::Types
   include DateRangeHelper
@@ -7,6 +8,8 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
 
   before_action :conversation, except: [:index, :meta, :search, :create, :filter]
   before_action :validate_assignment_targets, :inbox, :contact, :contact_inbox, only: [:create]
+  # The agent opened the conversation: let a WhatsApp customer see the blue ticks (the job checks if there is anything new).
+  after_action(only: :update_last_seen) { ::Whatsapp::ReadReceiptJob.perform_later(@conversation.id) if @conversation.inbox.whatsapp? }
 
   ATTACHMENT_RESULTS_PER_PAGE = 100
 
@@ -236,5 +239,6 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
     @conversation.assignee_id? && Current.user == @conversation.assignee
   end
 end
+# rubocop:enable Metrics/ClassLength
 
 Api::V1::Accounts::ConversationsController.prepend_mod_with('Api::V1::Accounts::ConversationsController')

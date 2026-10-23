@@ -16,4 +16,11 @@ class Whatsapp::MessageDedupLock
   def acquire!
     ::Redis::Alfred.set(@key, true, nx: true, ex: @ttl)
   end
+
+  # Drops the lock so a retry can process the message again. Called when processing
+  # failed after the lock was taken; otherwise the retry would be skipped as a duplicate
+  # and the message lost until the TTL expires.
+  def release!
+    ::Redis::Alfred.delete(@key)
+  end
 end

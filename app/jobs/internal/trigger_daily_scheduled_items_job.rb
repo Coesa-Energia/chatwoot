@@ -10,9 +10,8 @@ class Internal::TriggerDailyScheduledItemsJob < ApplicationJob
   private
 
   def schedule_version_check
-    return unless Rails.env.production?
-
-    Internal::CheckNewVersionsJob.set(wait_until: version_check_run_at).perform_later
+    # COESA FORK: verificação diária de versão desligada.
+    nil
   end
 
   def version_check_run_at

@@ -1,8 +1,24 @@
 class Api::V1::Accounts::Conversations::MessagesController < Api::V1::Accounts::Conversations::BaseController
+  SEARCH_MIN_LENGTH = 2
+  SEARCH_LIMIT = 100
+
   before_action :ensure_api_inbox, only: :update
+  before_action :ensure_message_deletable, only: :destroy
 
   def index
     @messages = message_finder.perform
+  end
+
+  # Search inside this conversation (like the WhatsApp "search in chat"): newest match first.
+  # The client jumps to each result by loading the history around its id.
+  def search
+    query = params[:q].to_s.strip
+    return render json: { payload: [] } if query.length < SEARCH_MIN_LENGTH
+
+    messages = @conversation.messages.where.not(message_type: :activity)
+                            .where('messages.content ILIKE ?', "%#{ActiveRecord::Base.sanitize_sql_like(query)}%")
+                            .reorder(created_at: :desc, id: :desc).limit(SEARCH_LIMIT)
+    render json: { payload: messages.map { |message| search_result(message) } }
   end
 
   def create
@@ -16,6 +32,14 @@ class Api::V1::Accounts::Conversations::MessagesController < Api::V1::Accounts::
   def update
     Messages::StatusUpdateService.new(message, permitted_params[:status], permitted_params[:external_error]).perform
     @message = message
+  end
+
+  # React to a WhatsApp message with an emoji (an empty emoji removes the reaction).
+  def react
+    error = Whatsapp::SendReactionService.new(message: message, emoji: params[:emoji].to_s.strip).perform
+    return render_could_not_create_error(error) if error.present?
+
+    render json: { id: message.id, reactions: message.reload.content_attributes['reactions'] || {} }
   end
 
   def destroy
@@ -72,6 +96,17 @@ class Api::V1::Accounts::Conversations::MessagesController < Api::V1::Accounts::
     @message_finder ||= MessageFinder.new(@conversation, params)
   end
 
+  def search_result(message)
+    {
+      id: message.id,
+      content: message.content,
+      message_type: message.message_type,
+      private: message.private,
+      created_at: message.created_at.to_i,
+      sender_name: message.sender&.try(:name)
+    }
+  end
+
   def claim_message_retry
     message.with_lock do
       next false unless message.failed?
@@ -93,6 +128,14 @@ class Api::V1::Accounts::Conversations::MessagesController < Api::V1::Accounts::
 
   def already_translated_content_available?
     message.translations.present? && message.translations[permitted_params[:target_language]].present?
+  end
+
+  # Agents may only delete messages they sent themselves; admins (and bots) are unrestricted.
+  def ensure_message_deletable
+    return unless Current.account_user&.agent?
+    return if message.outgoing? && message.sender == Current.user
+
+    raise Pundit::NotAuthorizedError
   end
 
   # API inbox check

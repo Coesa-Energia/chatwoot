@@ -21,22 +21,8 @@ class Internal::Accounts::MarketingConversionTrackingService
   pattr_initialize [:account!, :event_name!, :occurred_at, :conversion_value, :currency_code]
 
   def perform
-    return unless ChatwootApp.chatwoot_cloud?
-    return if click_attributes.blank?
-
-    response = HTTParty.post(
-      API_URL,
-      headers: {
-        'Authorization' => "Bearer #{access_token}",
-        'Content-Type' => 'application/json'
-      },
-      body: {
-        destinations: [destination_payload],
-        events: [conversion_payload]
-      }.to_json
-    )
-
-    raise "Marketing conversion upload failed: #{response.body}" unless response.success?
+    # COESA FORK: tracking de marketing externo desligado. Retorno fixo.
+    true
   end
 
   private

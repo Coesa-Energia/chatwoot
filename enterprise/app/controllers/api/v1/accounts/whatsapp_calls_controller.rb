@@ -1,9 +1,9 @@
 class Api::V1::Accounts::WhatsappCallsController < Api::V1::Accounts::BaseController
   before_action :set_call, only: %i[show accept reject terminate upload_recording]
-  before_action :set_call_context, only: :initiate
-  before_action :ensure_calling_enabled, only: :initiate
+  before_action :set_call_context, only: %i[initiate permission_status]
+  before_action :ensure_calling_enabled, only: %i[initiate permission_status]
   before_action :ensure_sdp_offer, only: :initiate
-  before_action :ensure_call_recipient, only: :initiate
+  before_action :ensure_call_recipient, only: %i[initiate permission_status]
   before_action :ensure_recording_present, only: :upload_recording
   before_action :ensure_recording_enabled, only: :upload_recording
   before_action :ensure_call_message, only: :upload_recording
@@ -30,6 +30,11 @@ class Api::V1::Accounts::WhatsappCallsController < Api::V1::Accounts::BaseContro
 
   def upload_recording
     @upload_status = @call.message.with_lock { attach_recording_idempotently }
+  end
+
+  # What the contact allowed us to do (call / ask again) plus Meta's limits, for the call button tooltip.
+  def permission_status
+    render json: Whatsapp::CallPermissionStatusService.new(channel: @inbox.channel, recipient: call_recipient).perform
   end
 
   def initiate
@@ -180,9 +185,12 @@ class Api::V1::Accounts::WhatsappCallsController < Api::V1::Accounts::BaseContro
   def render_permission_request
     # Raised mid-dial, so a fresh contact has no thread yet — open one for the opt-in template to land in.
     @conversation = open_conversation!
-    status = Whatsapp::CallPermissionRequestService.new(conversation: @conversation, recipient: call_recipient).perform
+    request_service = Whatsapp::CallPermissionRequestService.new(conversation: @conversation, recipient: call_recipient)
+    status = request_service.perform
 
-    return render_could_not_create_error(I18n.t('errors.whatsapp.calls.permission_request_failed')) if status == 'failed'
+    if status == 'failed'
+      return render_could_not_create_error(request_service.error_message || I18n.t('errors.whatsapp.calls.permission_request_failed'))
+    end
 
     # 422 (not 200) so any client treating 2xx as "call placed" can't mistake
     # the permission-template path for a successful dial. The FE composable

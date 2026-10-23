@@ -1,7 +1,7 @@
 {
   "INBOX": {
     "LIST": {
-      "TITLE": "Caixa de Entrada",
+      "TITLE": "Notificações",
       "DISPLAY_DROPDOWN": "Exibir",
       "LOADING": "Carregando notificações",
       "404": "Não há conversas ativas neste grupo.",
@@ -10,7 +10,8 @@
       "NO_MESSAGES_AVAILABLE": "Ops! Não é possível obter mensagens",
       "SNOOZED_UNTIL": "Adiar até",
       "SNOOZED_UNTIL_TOMORROW": "Adiado até amanhã",
-      "SNOOZED_UNTIL_NEXT_WEEK": "Adiada até a próxima semana"
+      "SNOOZED_UNTIL_NEXT_WEEK": "Adiada até a próxima semana",
+      "MORE_OPTIONS": "Mais opções"
     },
     "ACTION_HEADER": {
       "SNOOZE": "Adiar notificação",

@@ -11,6 +11,7 @@
 #  current_sign_in_at     :datetime
 #  current_sign_in_ip     :string
 #  custom_attributes      :jsonb
+#  device_trust_version   :integer          default(0), not null
 #  display_name           :string
 #  email                  :string
 #  encrypted_password     :string           default(""), not null
@@ -94,6 +95,7 @@ class User < ApplicationRecord
   has_many :reviewed_csat_survey_responses, foreign_key: 'review_notes_updated_by_id', class_name: 'CsatSurveyResponse',
                                             dependent: :nullify, inverse_of: :review_notes_updated_by
   has_many :conversation_participants, dependent: :destroy_async
+  has_many :conversation_user_states, dependent: :delete_all
   has_many :participating_conversations, through: :conversation_participants, source: :conversation
 
   has_many :inbox_members, dependent: :destroy_async

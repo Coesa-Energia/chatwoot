@@ -7,6 +7,15 @@ describe Whatsapp::MessageDedupLock do
 
   after { Redis::Alfred.delete(redis_key) }
 
+  describe '#release!' do
+    it 'lets the same source_id be acquired again after a release' do
+      lock.acquire!
+      lock.release!
+
+      expect(described_class.new(source_id).acquire!).to be_truthy
+    end
+  end
+
   describe '#acquire!' do
     it 'returns truthy on first acquire' do
       expect(lock.acquire!).to be_truthy

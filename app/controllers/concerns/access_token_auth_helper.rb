@@ -6,6 +6,15 @@ module AccessTokenAuthHelper
     'api/v1/accounts/conversations/labels' => %w[index create]
   }.freeze
 
+  # Lookups an automation profile (account bot without webhook) needs to send templates, e.g. the billing system.
+  # Only for bots owned by the account in the URL, never for global/platform bots that are merely connected to an inbox.
+  ACCOUNT_BOT_ACCESSIBLE_ENDPOINTS = {
+    'api/v1/accounts/contacts' => %w[search create],
+    'api/v1/accounts/contacts/conversations' => ['index'],
+    'api/v1/accounts/conversations' => ['index'],
+    'api/v1/accounts/conversations/messages' => ['index']
+  }.freeze
+
   def authenticate_by_access_token?
     legacy_access_token.present? || (!bearer_access_token.nil? && !dashboard_bearer_token?)
   end
@@ -60,6 +69,12 @@ module AccessTokenAuthHelper
   end
 
   def agent_bot_accessible?
-    BOT_ACCESSIBLE_ENDPOINTS.fetch(params[:controller], []).include?(params[:action])
+    return true if BOT_ACCESSIBLE_ENDPOINTS.fetch(params[:controller], []).include?(params[:action])
+
+    account_owned_bot? && ACCOUNT_BOT_ACCESSIBLE_ENDPOINTS.fetch(params[:controller], []).include?(params[:action])
+  end
+
+  def account_owned_bot?
+    @resource.account_id.present? && @resource.account_id.to_s == params[:account_id].to_s
   end
 end

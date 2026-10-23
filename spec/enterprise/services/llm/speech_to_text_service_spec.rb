@@ -130,4 +130,39 @@ RSpec.describe Llm::SpeechToTextService, type: :service do
       expect(account).not_to have_received(:increment_response_usage)
     end
   end
+
+  describe 'with a custom transcription server (self-hosted Whisper)' do
+    let(:audio_api) { double('audio_api') } # rubocop:disable RSpec/VerifiedDoubles
+    let(:audio_file_path) { Rails.root.join('tmp/speech_to_text_service_custom_spec.mp3').to_s }
+
+    before do
+      InstallationConfig.find_or_create_by!(name: 'AUDIO_TRANSCRIPTION_API_URL') { |c| c.value = 'http://whisper:8000/v1' }
+      InstallationConfig.find_or_create_by!(name: 'AUDIO_TRANSCRIPTION_MODEL') { |c| c.value = 'Systran/faster-whisper-small' }
+      InstallationConfig.find_or_create_by!(name: 'AUDIO_TRANSCRIPTION_LANGUAGE') { |c| c.value = 'pt' }
+    end
+
+    it 'is available with only the account toggle, without Captain or credits' do
+      account.disable_features!('captain_integration')
+
+      expect(described_class.available_for?(account)).to be(true)
+      account.update!(audio_transcriptions: false)
+      expect(described_class.available_for?(account)).to be(false)
+    end
+
+    it 'sends the audio to the configured server, model and language without consuming Captain credits' do
+      File.binwrite(audio_file_path, 'audio')
+      allow(service).to receive(:fetch_audio_file).and_return(audio_file_path)
+      allow(account).to receive(:increment_response_usage)
+      allow(service.client).to receive(:audio).and_return(audio_api)
+      expect(audio_api).to receive(:transcribe).with(
+        parameters: hash_including(model: 'Systran/faster-whisper-small', language: 'pt', temperature: 0.0)
+      ).and_return({ 'text' => 'Bom dia' })
+
+      expect(service.perform).to eq('Bom dia')
+      expect(service.client.uri_base).to eq('http://whisper:8000/v1')
+      expect(account).not_to have_received(:increment_response_usage)
+    ensure
+      FileUtils.rm_f(audio_file_path)
+    end
+  end
 end

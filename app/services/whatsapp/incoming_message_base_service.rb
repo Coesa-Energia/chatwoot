@@ -5,6 +5,7 @@ class Whatsapp::IncomingMessageBaseService
   include ::Whatsapp::IncomingMessageServiceHelpers
   include ::Whatsapp::IncomingMessageIdentifierHelper
   include ::Whatsapp::IncomingContactMessageHandler
+  include ::Whatsapp::IncomingReactionHandler
 
   pattr_initialize [:inbox!, :params!, :outgoing_echo, { locked_sender_id: nil }]
 
@@ -27,8 +28,11 @@ class Whatsapp::IncomingMessageBaseService
   private
 
   def process_messages
-    # We don't support reactions & ephemeral message now, we need to skip processing the message
-    # if the webhook event is a reaction or an ephermal message or an unsupported message.
+    # Reactions annotate the reacted message; they are not messages of their own.
+    return process_reaction if message_type == 'reaction'
+
+    # We don't support ephemeral messages now, we need to skip processing the message
+    # if the webhook event is an ephermal message or an unsupported message.
     return if unprocessable_message_type?(message_type)
 
     # Multiple webhook events can be received for the same message due to
@@ -38,6 +42,12 @@ class Whatsapp::IncomingMessageBaseService
     return if find_message_by_source_id(messages_data.first[:id])
     return unless lock_message_source_id!
 
+    create_conversation_and_messages
+  end
+
+  # Runs only after this worker acquired the dedup lock. If the work fails, release the
+  # lock so the job retry (or Meta's webhook redelivery) is not dropped as a duplicate.
+  def create_conversation_and_messages
     set_contact
     return unless @contact
     return if @contact.blocked? && !outgoing_echo
@@ -46,6 +56,9 @@ class Whatsapp::IncomingMessageBaseService
       set_conversation
       create_messages
     end
+  rescue StandardError
+    release_message_source_id_lock!
+    raise
   end
 
   def process_statuses

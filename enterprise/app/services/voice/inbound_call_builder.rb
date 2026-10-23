@@ -93,7 +93,7 @@ class Voice::InboundCallBuilder
   end
 
   def resolve_conversation!(contact, contact_inbox)
-    reusable = reusable_conversation(contact_inbox)
+    reusable = open_whatsapp_conversation(contact) || reusable_conversation(contact_inbox)
     return reusable if reusable
 
     account.conversations.create!(
@@ -113,6 +113,15 @@ class Voice::InboundCallBuilder
     return conversations.last if inbox.lock_to_single_conversation
 
     conversations.where.not(status: :resolved).last
+  end
+
+  # A phone call from a contact with an open WhatsApp thread rings and is logged there, so it
+  # reaches that thread's assignee; the voice inbox keeps the calls that have no thread.
+  def open_whatsapp_conversation(contact)
+    return if whatsapp_provider?
+
+    account.conversations.open.where(contact_id: contact.id, inbox_id: account.inboxes.where(channel_type: 'Channel::Whatsapp').select(:id))
+           .order(:last_activity_at).last
   end
 
   def whatsapp_provider?

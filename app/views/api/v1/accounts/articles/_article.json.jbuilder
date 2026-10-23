@@ -4,6 +4,7 @@ json.title article.title
 json.content article.content
 json.description article.description
 json.status article.status
+json.ai_only article.ai_only
 json.draft_title article.draft_title
 json.draft_content article.draft_content
 json.position article.position

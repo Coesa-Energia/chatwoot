@@ -1,4 +1,6 @@
 class Api::V1::Accounts::CannedResponsesController < Api::V1::Accounts::BaseController
+  # canned responses have no owner column, so agents may create but only admins edit/delete
+  before_action :check_admin_authorization?, only: [:update, :destroy]
   before_action :fetch_canned_response, only: [:update, :destroy]
 
   def index

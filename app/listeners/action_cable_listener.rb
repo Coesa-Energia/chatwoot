@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/ClassLength
 class ActionCableListener < BaseListener
   include Events::Types
 
@@ -41,7 +42,7 @@ class ActionCableListener < BaseListener
   def message_created(event)
     message, account = extract_message_and_account(event)
     conversation = message.conversation
-    tokens = user_tokens(account, conversation.inbox.members) + contact_tokens(conversation.contact_inbox, message)
+    tokens = user_tokens(account, conversation.inbox.members_with_access_to(conversation)) + contact_tokens(conversation.contact_inbox, message)
 
     broadcast(account, tokens, MESSAGE_CREATED, message.push_event_data)
   end
@@ -49,7 +50,7 @@ class ActionCableListener < BaseListener
   def message_updated(event)
     message, account = extract_message_and_account(event)
     conversation = message.conversation
-    tokens = user_tokens(account, conversation.inbox.members) + contact_tokens(conversation.contact_inbox, message)
+    tokens = user_tokens(account, conversation.inbox.members_with_access_to(conversation)) + contact_tokens(conversation.contact_inbox, message)
 
     broadcast(account, tokens, MESSAGE_UPDATED, message.push_event_data.merge(previous_changes: event.data[:previous_changes]))
   end
@@ -57,14 +58,14 @@ class ActionCableListener < BaseListener
   def first_reply_created(event)
     message, account = extract_message_and_account(event)
     conversation = message.conversation
-    tokens = user_tokens(account, conversation.inbox.members)
+    tokens = user_tokens(account, conversation.inbox.members_with_access_to(conversation))
 
     broadcast(account, tokens, FIRST_REPLY_CREATED, message.push_event_data)
   end
 
   def conversation_created(event)
     conversation, account = extract_conversation_and_account(event)
-    tokens = user_tokens(account, conversation.inbox.members) + contact_inbox_tokens(conversation.contact_inbox)
+    tokens = user_tokens(account, conversation.inbox.members_with_access_to(conversation)) + contact_inbox_tokens(conversation.contact_inbox)
 
     broadcast(account, tokens, CONVERSATION_CREATED, conversation.push_event_data)
   end
@@ -79,14 +80,14 @@ class ActionCableListener < BaseListener
 
   def conversation_status_changed(event)
     conversation, account = extract_conversation_and_account(event)
-    tokens = user_tokens(account, conversation.inbox.members) + contact_inbox_tokens(conversation.contact_inbox)
+    tokens = user_tokens(account, conversation.inbox.members_with_access_to(conversation)) + contact_inbox_tokens(conversation.contact_inbox)
 
     broadcast(account, tokens, CONVERSATION_STATUS_CHANGED, conversation.push_event_data)
   end
 
   def conversation_updated(event)
     conversation, account = extract_conversation_and_account(event)
-    tokens = user_tokens(account, conversation.inbox.members) + contact_inbox_tokens(conversation.contact_inbox)
+    tokens = user_tokens(account, conversation.inbox.members_with_access_to(conversation)) + contact_inbox_tokens(conversation.contact_inbox)
 
     broadcast(account, tokens, CONVERSATION_UPDATED, conversation.push_event_data)
   end
@@ -184,7 +185,8 @@ class ActionCableListener < BaseListener
   def broadcast_to_inbox_members(event, event_name, **metadata)
     conversation, account = extract_conversation_and_account(event)
 
-    broadcast(account, user_tokens(account, conversation.inbox.members), event_name, conversation.push_event_data.merge(metadata))
+    broadcast(account, user_tokens(account, conversation.inbox.members_with_access_to(conversation)), event_name,
+              conversation.push_event_data.merge(metadata))
   end
 
   def account_token(account)
@@ -198,7 +200,7 @@ class ActionCableListener < BaseListener
                            user.pubsub_token
                          end
 
-    tokens = user_tokens(account, conversation.inbox.members) + [conversation.contact_inbox.pubsub_token]
+    tokens = user_tokens(account, conversation.inbox.members_with_access_to(conversation)) + [conversation.contact_inbox.pubsub_token]
     current_user_token.present? ? tokens - [current_user_token] : tokens
   end
 
@@ -235,3 +237,4 @@ class ActionCableListener < BaseListener
 end
 
 ActionCableListener.prepend_mod_with('ActionCableListener')
+# rubocop:enable Metrics/ClassLength

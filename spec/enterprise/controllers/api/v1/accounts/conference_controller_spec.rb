@@ -131,6 +131,37 @@ RSpec.describe Api::V1::Accounts::ConferenceController, type: :request do
         expect(conference_service).not_to have_received(:ensure_conference_sid)
       end
 
+      context 'when the phone call is logged in a WhatsApp conversation' do
+        let(:whatsapp_channel) do
+          create(:channel_whatsapp, provider: 'whatsapp_cloud', account: account, validate_provider_config: false, sync_templates: false)
+        end
+        let(:whatsapp_conversation) { create(:conversation, account: account, inbox: whatsapp_channel.inbox) }
+
+        before do
+          create(:inbox_member, inbox: whatsapp_channel.inbox, user: agent)
+          create(:call, account: account, inbox: voice_inbox, conversation: whatsapp_conversation,
+                        contact: whatsapp_conversation.contact, provider_call_id: 'CALLWA')
+        end
+
+        it 'joins the call through the voice inbox' do
+          post "/api/v1/accounts/#{account.id}/inboxes/#{voice_inbox.id}/conference",
+               headers: agent.create_new_auth_token,
+               params: { conversation_id: whatsapp_conversation.display_id, call_sid: 'CALLWA' }
+
+          expect(response).to have_http_status(:ok)
+          expect(response.parsed_body['id']).to eq(whatsapp_conversation.display_id)
+        end
+
+        it 'hangs the call up through the voice inbox' do
+          delete "/api/v1/accounts/#{account.id}/inboxes/#{voice_inbox.id}/conference",
+                 headers: agent.create_new_auth_token,
+                 params: { conversation_id: whatsapp_conversation.display_id, call_sid: 'CALLWA' }
+
+          expect(response).to have_http_status(:ok)
+          expect(conference_service).to have_received(:end_conference)
+        end
+      end
+
       it 'does not allow accessing calls from inboxes without access' do
         other_inbox = create(:inbox, account: account)
         other_conversation = create(:conversation, account: account, inbox: other_inbox)

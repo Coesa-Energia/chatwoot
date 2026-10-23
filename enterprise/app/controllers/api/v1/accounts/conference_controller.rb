@@ -61,8 +61,11 @@ class Api::V1::Accounts::ConferenceController < Api::V1::Accounts::BaseControlle
     raise ActionController::ParameterMissing, :call_sid if sid.blank?
 
     conversation = fetch_conversation_by_display_id
-    Call.where(inbox_id: @voice_inbox.id, provider: :twilio, conversation_id: conversation.id)
-        .find_by!(provider_call_id: sid)
+    call = Call.where(inbox_id: @voice_inbox.id, provider: :twilio, conversation_id: conversation.id)
+               .find_by!(provider_call_id: sid)
+    # After the call lookup, so a conversation with no call of this inbox stays a 404
+    authorize conversation, :show?
+    call
   end
 
   def set_voice_inbox_for_conference
@@ -74,9 +77,9 @@ class Api::V1::Accounts::ConferenceController < Api::V1::Accounts::BaseControlle
     cid = params[:conversation_id]
     raise ActiveRecord::RecordNotFound, 'conversation_id required' if cid.blank?
 
-    conversation = @voice_inbox.conversations.find_by!(display_id: cid)
-    authorize conversation, :show?
-    conversation
+    # Account-wide: a phone call started from WhatsApp lives in the WhatsApp thread;
+    # resolve_call! still requires the call itself to belong to this voice inbox.
+    Current.account.conversations.find_by!(display_id: cid)
   end
 
   def render_call_already_accepted(error)

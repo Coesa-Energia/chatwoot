@@ -56,6 +56,7 @@ class Api::V1::AccountsController < Api::BaseController
     @account.assign_attributes(account_params.slice(:name, :locale, :domain, :support_email))
     @account.custom_attributes.merge!(custom_attributes_params)
     @account.settings.merge!(settings_params)
+    update_logo
     @account.custom_attributes['onboarding_step'] = 'invite_team' if @account.custom_attributes['onboarding_step'] == 'account_update'
     @account.save!
   end
@@ -148,9 +149,27 @@ class Api::V1::AccountsController < Api::BaseController
 
   def permitted_settings_attributes
     attributes = [:auto_resolve_after, :auto_resolve_message, :auto_resolve_ignore_waiting, :audio_transcriptions, :auto_resolve_label,
-                  :auto_translate, :translation_provider]
+                  :auto_translate, :translation_provider, :brand_display, :brand_text_image, :seller_mode]
     attributes << :enforce_mfa if Chatwoot.mfa_enabled?
     attributes
+  end
+
+  def update_logo
+    if params[:logo].present?
+      @account.logo = params[:logo]
+    elsif ActiveModel::Type::Boolean.new.cast(params[:remove_logo])
+      @account.logo.purge_later
+      @account.custom_attributes.delete('logo')
+    end
+    update_collapsed_logo
+  end
+
+  def update_collapsed_logo
+    if params[:collapsed_logo].present?
+      @account.collapsed_logo = params[:collapsed_logo]
+    elsif ActiveModel::Type::Boolean.new.cast(params[:remove_collapsed_logo])
+      @account.collapsed_logo.purge_later
+    end
   end
 
   def check_signup_enabled

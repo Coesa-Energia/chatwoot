@@ -31,14 +31,35 @@ class Whatsapp::Providers::BaseService
     raise 'Overwrite this method in child class'
   end
 
+  # https://developers.facebook.com/docs/whatsapp/cloud-api/support/error-codes/
+  # 130429 = Cloud API throughput reached, 131056 = too many messages to the same user in a short time,
+  # 80007 = WhatsApp Business Account rate limit.
+  RATE_LIMIT_ERROR_CODES = [130_429, 131_056, 80_007].freeze
+
   def process_response(response, message)
     parsed_response = response.parsed_response
     if response.success? && parsed_response['error'].blank?
       parsed_response['messages'].first['id']
     else
+      raise_if_rate_limited(response, message)
       handle_error(response, message)
       nil
     end
+  end
+
+  # Meta rejected the request (nothing was delivered), so it is safe to retry later.
+  def raise_if_rate_limited(response, message)
+    return if message.blank? || !rate_limited?(response)
+
+    Rails.logger.warn("[WHATSAPP] rate limited by Meta for message #{message.id}: #{response.body}")
+    raise CustomExceptions::WhatsappRetryableError, { reason: 'rate_limited' }
+  end
+
+  def rate_limited?(response)
+    return true if response.code == 429
+
+    parsed_response = response.parsed_response
+    parsed_response.is_a?(Hash) && RATE_LIMIT_ERROR_CODES.include?(parsed_response.dig('error', 'code'))
   end
 
   def handle_error(response, message)

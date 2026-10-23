@@ -3,7 +3,8 @@
 # Table name: articles
 #
 #  id                    :bigint           not null, primary key
-#  content               :text
+#  ai_only               :boolean          default(FALSE), not null
+#  content              :text
 #  description           :text
 #  draft_content         :text
 #  draft_title           :string
@@ -82,6 +83,9 @@ class Article < ApplicationRecord
   scope :order_by_updated_at, -> { reorder(updated_at: :desc) }
   scope :order_by_position, -> { reorder(position: :asc) }
   scope :order_by_views, -> { reorder(views: :desc) }
+  # AI-only articles feed Captain/Copilot but are hidden from the public portal and from non-managers
+  scope :visible_to_people, -> { where(ai_only: false) }
+  scope :visible_to, ->(can_manage_knowledge_base) { can_manage_knowledge_base ? all : visible_to_people }
 
   # TODO: if text search slows down https://www.postgresql.org/docs/current/textsearch-features.html#TEXTSEARCH-UPDATE-TRIGGERS
   # - the A, B and C are for weightage. See: https://github.com/Casecommons/pg_search#weighting

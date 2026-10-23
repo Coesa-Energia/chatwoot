@@ -2,13 +2,34 @@
   "CHAT_LIST": {
     "LOADING": "Fetching conversations",
     "LOAD_MORE_CONVERSATIONS": "Load more conversations",
-    "EOF": "All conversations loaded 🎉",
+    "EOF": "All conversations loaded",
     "LIST": {
       "404": "There are no active conversations in this group."
     },
     "FAILED_TO_SEND": "Failed to send",
     "FETCH_ERROR": "Couldn't load conversations. Please try again.",
     "TAB_HEADING": "Conversations",
+    "VOICE_DIAL": {
+      "BUTTON": "Call",
+      "PLACEHOLDER": "Search a contact or number",
+      "EMPTY": "No contact with a phone number",
+      "NEW_CALL": "New call",
+      "CHOOSE_INBOX": "Call from which line?",
+      "CHANGE_INBOX": "Change",
+      "WHATSAPP_HINT": "Opens the conversation and calls. If the customer has not allowed calls yet, the request is sent.",
+      "NOT_ON_INBOX": "This contact cannot be reached from this inbox."
+    },
+    "CONTACT_SCOPE": "All conversations with this contact",
+    "CONTACT_SCOPE_BACK": "Back to the list",
+    "QUICK_FILTERS": "Quick filters",
+    "UNREAD_ONLY": "Unread",
+    "AWAITING_REPLY_ONLY": "Awaiting reply",
+    "ARCHIVED_ONLY": "Archived",
+    "ARCHIVED_NOTE": "Archived conversations stay here until you unarchive them.",
+    "BACK_TO_LIST": "Back to conversations",
+    "ARCHIVED_TOAST": "Conversation archived. It stays here until you unarchive it.",
+    "ARCHIVE_ERROR": "Couldn't archive the conversation.",
+    "PIN_ERROR": "Couldn't pin the conversation.",
     "MENTION_HEADING": "Mentions",
     "UNATTENDED_HEADING": "Unattended",
     "SEARCH": {
@@ -49,7 +70,8 @@
       },
       "LAST_ACTIVITY": {
         "NOT_ACTIVE": "Last activity:"
-      }
+      },
+      "YESTERDAY": "Yesterday"
     },
     "SORT_ORDER_ITEMS": {
       "last_activity_at_asc": {
@@ -143,6 +165,13 @@
     "SHOW_QUOTED_TEXT": "Show Quoted Text",
     "MESSAGE_READ": "Read",
     "SENDING": "Sending",
-    "UNREAD_COUNT_OVERFLOW": "9+"
+    "UNREAD_COUNT_OVERFLOW": "9+",
+    "EMPTY_STATE": {
+      "UNREAD": "No unread conversations. You are all caught up.",
+      "AWAITING_REPLY": "No customer is waiting for a reply.",
+      "QUICK_FILTERS": "No conversation matches these filters.",
+      "ARCHIVED": "No archived conversations.",
+      "SHOW_ALL": "Show all conversations"
+    }
   }
 }

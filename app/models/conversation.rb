@@ -4,8 +4,8 @@
 #
 #  id                     :integer          not null, primary key
 #  additional_attributes  :jsonb
-#  ai_assignee_type       :string
 #  agent_last_seen_at     :datetime
+#  ai_assignee_type       :string
 #  assignee_last_seen_at  :datetime
 #  cached_label_list      :text
 #  contact_last_seen_at   :datetime
@@ -34,24 +34,25 @@
 #
 # Indexes
 #
-#  conv_acid_inbid_stat_asgnid_idx                    (account_id,inbox_id,status,assignee_id)
-#  index_conversations_on_account_id                  (account_id)
-#  index_conversations_on_account_id_and_display_id   (account_id,display_id) UNIQUE
-#  index_conversations_on_assignee_id_and_account_id  (assignee_id,account_id)
-#  index_conversations_on_campaign_id                 (campaign_id)
-#  index_conversations_on_contact_id                  (contact_id)
-#  index_conversations_on_contact_inbox_id            (contact_inbox_id)
-#  index_conversations_on_created_at                  (created_at)
-#  index_conversations_on_first_reply_created_at      (first_reply_created_at)
-#  index_conversations_on_id_and_account_id           (account_id,id)
-#  index_conversations_on_identifier_and_account_id   (identifier,account_id)
-#  index_conversations_on_inbox_id                    (inbox_id)
-#  index_conversations_on_priority                    (priority)
-#  index_conversations_on_status_and_account_id       (status,account_id)
-#  index_conversations_on_status_and_priority         (status,priority)
-#  index_conversations_on_team_id                     (team_id)
-#  index_conversations_on_uuid                        (uuid) UNIQUE
-#  index_conversations_on_waiting_since               (waiting_since)
+#  conv_acid_inbid_stat_asgnid_idx                      (account_id,inbox_id,status,assignee_id)
+#  index_conversations_on_account_id                    (account_id)
+#  index_conversations_on_account_id_and_display_id     (account_id,display_id) UNIQUE
+#  index_conversations_on_account_id_status_created_at  (account_id,status,created_at)
+#  index_conversations_on_assignee_id_and_account_id    (assignee_id,account_id)
+#  index_conversations_on_campaign_id                   (campaign_id)
+#  index_conversations_on_contact_id                    (contact_id)
+#  index_conversations_on_contact_inbox_id              (contact_inbox_id)
+#  index_conversations_on_created_at                    (created_at)
+#  index_conversations_on_first_reply_created_at        (first_reply_created_at)
+#  index_conversations_on_id_and_account_id             (account_id,id)
+#  index_conversations_on_identifier_and_account_id     (identifier,account_id)
+#  index_conversations_on_inbox_id                      (inbox_id)
+#  index_conversations_on_priority                      (priority)
+#  index_conversations_on_status_and_account_id         (status,account_id)
+#  index_conversations_on_status_and_priority           (status,priority)
+#  index_conversations_on_team_id                       (team_id)
+#  index_conversations_on_uuid                          (uuid) UNIQUE
+#  index_conversations_on_waiting_since                 (waiting_since)
 #
 
 class Conversation < ApplicationRecord
@@ -78,6 +79,7 @@ class Conversation < ApplicationRecord
   validates :contact_id, presence: true
   before_validation :validate_additional_attributes
   before_validation :reset_agent_bot_when_assignee_present
+  before_validation :apply_inbox_default_team, on: :create
   validates :additional_attributes, jsonb_attributes_length: true
   validates :custom_attributes, jsonb_attributes_length: true
   validates :uuid, uniqueness: true
@@ -128,6 +130,7 @@ class Conversation < ApplicationRecord
   has_many :messages, dependent: :destroy_async, autosave: true
   has_one :csat_survey_response, dependent: :destroy_async
   has_many :conversation_participants, dependent: :destroy_async
+  has_many :user_states, class_name: 'ConversationUserState', dependent: :delete_all
   has_many :notifications, as: :primary_actor, dependent: :destroy_async
   has_many :attachments, through: :messages
   has_many :reporting_events, dependent: :destroy_async
@@ -269,6 +272,11 @@ class Conversation < ApplicationRecord
   end
 
   private
+
+  # A new conversation starts with the inbox's default team (if any), unless the creator already chose one.
+  def apply_inbox_default_team
+    self.team_id = inbox.default_team_id if team_id.blank? && inbox&.default_team_id.present?
+  end
 
   def execute_after_update_commit_callbacks
     handle_resolved_status_change

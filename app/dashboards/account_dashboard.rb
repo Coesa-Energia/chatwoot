@@ -35,6 +35,10 @@ class AccountDashboard < Administrate::BaseDashboard
     locale: Field::Select.with_options(collection: LANGUAGES_CONFIG.map { |_x, y| y[:iso_639_1_code] }),
     status: AccountStatusField.with_options(collection: [%w[Active active], %w[Suspended suspended]]),
     suspension_history: SuspensionHistoryField,
+    saas_plan: Field::String,
+    saas_trial_ends_at: Field::Date,
+    saas_paid_until: Field::Date,
+    saas_notes: Field::Text,
     account_users: Field::HasMany,
     custom_attributes: Field::String
   }.merge(enterprise_attribute_types).freeze
@@ -51,6 +55,8 @@ class AccountDashboard < Administrate::BaseDashboard
     users
     conversations
     status
+    saas_plan
+    saas_paid_until
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
@@ -71,6 +77,10 @@ class AccountDashboard < Administrate::BaseDashboard
     updated_at
     locale
     status
+    saas_plan
+    saas_trial_ends_at
+    saas_paid_until
+    saas_notes
     suspension_history
     conversations
     account_users
@@ -92,6 +102,10 @@ class AccountDashboard < Administrate::BaseDashboard
     name
     locale
     status
+    saas_plan
+    saas_trial_ends_at
+    saas_paid_until
+    saas_notes
   ] + enterprise_form_attributes).freeze
 
   # COLLECTION_FILTERS
@@ -107,6 +121,8 @@ class AccountDashboard < Administrate::BaseDashboard
   COLLECTION_FILTERS = {
     active: ->(resources) { resources.where(status: :active) },
     suspended: ->(resources) { resources.where(status: :suspended) },
+    expiring: ->(resources) { resources.subscription_expiring },
+    expired: ->(resources) { resources.subscription_expired },
     recent: ->(resources) { resources.where('created_at > ?', 30.days.ago) },
     marked_for_deletion: ->(resources) { resources.where("custom_attributes->>'marked_for_deletion_at' IS NOT NULL") }
   }.freeze

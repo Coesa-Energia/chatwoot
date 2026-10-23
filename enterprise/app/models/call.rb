@@ -254,7 +254,8 @@ class Call < ApplicationRecord
 
   def push_event_data
     {
-      id: id,
+      # The call's own inbox: a Twilio call logged in a WhatsApp thread needs it for the token/conference
+      id: id, inbox_id: inbox_id,
       provider_call_id: provider_call_id,
       provider: provider,
       direction: direction,

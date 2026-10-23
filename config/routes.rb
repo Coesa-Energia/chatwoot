@@ -188,18 +188,24 @@ Rails.application.routes.draw do
               get :meta
               get :search
               get :unread_counts, to: 'conversations/unread_counts#index'
+              get :archived_ids, to: 'conversations/user_states#archived_ids'
               post :filter
             end
             scope module: :conversations do
               resources :campaign_history, only: [:index] if ChatwootApp.enterprise?
               resources :messages, only: [:index, :create, :destroy, :update] do
                 post :auto_translate, on: :collection if ChatwootApp.enterprise?
+                collection do
+                  get :search
+                end
                 member do
                   post :translate
                   post :retry
+                  post :react
                 end
               end
               resource :contact_info_request, only: [:show, :create]
+              resource :user_state, only: [:update]
               resources :assignments, only: [:create]
               resources :labels, only: [:create, :index]
               resource :participants, only: [:show, :create, :update, :destroy]
@@ -321,6 +327,7 @@ Rails.application.routes.draw do
               end
               collection do
                 post :initiate
+                get :permission_status
               end
             end
           end
@@ -350,6 +357,9 @@ Rails.application.routes.draw do
               post :set_inbound_calls, on: :member
               post :set_call_recording, on: :member
               resource :call_business_hours, only: [:update], controller: 'inboxes/call_business_hours'
+              get :show_call_permission_template, on: :member, path: 'call_permission_template'
+              post :create_call_permission_template, on: :member, path: 'call_permission_template'
+              post :refresh_call_permission_template, on: :member, path: 'call_permission_template/refresh'
             end
 
             resource :csat_template, only: [:show, :create], controller: 'inbox_csat_templates' do
@@ -618,21 +628,13 @@ Rails.application.routes.draw do
         namespace :v1 do
           resources :accounts do
             member do
-              post :reconnect_shopify, to: 'shopify#reconnect_shopify'
-              get :billing_summary
-              post :checkout
-              post :subscription
-              post :select_billing_currency
               get :limits
               post :toggle_deletion
-              post :topup_checkout
-              get :topup_options
             end
           end
         end
       end
 
-      post 'webhooks/stripe', to: 'webhooks/stripe#process_payload'
       post 'webhooks/firecrawl', to: 'webhooks/firecrawl#process_payload'
     end
   end
@@ -786,6 +788,7 @@ Rails.application.routes.draw do
       resources :accounts, only: [:index, :new, :create, :show, :edit, :update, :destroy] do
         post :seed, on: :member
         post :reset_cache, on: :member
+        patch :subscription, on: :member, action: :update_subscription
       end
       resources :users, only: [:index, :new, :create, :show, :edit, :update, :destroy] do
         delete :avatar, on: :member, action: :destroy_avatar

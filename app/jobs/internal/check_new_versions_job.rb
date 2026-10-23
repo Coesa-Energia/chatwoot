@@ -1,19 +1,16 @@
 class Internal::CheckNewVersionsJob < ApplicationJob
   queue_as :scheduled_jobs
 
+  # COESA FORK: job de atualização desligado. Tratado depois com outro propósito.
+  # Retorno fixo local, sem chamar ChatwootHub.
   def perform
-    return unless Rails.env.production?
-
-    @instance_info = ChatwootHub.sync_with_hub
-    update_version_info
+    return { 'version' => Chatwoot.config[:version] }
   end
 
   private
 
   def update_version_info
-    return if @instance_info['version'].blank?
-
-    ::Redis::Alfred.set(::Redis::Alfred::LATEST_CHATWOOT_VERSION, @instance_info['version'])
+    return
   end
 end
 

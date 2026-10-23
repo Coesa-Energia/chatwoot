@@ -34,7 +34,7 @@
   enabled: false
 - name: disable_branding
   display_name: Disable Branding
-  enabled: false
+  enabled: true
   premium: true
 - name: email_continuity_on_api_channel
   display_name: Email Continuity on API Channel
@@ -110,7 +110,7 @@
   enabled: false
 - name: audit_logs
   display_name: Audit Logs
-  enabled: false
+  enabled: true
   premium: true
 - name: custom_tools
   display_name: Custom Tools
@@ -129,7 +129,7 @@
   chatwoot_internal: true
 - name: sla
   display_name: SLA
-  enabled: false
+  enabled: true
   premium: true
   help_url: https://chwt.app/hc/sla
 - name: help_center_embedding_search
@@ -146,7 +146,7 @@
   premium: true
 - name: custom_roles
   display_name: Custom Roles
-  enabled: false
+  enabled: true
   premium: true
 - name: chatwoot_v4
   display_name: Chatwoot V4
@@ -177,7 +177,7 @@
   enabled: false
 - name: channel_voice
   display_name: Voice Channel
-  enabled: false
+  enabled: true
   premium: true
 - name: notion_integration
   display_name: Notion Integration
@@ -208,15 +208,15 @@
   premium: true
 - name: advanced_search
   display_name: Advanced Search
-  enabled: false
+  enabled: true
   premium: true
 - name: saml
   display_name: SAML
-  enabled: false
+  enabled: true
   premium: true
 - name: advanced_search_indexing
   display_name: Advanced Search Indexing
-  enabled: false
+  enabled: true
   premium: true
   chatwoot_internal: true
 - name: reply_mailer_migration
@@ -237,18 +237,18 @@
   enabled: true
 - name: csat_review_notes
   display_name: CSAT Review Notes
-  enabled: false
+  enabled: true
   premium: true
 - name: captain_tasks
   display_name: Captain Tasks
   enabled: true
 - name: conversation_required_attributes
   display_name: Required Conversation Attributes
-  enabled: false
+  enabled: true
   premium: true
 - name: advanced_assignment
   display_name: Advanced Assignment
-  enabled: false
+  enabled: true
   premium: true
 - name: whatsapp_manual_transfer
   display_name: WhatsApp Manual Transfer
@@ -278,7 +278,7 @@
 - name: audit_log_ip_address
   display_name: Audit Log IP Address
   help_url: https://chwt.app/hc/audit-logs
-  enabled: false
+  enabled: true
   premium: true
   column: feature_flags_ext_1
 - name: captain_classifier
@@ -287,17 +287,17 @@
   column: feature_flags_ext_1
 - name: conversation_monitors
   display_name: Conversation Monitors
-  enabled: false
+  enabled: true
   premium: true
   column: feature_flags_ext_1
 - name: campaign_analytics
   display_name: Campaign Analytics
-  enabled: false
+  enabled: true
   premium: true
   column: feature_flags_ext_1
 - name: company_enrichment
   display_name: Company Enrichment
-  enabled: false
+  enabled: true
   premium: true
   column: feature_flags_ext_1
 - name: stripe_integration

@@ -7,8 +7,9 @@ class ArticlePolicy < ApplicationPolicy
     @account_user.administrator?
   end
 
+  # Any member can read; AI-only articles are hidden from non-managers by the controller scope (Article.visible_to)
   def show?
-    @account_user.administrator?
+    @account.users.include?(@user)
   end
 
   def edit?

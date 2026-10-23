@@ -11,7 +11,7 @@ class Api::V1::Accounts::PortalsController < Api::V1::Accounts::BaseController
   end
 
   def show
-    @all_articles = @portal.articles
+    @all_articles = @portal.articles.visible_to(policy(Article).update?)
     @articles = @all_articles.search(locale: params[:locale])
   end
 

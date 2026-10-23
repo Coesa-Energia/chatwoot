@@ -41,19 +41,21 @@ class Api::V1::Accounts::Contacts::CallsController < Api::V1::Accounts::BaseCont
     end
   end
 
-  # Reuse the open conversation when the caller is already inside it; ignore
-  # the hint if it doesn't belong to the picked voice inbox or dialed contact.
-  # Only reuse open conversations — Message#reopen_conversation skips outgoing
-  # messages, so dropping a voice_call bubble into a resolved/snoozed/pending
-  # thread leaves it stuck in that state.
+  # Reuse the open conversation when the caller is already inside it: one of the
+  # picked voice inbox, or the dialed contact's WhatsApp thread, so a phone call
+  # started from WhatsApp is logged there (the Call keeps the voice inbox).
+  # Ignore any other hint. Only reuse open conversations — Message#reopen_conversation
+  # skips outgoing messages, so dropping a voice_call bubble into a
+  # resolved/snoozed/pending thread leaves it stuck in that state.
   def existing_conversation
     return nil if params[:conversation_id].blank?
 
     conversation = Current.account.conversations.find_by(display_id: params[:conversation_id])
-    return nil unless conversation
-    return nil unless conversation.inbox_id == voice_inbox.id && conversation.contact_id == contact.id
-    return nil unless conversation.open?
+    return nil unless conversation&.open? && conversation.contact_id == contact.id
+    return conversation if conversation.inbox_id == voice_inbox.id
+    return nil unless conversation.inbox.whatsapp?
 
+    authorize conversation, :show?
     conversation
   end
 end

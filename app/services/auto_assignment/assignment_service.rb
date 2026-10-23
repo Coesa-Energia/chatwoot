@@ -66,7 +66,7 @@ class AutoAssignment::AssignmentService
   end
 
   def find_available_agent(conversation = nil)
-    agents = filter_agents_by_team(inbox.available_agents, conversation)
+    agents = filter_agents_by_team(inbox.available_agents.where(in_rotation: true), conversation)
     return nil if agents.nil?
 
     agents = filter_agents_by_rate_limit(agents)

@@ -53,6 +53,12 @@ captain:
   enabled: true
   icon: 'i-woot-captain text-n-violet-9'
   config_key: 'captain'
+audio_transcription:
+  name: 'Transcrição de áudio'
+  description: 'Transcreve áudios e gravações de ligações com um servidor Whisper próprio ou qualquer API compatível com a OpenAI, sem depender do Captain.'
+  enabled: true
+  icon: 'i-lucide-audio-lines'
+  config_key: 'audio_transcription'
 
 # ------- Communication Channels ------- #
 live_chat:

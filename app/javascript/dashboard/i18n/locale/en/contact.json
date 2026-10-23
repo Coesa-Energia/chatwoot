@@ -21,8 +21,8 @@
     "CALL": "Call",
     "CALL_INITIATED": "Calling the contact…",
     "CALL_FAILED": "Unable to start the call. Please try again.",
-    "WHATSAPP_CALL_PERMISSION_REQUESTED": "Sent a call permission request to the contact. Try again once they accept.",
-    "WHATSAPP_CALL_PERMISSION_PENDING": "Call permission request already sent recently. Try again once the contact accepts.",
+    "WHATSAPP_CALL_PERMISSION_REQUESTED": "Permission request sent to the customer. As soon as they accept it in WhatsApp you will be notified and can call. WhatsApp allows only 1 request per day (2 per week) for each customer.",
+    "WHATSAPP_CALL_PERMISSION_PENDING": "We already asked this customer for permission a moment ago. Wait for them to accept in WhatsApp. WhatsApp limits requests to 1 per day for each customer.",
     "CLICK_TO_EDIT": "Click to edit",
     "VOICE_INBOX_PICKER": {
       "TITLE": "Choose a voice inbox"
@@ -292,7 +292,6 @@
       "ID": "(ID: {identifier})"
     }
   },
-
   "CONTACTS_LAYOUT": {
     "HEADER": {
       "TITLE": "Contacts",
@@ -379,6 +378,11 @@
             "ERROR_MESSAGE": "Unable to delete filter. Please try again later."
           }
         }
+      },
+      "ARIA": {
+        "FILTER": "Filter contacts",
+        "SAVE_SEGMENT": "Save filter as segment",
+        "DELETE_SEGMENT": "Delete segment"
       }
     },
     "PAGINATION_FOOTER": {
@@ -509,7 +513,16 @@
           "SUCCESS_MESSAGE": "Avatar deleted successfully",
           "ERROR_MESSAGE": "Could not delete avatar. Please try again later."
         }
-      }
+      },
+      "CONVERSATIONS": {
+        "TITLE": "Conversations",
+        "EMPTY_STATE": "No conversations with this contact yet. Use \"Send message\" to start one.",
+        "MORE": "and {count} more in the History tab"
+      },
+      "COPY_PHONE": "Copy phone number",
+      "COPY_EMAIL": "Copy email",
+      "COPY_SUCCESS": "Copied to clipboard",
+      "COPY_ERROR": "Could not copy. Try again."
     },
     "SIDEBAR": {
       "TABS": {
@@ -588,7 +601,20 @@
       "LIST_EMPTY_STATE_TITLE": "No contacts available in this view 📋",
       "ACTIVE_EMPTY_STATE_TITLE": "No contacts are active at the moment 🌙"
     },
-    "LOAD_MORE": "Load more"
+    "LOAD_MORE": "Load more",
+    "OPEN_CONVERSATION": {
+      "BUTTON": "Open conversation",
+      "TITLE": "Which inbox do you want to use?",
+      "EMPTY": "This contact cannot be reached through any inbox yet. Add a phone number or email to the contact first.",
+      "LOAD_ERROR": "Could not load the inboxes for this contact.",
+      "OPEN_ERROR": "Could not open the conversation. Try again."
+    },
+    "LIST": {
+      "NAME": "Name",
+      "PHONE": "Phone",
+      "EMAIL": "Email",
+      "LAST_ACTIVITY": "Last activity"
+    }
   },
   "CONTACTS_BULK_ACTIONS": {
     "ASSIGN_LABELS": "Assign Labels",
@@ -614,7 +640,6 @@
       "CONFIRM_SINGLE": "Delete contact"
     }
   },
-
   "COMPOSE_NEW_CONVERSATION": {
     "CONTACT_SEARCH": {
       "ERROR_MESSAGE": "We couldn’t complete the search. Please try again."

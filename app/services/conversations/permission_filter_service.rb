@@ -9,6 +9,7 @@ class Conversations::PermissionFilterService
   end
 
   def perform
+    return agent_bot_conversations if user.is_a?(AgentBot)
     return conversations if user_role == 'administrator'
 
     accessible_conversations
@@ -17,9 +18,12 @@ class Conversations::PermissionFilterService
   private
 
   def accessible_conversations
-    return hinted_accessible_conversations if @plan_hint_selective_filter
-
-    conversations.where(inbox: user.inboxes.where(account_id: account.id))
+    in_member_inboxes = if @plan_hint_selective_filter
+                          hinted_accessible_conversations
+                        else
+                          conversations.where(inbox: user.inboxes.where(account_id: account.id))
+                        end
+    Inboxes::ConversationAccess.apply(in_member_inboxes, user: user, account: account)
   end
 
   # Same rows as accessible_conversations. `inbox_id + 0` keeps the planner from
@@ -36,7 +40,15 @@ class Conversations::PermissionFilterService
     )
   end
 
+  # Bots (automation profiles) see their own account, as ConversationPolicy#show? already lets them; never another one.
+  def agent_bot_conversations
+    user.account_id == account.id ? conversations : conversations.none
+  end
+
+  # A bot id can collide with a user id: never read that user's role for a bot.
   def account_user
+    return unless user.is_a?(User)
+
     AccountUser.find_by(account_id: account.id, user_id: user.id)
   end
 

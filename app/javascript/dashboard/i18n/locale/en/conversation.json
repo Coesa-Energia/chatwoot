@@ -1,5 +1,15 @@
 {
   "CONVERSATION": {
+    "404": "Sorry, we cannot find the conversation. Please try again",
+    "CHAT_SEARCH": {
+      "OPEN": "Search in conversation",
+      "PLACEHOLDER": "Search in this conversation",
+      "NO_RESULTS": "No messages found",
+      "OLDER": "Previous result (older)",
+      "NEWER": "Next result (newer)",
+      "CLOSE": "Close search",
+      "COUNT": "{current} of {total}"
+    },
     "REFERRAL": {
       "AD_LABEL": "Ad",
       "POST_LABEL": "Post",
@@ -9,7 +19,6 @@
     },
     "SELECT_A_CONVERSATION": "Please select a conversation from left pane",
     "CSAT_REPLY_MESSAGE": "Please rate the conversation",
-    "404": "Sorry, we cannot find the conversation. Please try again",
     "SWITCH_VIEW_LAYOUT": "Switch the layout",
     "DASHBOARD_APP_TAB_MESSAGES": "Messages",
     "UNVERIFIED_SESSION": "The identity of this user is not verified",
@@ -38,8 +47,22 @@
       "PLACEHOLDER": "Type any text to search messages",
       "NO_MATCHING_RESULTS": "No results found."
     },
-    "UNREAD_MESSAGES": "Unread Messages",
-    "UNREAD_MESSAGE": "Unread Message",
+    "UNREAD_MESSAGES": "unread messages",
+    "UNREAD_MESSAGE": "unread message",
+    "JUMP_TO_LATEST": "Go to the latest message",
+    "PRIVATE_NOTE_HEADER": {
+      "TITLE": "Internal note",
+      "TITLE_WITH_AUTHOR": "Internal note · {author}",
+      "AUTOMATION": "Automation"
+    },
+    "EMPTY_CONVERSATION": {
+      "CAN_REPLY": "No messages in this conversation yet. Write below to start.",
+      "CANNOT_REPLY": "No messages in this conversation yet. To start, follow the notice above."
+    },
+    "TEMPLATE_BUTTONS": {
+      "SHOW_ALL": "See all options",
+      "SHOW_LESS": "See less"
+    },
     "CONTACT_HISTORY": {
       "OLDER": "Previous conversation",
       "NEWER": "Next conversation",
@@ -57,8 +80,8 @@
     "24_HOURS_WINDOW": "24 hour message window restriction",
     "48_HOURS_WINDOW": "48 hour message window restriction",
     "API_HOURS_WINDOW": "You can only reply to this conversation within {hours} hours",
-    "NOT_ASSIGNED_TO_YOU": "This conversation is not assigned to you. Would you like to assign this conversation to yourself?",
-    "ASSIGN_TO_ME": "Assign to me",
+    "NOT_ASSIGNED_TO_YOU": "This conversation is not yours. Take it over?",
+    "ASSIGN_TO_ME": "Take over",
     "BOT_HANDOFF_MESSAGE": "This conversation is currently handled by {assigneeName}.",
     "BOT_HANDOFF_FALLBACK_ASSIGNEE": "an AI agent",
     "BOT_HANDOFF_ACTION": "Take over",
@@ -154,6 +177,14 @@
       "TRANSCRIPT_SHOW_MORE": "Show more",
       "TRANSCRIPT_SHOW_LESS": "Show less"
     },
+    "QUICK_ACTIONS": {
+      "TAKE_OVER": "Take over",
+      "TAKE_OVER_SUCCESS": "This conversation is now yours",
+      "LABELS": "Labels",
+      "NO_LABELS": "No labels yet. Ask an administrator to create them.",
+      "SEND_TEMPLATE": "Send template",
+      "CANNED_RESPONSES": "Canned responses"
+    },
     "HEADER": {
       "RESOLVE_ACTION": "Resolve",
       "REOPEN_ACTION": "Reopen",
@@ -168,17 +199,24 @@
       "SNOOZED_UNTIL_NEXT_WEEK": "Snoozed until next week",
       "SNOOZED_UNTIL_NEXT_REPLY": "Snoozed until next reply",
       "WHATSAPP_CALL": "Start WhatsApp call",
-      "WHATSAPP_CALL_FAILED": "Could not start the WhatsApp call.",
+      "WHATSAPP_CALL_FAILED": "Could not start the WhatsApp call. Try again in a moment.",
       "VOICE_CALL": "Start call",
       "VOICE_CALL_FAILED": "Could not start the call.",
-      "WHATSAPP_CALL_PERMISSION_REQUESTED": "Sent a call permission request to the contact. Try again once they accept.",
-      "WHATSAPP_CALL_PERMISSION_PENDING": "Call permission request already sent recently. Try again once the contact accepts.",
+      "WHATSAPP_CALL_PERMISSION_REQUESTED": "Permission request sent to the customer. As soon as they accept it in WhatsApp you will be notified and can call. WhatsApp allows only 1 request per day (2 per week) for each customer.",
+      "WHATSAPP_CALL_PERMISSION_PENDING": "We already asked this customer for permission a moment ago. Wait for them to accept in WhatsApp. WhatsApp limits requests to 1 per day for each customer.",
       "SLA_STATUS": {
         "FRT": "FRT {status}",
         "NRT": "NRT {status}",
         "RT": "RT {status}",
         "MISSED": "missed",
         "DUE": "due"
+      },
+      "WHATSAPP_CALL_STATUS": {
+        "TEMPORARY": "Call permission active until {date}",
+        "PERMANENT": "Customer allowed calls permanently",
+        "NONE_CAN_ASK": "Customer has not allowed calls yet. Clicking will send them a permission request",
+        "NONE_LIMIT": "Customer has not allowed calls yet and the request limit was reached. Try again after {date}",
+        "NONE_LIMIT_UNKNOWN_DATE": "Customer has not allowed calls yet and the request limit was reached. Try again later"
       }
     },
     "RESOLVE_DROPDOWN": {
@@ -264,6 +302,10 @@
       "PENDING": "Mark as pending",
       "RESOLVED": "Mark as resolved",
       "MARK_AS_UNREAD": "Mark as unread",
+      "PIN": "Pin conversation",
+      "UNPIN": "Unpin conversation",
+      "ARCHIVE": "Archive conversation",
+      "UNARCHIVE": "Unarchive conversation",
       "MARK_AS_READ": "Mark as read",
       "REOPEN": "Reopen conversation",
       "SNOOZE": {
@@ -302,6 +344,7 @@
       }
     },
     "FOOTER": {
+      "CONTENT_TEMPLATES": "Content templates",
       "MESSAGE_SIGN_TOOLTIP": "Message signature",
       "ENABLE_SIGN_TOOLTIP": "Enable signature",
       "DISABLE_SIGN_TOOLTIP": "Disable signature",
@@ -313,7 +356,7 @@
       "MESSAGE_SIGNATURE_NOT_CONFIGURED": "Message signature is not configured, please configure it in profile settings.",
       "COPILOT_MSG_INPUT": "Give copilot additional prompts, or ask anything else... Press enter to send follow-up",
       "CLICK_HERE": "Click here to update",
-      "WHATSAPP_TEMPLATES": "Whatsapp Templates"
+      "WHATSAPP_TEMPLATES": "WhatsApp templates"
     },
     "REPLYBOX": {
       "REPLY": "Reply",
@@ -333,6 +376,7 @@
       "IMAGE_UPLOAD_SUCCESS": "Image uploaded successfully",
       "START_AUDIO_RECORDING": "Start audio recording",
       "STOP_AUDIO_RECORDING": "Stop audio recording",
+      "EXPAND_EDITOR": "Expand editor",
       "COPILOT_THINKING": "Copilot is thinking",
       "EMAIL_HEAD": {
         "TO": "To",
@@ -379,19 +423,23 @@
     "FILE_TYPE_NOT_SUPPORTED": "This {fileName} file type is not supported in this conversation",
     "MESSAGE_ERROR": "Unable to send this message, please try again later",
     "SENT_BY": "Sent by:",
+    "DAY_TODAY": "Today",
+    "DAY_YESTERDAY": "Yesterday",
     "BOT": "Bot",
     "NATIVE_APP": "Native app",
     "NATIVE_APP_ADVISORY": "This message was sent from the native app. Reply from Chatwoot to maintain the message window.",
     "SEND_FAILED": "Couldn't send message! Try again",
     "TRY_AGAIN": "retry",
     "ASSIGNMENT": {
-      "SELECT_AGENT": "Select Agent",
+      "SELECT_AGENT": "Select agent",
       "REMOVE": "Remove",
       "ASSIGN": "Assign"
     },
     "CONTEXT_MENU": {
       "COPY": "Copy",
       "REPLY_TO": "Reply to this message",
+      "REACT": "React",
+      "REACTION_FAILED": "Could not send the reaction",
       "FORWARD_EMAIL": "Forward email",
       "DELETE": "Delete",
       "CREATE_A_CANNED_RESPONSE": "Add to canned responses",

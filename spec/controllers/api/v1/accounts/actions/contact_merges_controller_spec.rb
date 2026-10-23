@@ -16,6 +16,7 @@ RSpec.describe 'Contact Merge Action API', type: :request do
 
     context 'when it is an authenticated user' do
       let(:agent) { create(:user, account: account, role: :agent) }
+      let(:admin) { create(:user, account: account, role: :administrator) }
       let(:merge_action) { double }
 
       before do
@@ -23,10 +24,20 @@ RSpec.describe 'Contact Merge Action API', type: :request do
         allow(merge_action).to receive(:perform)
       end
 
-      it 'merges two contacts by calling contact merge action' do
+      it 'does not let an agent merge contacts' do
         post "/api/v1/accounts/#{account.id}/actions/contact_merge",
              params: { base_contact_id: base_contact.id, mergee_contact_id: mergee_contact.id },
              headers: agent.create_new_auth_token,
+             as: :json
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(merge_action).not_to have_received(:perform)
+      end
+
+      it 'merges two contacts by calling contact merge action' do
+        post "/api/v1/accounts/#{account.id}/actions/contact_merge",
+             params: { base_contact_id: base_contact.id, mergee_contact_id: mergee_contact.id },
+             headers: admin.create_new_auth_token,
              as: :json
 
         expect(response).to have_http_status(:success)

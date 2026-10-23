@@ -97,4 +97,16 @@ class InboxPolicy < ApplicationPolicy
   def set_call_recording?
     @account_user.administrator?
   end
+
+  def show_call_permission_template?
+    @account_user.administrator?
+  end
+
+  def create_call_permission_template?
+    @account_user.administrator?
+  end
+
+  def refresh_call_permission_template?
+    @account_user.administrator?
+  end
 end

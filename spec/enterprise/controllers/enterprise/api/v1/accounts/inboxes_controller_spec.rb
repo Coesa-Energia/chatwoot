@@ -225,4 +225,63 @@ RSpec.describe 'Enterprise Inboxes API', type: :request do
       end
     end
   end
+
+  describe 'call permission template' do
+    let(:channel) do
+      create(:channel_whatsapp, account: account, provider: 'whatsapp_cloud', validate_provider_config: false, sync_templates: false)
+    end
+    let(:provider_service) { instance_double(Whatsapp::Providers::WhatsappCloudService) }
+    let(:base_path) { "/api/v1/accounts/#{account.id}/inboxes/#{channel.inbox.id}/call_permission_template" }
+
+    before do
+      account.enable_features!('channel_voice')
+      allow(Whatsapp::Providers::WhatsappCloudService).to receive(:new).and_return(provider_service)
+    end
+
+    it 'shows the default text before anything was created' do
+      get base_path, headers: admin.create_new_auth_token, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to include('created' => false, 'name' => 'pedido_permissao_ligacao')
+      expect(response.parsed_body['body']).to be_present
+    end
+
+    it 'sends the edited template to Meta for an administrator' do
+      allow(provider_service).to receive(:find_message_template).and_return(nil)
+      allow(provider_service).to receive(:create_call_permission_template).and_return('id' => '1')
+
+      post base_path, headers: admin.create_new_auth_token, params: { body: 'Texto novo' }, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to include('status' => 'PENDING', 'body' => 'Texto novo')
+    end
+
+    it 'returns a readable error for invalid input' do
+      post base_path, headers: admin.create_new_auth_token, params: { name: 'Nome Ruim' }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.parsed_body['error']).to eq(I18n.t('errors.whatsapp.calls.template.invalid_name'))
+    end
+
+    it 'refreshes the approval status' do
+      channel.update!(provider_config: channel.provider_config.merge('call_permission_template' => { 'name' => 'tpl', 'status' => 'PENDING' }))
+      allow(provider_service).to receive(:find_message_template).and_return(
+        'name' => 'tpl', 'language' => 'pt_BR', 'status' => 'APPROVED', 'category' => 'UTILITY',
+        'components' => [{ 'type' => 'BODY', 'text' => 'Oi' }, { 'type' => 'call_permission_request' }]
+      )
+
+      post "#{base_path}/refresh", headers: admin.create_new_auth_token, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body['status']).to eq('APPROVED')
+    end
+
+    it 'is forbidden for an agent' do
+      agent = create(:user, account: account, role: :agent)
+
+      post base_path, headers: agent.create_new_auth_token, as: :json
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
 end

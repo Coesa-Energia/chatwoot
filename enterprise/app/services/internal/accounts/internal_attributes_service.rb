@@ -1,6 +1,21 @@
 class Internal::Accounts::InternalAttributesService
   attr_reader :account
 
+  # Features that can be manually managed through this service.
+  # Kept as plain lists now that plans no longer gate features.
+  BUSINESS_PLAN_FEATURES = %w[
+    campaign_analytics
+    sla
+    custom_roles
+    csat_review_notes
+    conversation_required_attributes
+    advanced_assignment
+    custom_tools
+    conversation_monitors
+    company_enrichment
+  ].freeze
+  ENTERPRISE_PLAN_FEATURES = %w[audit_logs disable_branding saml].freeze
+
   # List of keys that can be managed through this service
   # TODO: Add account_notes field in future
   # This field can be used to store notes about account on Chatwoot cloud
@@ -52,9 +67,8 @@ class Internal::Accounts::InternalAttributesService
 
   # Get list of valid features that can be manually managed
   def valid_feature_list
-    Enterprise::Billing::ReconcilePlanFeaturesService::BUSINESS_PLAN_FEATURES +
-      Enterprise::Billing::ReconcilePlanFeaturesService::ENTERPRISE_PLAN_FEATURES +
-      Enterprise::Billing::ReconcilePlanFeaturesService::PAID_PLAN_FEATURES +
+    BUSINESS_PLAN_FEATURES +
+      ENTERPRISE_PLAN_FEATURES +
       %w[inbound_emails api_and_webhooks whatsapp_embedded_signup_inbox_creation companies]
   end
 

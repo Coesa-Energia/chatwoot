@@ -376,6 +376,50 @@ RSpec.describe 'Api::V1::Accounts::Articles', type: :request do
       end
     end
 
+    context 'with AI-only articles' do
+      let!(:ai_only_article) { create(:article, category: category, portal: portal, account_id: account.id, author_id: agent.id, ai_only: true) }
+
+      it 'hides AI-only articles from agents in the list and counts' do
+        get "/api/v1/accounts/#{account.id}/portals/#{portal.slug}/articles", headers: agent.create_new_auth_token
+
+        expect(response).to have_http_status(:success)
+        expect(response.parsed_body['payload'].pluck('id')).to eq([article.id])
+        expect(response.parsed_body['meta']['all_articles_count']).to eq(1)
+      end
+
+      it 'lists AI-only articles for administrators' do
+        get "/api/v1/accounts/#{account.id}/portals/#{portal.slug}/articles", headers: admin.create_new_auth_token
+
+        payload = response.parsed_body['payload']
+        expect(payload.pluck('id')).to contain_exactly(article.id, ai_only_article.id)
+        expect(payload.find { |a| a['id'] == ai_only_article.id }['ai_only']).to be(true)
+      end
+
+      it 'lets agents read a regular article but not an AI-only one' do
+        get "/api/v1/accounts/#{account.id}/portals/#{portal.slug}/articles/#{article.id}", headers: agent.create_new_auth_token
+        expect(response).to have_http_status(:success)
+
+        get "/api/v1/accounts/#{account.id}/portals/#{portal.slug}/articles/#{ai_only_article.id}", headers: agent.create_new_auth_token
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'lets administrators read and mark an AI-only article' do
+        get "/api/v1/accounts/#{account.id}/portals/#{portal.slug}/articles/#{ai_only_article.id}", headers: admin.create_new_auth_token
+        expect(response).to have_http_status(:success)
+
+        put "/api/v1/accounts/#{account.id}/portals/#{portal.slug}/articles/#{article.id}",
+            params: { article: { ai_only: true } }, headers: admin.create_new_auth_token
+        expect(article.reload.ai_only).to be(true)
+      end
+
+      it 'does not let agents update articles' do
+        put "/api/v1/accounts/#{account.id}/portals/#{portal.slug}/articles/#{article.id}",
+            params: { article: { ai_only: true } }, headers: agent.create_new_auth_token
+        expect(response).to have_http_status(:unauthorized)
+        expect(article.reload.ai_only).to be(false)
+      end
+    end
+
     describe 'GET /api/v1/accounts/{account.id}/portals/{portal.slug}/articles/{article.id}' do
       it 'get article' do
         article2 = create(:article, account_id: account.id, portal: portal, category: category, author_id: agent.id)

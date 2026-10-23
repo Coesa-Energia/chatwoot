@@ -390,6 +390,13 @@ RSpec.describe Conversations::MessageWindowService do
       expect(service.can_reply?).to be false
     end
 
+    it 'does not open the window for an incoming voice_call bubble' do
+      create(:message, account: conversation.account, inbox: whatsapp_inbox, conversation: conversation, created_at: 25.hours.ago)
+      create(:message, account: conversation.account, inbox: whatsapp_inbox, conversation: conversation, content_type: :voice_call,
+                       created_at: 1.hour.ago)
+      expect(described_class.new(conversation).can_reply?).to be false
+    end
+
     it 'return true if last message is outgoing but previous incoming message is within window' do
       create(
         :message,
