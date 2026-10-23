@@ -1,13 +1,8 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { computed } from 'vue';
+import { dynamicTime } from 'shared/helpers/timeHelper';
 
-import CardLayout from 'dashboard/components-next/CardLayout.vue';
-import ContactsForm from 'dashboard/components-next/Contacts/ContactsForm/ContactsForm.vue';
-import Button from 'dashboard/components-next/button/Button.vue';
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
-import Flag from 'dashboard/components-next/flag/Flag.vue';
-import ContactDeleteSection from 'dashboard/components-next/Contacts/ContactsCard/ContactDeleteSection.vue';
 import Checkbox from 'dashboard/components-next/checkbox/Checkbox.vue';
 import countries from 'shared/constants/countries';
 
@@ -15,235 +10,103 @@ const props = defineProps({
   id: { type: Number, required: true },
   name: { type: String, default: '' },
   email: { type: String, default: '' },
-  companyId: { type: [Number, String], default: '' },
   additionalAttributes: { type: Object, default: () => ({}) },
   phoneNumber: { type: String, default: '' },
   thumbnail: { type: String, default: '' },
   availabilityStatus: { type: String, default: null },
-  isExpanded: { type: Boolean, default: false },
-  isUpdating: { type: Boolean, default: false },
+  lastActivityAt: { type: Number, default: null },
   selectable: { type: Boolean, default: false },
   isSelected: { type: Boolean, default: false },
 });
 
-const emit = defineEmits([
-  'toggle',
-  'updateContact',
-  'showContact',
-  'select',
-  'avatarHover',
-]);
+const emit = defineEmits(['showContact', 'select', 'avatarHover']);
 
-const { t } = useI18n();
-
-const contactsFormRef = ref(null);
-
-const getInitialContactData = () => ({
-  id: props.id,
-  name: props.name,
-  email: props.email,
-  companyId: props.companyId,
-  phoneNumber: props.phoneNumber,
-  additionalAttributes: props.additionalAttributes,
+const location = computed(() => {
+  const { country, countryCode, city } = props.additionalAttributes || {};
+  const activeCountry = countries.find(
+    item => item.id === country || item.id === countryCode
+  );
+  return [city, activeCountry?.name].filter(Boolean).join(', ');
 });
 
-const contactData = ref(getInitialContactData());
-
-watch(
-  () => props.companyId,
-  () => Object.assign(contactData.value, getInitialContactData())
+const subtitle = computed(() =>
+  [props.additionalAttributes?.companyName, location.value]
+    .filter(Boolean)
+    .join(' · ')
 );
 
-const isFormInvalid = computed(() => contactsFormRef.value?.isFormInvalid);
+const lastActivity = computed(() =>
+  props.lastActivityAt ? dynamicTime(props.lastActivityAt) : ''
+);
 
-const countriesMap = computed(() => {
-  return countries.reduce((acc, country) => {
-    acc[country.id] = country;
-    return acc;
-  }, {});
-});
-
-const countryDetails = computed(() => {
-  const attributes = props.additionalAttributes || {};
-  const { country, countryCode, city } = attributes;
-
-  if (!country && !countryCode) return null;
-
-  const activeCountry =
-    countriesMap.value[country] || countriesMap.value[countryCode];
-
-  if (!activeCountry) return null;
-
-  return {
-    countryCode: activeCountry.id,
-    city: city ? `${city},` : null,
-    name: activeCountry.name,
-  };
-});
-
-const formattedLocation = computed(() => {
-  if (!countryDetails.value) return '';
-
-  return [countryDetails.value.city, countryDetails.value.name]
-    .filter(Boolean)
-    .join(' ');
-});
-
-const handleFormUpdate = updatedData => {
-  Object.assign(contactData.value, updatedData);
-};
-
-const handleUpdateContact = () => {
-  emit('updateContact', contactData.value);
-};
-
-const onClickExpand = () => {
-  emit('toggle');
-  contactData.value = getInitialContactData();
-};
-
-const onClickViewDetails = () => emit('showContact', props.id);
-
-const toggleSelect = checked => {
-  emit('select', checked);
-};
-
-const handleAvatarHover = isHovered => {
-  emit('avatarHover', isHovered);
-};
+const openContact = () => emit('showContact', props.id);
 </script>
 
 <template>
-  <div class="relative">
-    <CardLayout
-      :key="id"
-      layout="row"
-      :class="{
-        'outline-n-weak !bg-n-slate-3 dark:!bg-n-solid-3': isSelected,
-      }"
+  <div
+    role="link"
+    tabindex="0"
+    class="flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors duration-150 motion-reduce:transition-none hover:bg-n-alpha-1 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-n-brand"
+    :class="{ '!bg-n-alpha-2': isSelected }"
+    @click="openContact"
+    @keydown.enter.self="openContact"
+  >
+    <div
+      class="relative shrink-0"
+      @mouseenter="emit('avatarHover', true)"
+      @mouseleave="emit('avatarHover', false)"
     >
-      <div class="flex items-center justify-start flex-1 gap-4">
-        <div
-          class="relative"
-          @mouseenter="handleAvatarHover(true)"
-          @mouseleave="handleAvatarHover(false)"
-        >
-          <Avatar
-            :name="name"
-            :src="thumbnail"
-            :size="42"
-            :status="availabilityStatus"
-            hide-offline-status
+      <Avatar
+        :name="name"
+        :src="thumbnail"
+        :size="32"
+        :status="availabilityStatus"
+        hide-offline-status
+      >
+        <template v-if="selectable" #overlay="{ size }">
+          <label
+            class="flex items-center justify-center rounded-full cursor-pointer absolute inset-0 z-10 backdrop-blur-[2px] border border-n-weak"
+            :style="{ width: `${size}px`, height: `${size}px` }"
+            @click.stop
           >
-            <template v-if="selectable" #overlay="{ size }">
-              <label
-                class="flex items-center justify-center rounded-full cursor-pointer absolute inset-0 z-10 backdrop-blur-[2px] border border-n-weak"
-                :style="{ width: `${size}px`, height: `${size}px` }"
-                @click.stop
-              >
-                <Checkbox
-                  :model-value="isSelected"
-                  @change="event => toggleSelect(event.target.checked)"
-                />
-              </label>
-            </template>
-          </Avatar>
-        </div>
-        <div class="flex flex-col gap-0.5 flex-1">
-          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span class="text-base font-medium truncate text-n-slate-12">
-              {{ name }}
-            </span>
-            <span class="inline-flex items-center gap-1">
-              <span
-                v-if="additionalAttributes?.companyName"
-                class="i-ph-building-light size-4 text-n-slate-10 mb-0.5"
-              />
-              <span
-                v-if="additionalAttributes?.companyName"
-                class="text-sm truncate text-n-slate-11"
-              >
-                {{ additionalAttributes.companyName }}
-              </span>
-            </span>
-          </div>
-          <div
-            class="flex flex-wrap items-center justify-start gap-x-3 gap-y-1"
-          >
-            <div v-if="email" class="truncate max-w-72" :title="email">
-              <span class="text-sm text-n-slate-11">
-                {{ email }}
-              </span>
-            </div>
-            <div v-if="email" class="w-px h-3 truncate bg-n-slate-6" />
-            <span v-if="phoneNumber" class="text-sm truncate text-n-slate-11">
-              {{ phoneNumber }}
-            </span>
-            <div v-if="phoneNumber" class="w-px h-3 truncate bg-n-slate-6" />
-            <span
-              v-if="countryDetails"
-              class="inline-flex items-center gap-2 text-sm truncate text-n-slate-11"
-            >
-              <Flag :country="countryDetails.countryCode" class="size-3.5" />
-              {{ formattedLocation }}
-            </span>
-            <div v-if="countryDetails" class="w-px h-3 truncate bg-n-slate-6" />
-            <Button
-              :label="t('CONTACTS_LAYOUT.CARD.VIEW_DETAILS')"
-              variant="link"
-              size="xs"
-              @click="onClickViewDetails"
+            <Checkbox
+              :model-value="isSelected"
+              @change="event => emit('select', event.target.checked)"
             />
-          </div>
-        </div>
+          </label>
+        </template>
+      </Avatar>
+    </div>
+    <div
+      class="grid flex-1 min-w-0 items-center gap-x-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)_minmax(0,1.6fr)_7rem]"
+    >
+      <div class="min-w-0">
+        <p class="text-sm font-medium truncate text-n-slate-12">
+          {{ name || phoneNumber || email }}
+        </p>
+        <p v-if="subtitle" class="text-xs truncate text-n-slate-11">
+          {{ subtitle }}
+        </p>
+        <p class="text-xs truncate md:hidden text-n-slate-11">
+          {{ [phoneNumber, email].filter(Boolean).join(' · ') }}
+        </p>
       </div>
-
-      <Button
-        icon="i-lucide-chevron-down"
-        variant="ghost"
-        color="slate"
-        size="xs"
-        :class="{ 'rotate-180': isExpanded }"
-        @click="onClickExpand"
-      />
-
-      <template #after>
-        <div
-          class="transition-all duration-500 ease-in-out grid overflow-hidden"
-          :class="
-            isExpanded
-              ? 'grid-rows-[1fr] opacity-100'
-              : 'grid-rows-[0fr] opacity-0'
-          "
-        >
-          <div class="overflow-hidden">
-            <div class="flex flex-col gap-6 p-6 border-t border-n-strong">
-              <ContactsForm
-                ref="contactsFormRef"
-                :contact-data="contactData"
-                @update="handleFormUpdate"
-              />
-              <div>
-                <Button
-                  :label="
-                    t('CONTACTS_LAYOUT.CARD.EDIT_DETAILS_FORM.UPDATE_BUTTON')
-                  "
-                  size="sm"
-                  :is-loading="isUpdating"
-                  :disabled="isUpdating || isFormInvalid"
-                  @click="handleUpdateContact"
-                />
-              </div>
-            </div>
-            <ContactDeleteSection
-              :selected-contact="{
-                id: props.id,
-                name: props.name,
-              }"
-            />
-          </div>
-        </div>
-      </template>
-    </CardLayout>
+      <span class="hidden text-sm truncate md:block text-n-slate-11">
+        {{ phoneNumber || '—' }}
+      </span>
+      <span
+        class="hidden text-sm truncate md:block text-n-slate-11"
+        :title="email"
+      >
+        {{ email || '—' }}
+      </span>
+      <span class="hidden text-xs truncate md:block text-end text-n-slate-11">
+        {{ lastActivity }}
+      </span>
+    </div>
+    <span
+      class="i-lucide-chevron-right size-4 shrink-0 text-n-slate-10 rtl:rotate-180"
+      aria-hidden="true"
+    />
   </div>
 </template>

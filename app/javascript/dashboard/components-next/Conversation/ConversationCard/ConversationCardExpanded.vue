@@ -256,9 +256,14 @@ const selectedModel = computed({
       </div>
 
       <div
-        class="flex-shrink-0 w-[4.375rem] text-end"
+        class="flex items-center justify-end flex-shrink-0 gap-1 w-[4.375rem]"
         :class="orderClass('time')"
       >
+        <Icon
+          v-if="chat.pinned_at"
+          icon="i-lucide-pin"
+          class="flex-shrink-0 size-3 text-n-slate-10"
+        />
         <TimeAgo
           :conversation-id="chat.id"
           :last-activity-timestamp="chat.timestamp"

@@ -87,6 +87,24 @@ class Inboxes extends CacheEnabledApiClient {
     });
   }
 
+  getCallPermissionTemplate(inboxId) {
+    return axios.get(`${this.url}/${inboxId}/call_permission_template`);
+  }
+
+  createCallPermissionTemplate(inboxId, { name, body, category }) {
+    return axios.post(`${this.url}/${inboxId}/call_permission_template`, {
+      name,
+      body,
+      category,
+    });
+  }
+
+  refreshCallPermissionTemplate(inboxId) {
+    return axios.post(
+      `${this.url}/${inboxId}/call_permission_template/refresh`
+    );
+  }
+
   setCallRecording(inboxId, { recordingEnabled, transcriptionEnabled }) {
     return axios.post(`${this.url}/${inboxId}/set_call_recording`, {
       recording_enabled: recordingEnabled,

@@ -15,9 +15,10 @@ const displayCount = computed(() =>
 </script>
 
 <template>
+  <!-- Same look as the sidebar and "Archived" badges; dark text keeps AA on the lighter dark-mode green. -->
   <span
     v-if="count > 0"
-    class="bg-n-teal-9 rounded-full h-4 min-w-4 max-w-5 px-1 w-fit font-medium text-xxs leading-3 text-white inline-grid place-items-center flex-shrink-0"
+    class="bg-n-brand rounded-full h-5 min-w-5 px-1.5 w-fit font-semibold text-xs leading-3 text-white dark:text-n-slate-1 inline-grid place-items-center flex-shrink-0 tabular-nums"
     :class="{
       'mb-0.5': alignBottom,
     }"

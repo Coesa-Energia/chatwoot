@@ -5,10 +5,12 @@ import { useStore, useMapGetter } from 'dashboard/composables/store';
 import { useAlert } from 'dashboard/composables';
 import { dynamicTime } from 'shared/helpers/timeHelper';
 import { useExactTimestamp } from 'shared/composables/useExactTimestamp';
+import { copyTextToClipboard } from 'shared/helpers/clipboard';
 
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
 import ContactLabels from 'dashboard/components-next/Contacts/ContactLabels/ContactLabels.vue';
+import ContactConversations from 'dashboard/components-next/Contacts/ContactConversations.vue';
 import ContactsForm from 'dashboard/components-next/Contacts/ContactsForm/ContactsForm.vue';
 import ConfirmContactDeleteDialog from 'dashboard/components-next/Contacts/ContactsForm/ConfirmContactDeleteDialog.vue';
 import Policy from 'dashboard/components/policy.vue';
@@ -111,6 +113,15 @@ const handleAvatarUpload = async ({ file, url }) => {
   }
 };
 
+const copyValue = async value => {
+  try {
+    await copyTextToClipboard(value);
+    useAlert(t('CONTACTS_LAYOUT.DETAILS.COPY_SUCCESS'));
+  } catch {
+    useAlert(t('CONTACTS_LAYOUT.DETAILS.COPY_ERROR'));
+  }
+};
+
 const handleAvatarDelete = async () => {
   try {
     if (props.selectedContact && props.selectedContact.id) {
@@ -142,10 +153,40 @@ const handleAvatarDelete = async () => {
         @delete="handleAvatarDelete"
       />
       <div class="flex flex-col gap-1">
-        <h3 class="text-base font-medium text-n-slate-12">
+        <h1 class="text-lg font-medium text-n-slate-12">
           {{ selectedContact?.name }}
-        </h3>
+        </h1>
         <div class="flex flex-col gap-1.5">
+          <span
+            v-for="item in [
+              {
+                key: 'phone',
+                icon: 'i-lucide-phone',
+                value: selectedContact?.phoneNumber,
+                label: t('CONTACTS_LAYOUT.DETAILS.COPY_PHONE'),
+              },
+              {
+                key: 'email',
+                icon: 'i-lucide-mail',
+                value: selectedContact?.email,
+                label: t('CONTACTS_LAYOUT.DETAILS.COPY_EMAIL'),
+              },
+            ].filter(entry => entry.value)"
+            :key="item.key"
+            class="inline-flex items-center gap-1 text-sm text-n-slate-12"
+          >
+            <span :class="item.icon" class="size-4 text-n-slate-10" />
+            <span class="truncate">{{ item.value }}</span>
+            <Button
+              v-tooltip.top="item.label"
+              icon="i-lucide-copy"
+              variant="ghost"
+              color="slate"
+              size="xs"
+              :aria-label="item.label"
+              @click="copyValue(item.value)"
+            />
+          </span>
           <span
             v-if="selectedContact?.identifier"
             class="inline-flex items-center gap-1 text-sm text-n-slate-11"
@@ -186,6 +227,10 @@ const handleAvatarDelete = async () => {
       </div>
       <ContactLabels :contact-id="selectedContact?.id" />
     </div>
+    <ContactConversations
+      v-if="selectedContact?.id"
+      :contact-id="selectedContact.id"
+    />
     <div class="flex flex-col items-start gap-6">
       <ContactsForm
         ref="contactsFormRef"
@@ -206,9 +251,9 @@ const handleAvatarDelete = async () => {
         class="flex flex-col items-start w-full gap-4 pt-6 border-t border-n-strong"
       >
         <div class="flex flex-col gap-2">
-          <h6 class="text-base font-medium text-n-slate-12">
+          <h2 class="text-sm font-semibold text-n-slate-12">
             {{ t('CONTACTS_LAYOUT.DETAILS.DELETE_CONTACT') }}
-          </h6>
+          </h2>
           <span class="text-sm text-n-slate-11">
             {{ t('CONTACTS_LAYOUT.DETAILS.DELETE_CONTACT_DESCRIPTION') }}
           </span>
@@ -216,6 +261,8 @@ const handleAvatarDelete = async () => {
         <Button
           :label="t('CONTACTS_LAYOUT.DETAILS.DELETE_CONTACT')"
           color="ruby"
+          variant="faded"
+          size="sm"
           @click="openConfirmDeleteContactDialog"
         />
       </div>

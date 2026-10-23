@@ -167,6 +167,109 @@ describe('#ConversationAPI', () => {
       });
     });
 
+    it('#get conversations sends the unread filter only when it is on', () => {
+      conversationAPI.get({ status: 'open', assigneeType: 'all', page: 1 });
+      expect(axiosMock.get.mock.calls.at(-1)[1].params.unread).toBeUndefined();
+
+      conversationAPI.get({
+        status: 'open',
+        assigneeType: 'all',
+        page: 1,
+        unread: true,
+      });
+      expect(axiosMock.get.mock.calls.at(-1)[1].params.unread).toBe(true);
+    });
+
+    it('#meta sends the unread filter only when it is on', () => {
+      conversationAPI.meta({ status: 'open', assigneeType: 'all' });
+      expect(axiosMock.get.mock.calls.at(-1)[1].params.unread).toBeUndefined();
+
+      conversationAPI.meta({
+        status: 'open',
+        assigneeType: 'all',
+        unread: true,
+      });
+      expect(axiosMock.get.mock.calls.at(-1)[1].params.unread).toBe(true);
+    });
+
+    it('#get and #meta send the awaiting reply filter only when it is on', () => {
+      conversationAPI.get({ status: 'open', assigneeType: 'all', page: 1 });
+      expect(
+        axiosMock.get.mock.calls.at(-1)[1].params.awaiting_reply
+      ).toBeUndefined();
+      conversationAPI.get({
+        status: 'open',
+        assigneeType: 'all',
+        page: 1,
+        awaitingReply: true,
+      });
+      expect(axiosMock.get.mock.calls.at(-1)[1].params.awaiting_reply).toBe(
+        true
+      );
+
+      conversationAPI.meta({ status: 'open', assigneeType: 'all' });
+      expect(
+        axiosMock.get.mock.calls.at(-1)[1].params.awaiting_reply
+      ).toBeUndefined();
+      conversationAPI.meta({
+        status: 'open',
+        assigneeType: 'all',
+        awaitingReply: true,
+      });
+      expect(axiosMock.get.mock.calls.at(-1)[1].params.awaiting_reply).toBe(
+        true
+      );
+    });
+
+    it('#get and #meta send the archived filter only when it is on', () => {
+      conversationAPI.get({ status: 'open', assigneeType: 'all', page: 1 });
+      expect(
+        axiosMock.get.mock.calls.at(-1)[1].params.archived
+      ).toBeUndefined();
+      conversationAPI.get({
+        status: 'open',
+        assigneeType: 'all',
+        page: 1,
+        archived: true,
+      });
+      expect(axiosMock.get.mock.calls.at(-1)[1].params.archived).toBe(true);
+
+      conversationAPI.meta({ status: 'open', assigneeType: 'all' });
+      expect(
+        axiosMock.get.mock.calls.at(-1)[1].params.archived
+      ).toBeUndefined();
+      conversationAPI.meta({
+        status: 'open',
+        assigneeType: 'all',
+        archived: true,
+      });
+      expect(axiosMock.get.mock.calls.at(-1)[1].params.archived).toBe(true);
+    });
+
+    it('#updateUserState sends only the keys that change', () => {
+      conversationAPI.updateUserState({ conversationId: 12, pinned: true });
+      expect(axiosMock.patch).toHaveBeenLastCalledWith(
+        '/api/v1/conversations/12/user_state',
+        { pinned: true }
+      );
+
+      conversationAPI.updateUserState({ conversationId: 12, archived: false });
+      expect(axiosMock.patch).toHaveBeenLastCalledWith(
+        '/api/v1/conversations/12/user_state',
+        { archived: false }
+      );
+
+      conversationAPI.updateUserState({
+        conversationId: 12,
+        pinned: false,
+        archived: true,
+      });
+      expect(axiosMock.patch).toHaveBeenLastCalledWith(
+        '/api/v1/conversations/12/user_state',
+        { pinned: false, archived: true }
+      );
+    });
+
     it('#sendEmailTranscript', () => {
       conversationAPI.sendEmailTranscript({
         conversationId: 45,

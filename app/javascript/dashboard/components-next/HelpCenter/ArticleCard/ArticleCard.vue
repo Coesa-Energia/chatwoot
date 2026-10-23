@@ -68,6 +68,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  aiOnly: {
+    type: Boolean,
+    default: false,
+  },
+  readOnly: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits([
@@ -186,8 +194,10 @@ const handleArticleAction = ({ action, value }) => {
   emit('articleAction', { action, value, id: props.id });
 };
 
-const handleClick = id => {
-  emit('openArticle', id);
+// The whole card opens the article; its own buttons and menus keep their clicks.
+const handleCardClick = event => {
+  if (event.target.closest('button, a, input, [role="dialog"]')) return;
+  emit('openArticle', props.id);
 };
 </script>
 
@@ -204,104 +214,122 @@ const handleClick = id => {
     >
       <Checkbox :model-value="isSelected" @change="emit('toggleSelect', id)" />
     </div>
-    <div class="flex justify-between w-full gap-1">
-      <div class="flex items-center gap-2 min-w-0">
-        <span
-          class="text-base cursor-pointer hover:underline underline-offset-2 hover:text-n-blue-11 text-n-slate-12 line-clamp-1"
-          @click="handleClick(id)"
-        >
-          {{ title }}
-        </span>
-      </div>
-      <div class="flex items-center gap-2">
-        <span
-          v-if="hasPendingChanges"
-          :title="
-            t(
-              'HELP_CENTER.ARTICLES_PAGE.ARTICLE_CARD.CARD.PENDING_EDITS_TOOLTIP'
-            )
-          "
-          class="text-xs font-medium inline-flex items-center gap-1 h-6 px-2 py-0.5 rounded-md text-n-slate-11 bg-n-alpha-2 whitespace-nowrap shrink-0"
-        >
-          <span class="rounded-full size-1.5 bg-n-amber-9 shrink-0" />
-          {{ t('HELP_CENTER.ARTICLES_PAGE.ARTICLE_CARD.CARD.PENDING_EDITS') }}
-        </span>
-        <span
-          class="text-xs font-medium inline-flex items-center h-6 px-2 py-0.5 rounded-md bg-n-alpha-2"
-          :class="statusTextColor"
-        >
-          {{ statusText }}
-        </span>
-        <div
-          v-on-clickaway="() => toggleDropdown(false)"
-          class="relative flex items-center group"
-        >
-          <Button
-            icon="i-lucide-ellipsis-vertical"
-            color="slate"
-            size="xs"
-            class="rounded-md group-hover:bg-n-alpha-2"
-            @click="toggleDropdown()"
-          />
-          <DropdownMenu
-            v-if="showActionsDropdown"
-            :menu-items="articleMenuItems"
-            class="mt-1 end-0 top-full w-40"
-            @action="handleArticleAction($event)"
-          />
-          <ArticlePendingChangesPopover
-            ref="pendingChangesPopoverRef"
-            :article-id="id"
-            @resolved="emit('draftResolved', $event)"
-            @failed="emit('draftFailed', $event)"
-          />
+    <div
+      class="flex flex-col w-full gap-3 cursor-pointer"
+      @click="handleCardClick"
+    >
+      <div class="flex justify-between w-full gap-1">
+        <div class="flex items-center gap-2 min-w-0">
+          <button
+            type="button"
+            class="text-sm font-medium text-start rounded hover:underline underline-offset-2 hover:text-n-blue-11 text-n-slate-12 line-clamp-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-n-brand"
+            @click="emit('openArticle', id)"
+          >
+            {{ title }}
+          </button>
         </div>
-      </div>
-    </div>
-    <div class="flex items-center justify-between w-full gap-2 sm:gap-4">
-      <div class="flex items-center min-w-0 gap-2 sm:gap-4">
-        <div class="flex items-center min-w-0 gap-1">
-          <Avatar
-            :name="authorName"
-            :src="authorThumbnailSrc"
-            :size="16"
-            rounded-full
-          />
-          <span class="text-sm truncate text-n-slate-11">
-            {{ authorName || '-' }}
+        <div class="flex items-center gap-2">
+          <span
+            v-if="hasPendingChanges"
+            :title="
+              t(
+                'HELP_CENTER.ARTICLES_PAGE.ARTICLE_CARD.CARD.PENDING_EDITS_TOOLTIP'
+              )
+            "
+            class="text-xs font-medium inline-flex items-center gap-1 h-6 px-2 py-0.5 rounded-md text-n-slate-11 bg-n-alpha-2 whitespace-nowrap shrink-0"
+          >
+            <span class="rounded-full size-1.5 bg-n-amber-9 shrink-0" />
+            {{ t('HELP_CENTER.ARTICLES_PAGE.ARTICLE_CARD.CARD.PENDING_EDITS') }}
           </span>
-        </div>
-        <span class="flex items-center min-w-0 gap-1 text-sm text-n-slate-11">
-          <EmojiIcon
-            v-if="category?.icon"
-            :value="category.icon"
-            :color="category.icon_color"
-            class="flex-shrink-0 size-4"
-          />
-          <span class="truncate">{{ categoryName }}</span>
-        </span>
-        <div
-          class="inline-flex items-center gap-1 text-n-slate-11 whitespace-nowrap shrink-0"
-        >
-          <Icon icon="i-lucide-eye" class="size-4" />
-          <span class="text-sm">
-            {{
-              t('HELP_CENTER.ARTICLES_PAGE.ARTICLE_CARD.CARD.VIEWS', {
-                count: views,
-              })
-            }}
+          <span
+            v-if="aiOnly"
+            :title="t('HELP_CENTER.AI_ONLY.HINT')"
+            class="text-xs font-medium inline-flex items-center gap-1 h-6 px-2 py-0.5 rounded-md text-n-iris-11 bg-n-iris-3 whitespace-nowrap shrink-0"
+          >
+            <Icon icon="i-lucide-sparkles" class="size-3" />
+            {{ t('HELP_CENTER.AI_ONLY.BADGE') }}
           </span>
+          <span
+            class="text-xs font-medium inline-flex items-center h-6 px-2 py-0.5 rounded-md bg-n-alpha-2"
+            :class="statusTextColor"
+          >
+            {{ statusText }}
+          </span>
+          <div
+            v-if="!readOnly"
+            v-on-clickaway="() => toggleDropdown(false)"
+            class="relative flex items-center group"
+          >
+            <Button
+              icon="i-lucide-ellipsis-vertical"
+              :aria-label="
+                t('HELP_CENTER.ARTICLES_PAGE.ARTICLE_CARD.CARD.MORE_ACTIONS')
+              "
+              color="slate"
+              size="xs"
+              class="rounded-md group-hover:bg-n-alpha-2"
+              @click="toggleDropdown()"
+            />
+            <DropdownMenu
+              v-if="showActionsDropdown"
+              :menu-items="articleMenuItems"
+              class="mt-1 end-0 top-full w-40"
+              @action="handleArticleAction($event)"
+            />
+            <ArticlePendingChangesPopover
+              ref="pendingChangesPopoverRef"
+              :article-id="id"
+              @resolved="emit('draftResolved', $event)"
+              @failed="emit('draftFailed', $event)"
+            />
+          </div>
         </div>
       </div>
-      <span
-        v-tooltip.top="{
-          content: exactTimestamp(updatedAt),
-          delay: { show: 500, hide: 0 },
-        }"
-        class="text-sm text-n-slate-11 line-clamp-1 shrink-0"
-      >
-        {{ lastUpdatedAt }}
-      </span>
+      <div class="flex items-center justify-between w-full gap-2 sm:gap-4">
+        <div class="flex items-center min-w-0 gap-2 sm:gap-4">
+          <div class="flex items-center min-w-0 gap-1">
+            <Avatar
+              :name="authorName"
+              :src="authorThumbnailSrc"
+              :size="16"
+              rounded-full
+            />
+            <span class="text-sm truncate text-n-slate-11">
+              {{ authorName || '-' }}
+            </span>
+          </div>
+          <span class="flex items-center min-w-0 gap-1 text-sm text-n-slate-11">
+            <EmojiIcon
+              v-if="category?.icon"
+              :value="category.icon"
+              :color="category.icon_color"
+              class="flex-shrink-0 size-4"
+            />
+            <span class="truncate">{{ categoryName }}</span>
+          </span>
+          <div
+            class="inline-flex items-center gap-1 text-n-slate-11 whitespace-nowrap shrink-0"
+          >
+            <Icon icon="i-lucide-eye" class="size-4" />
+            <span class="text-sm">
+              {{
+                t('HELP_CENTER.ARTICLES_PAGE.ARTICLE_CARD.CARD.VIEWS', {
+                  count: views,
+                })
+              }}
+            </span>
+          </div>
+        </div>
+        <span
+          v-tooltip.top="{
+            content: exactTimestamp(updatedAt),
+            delay: { show: 500, hide: 0 },
+          }"
+          class="text-sm text-n-slate-11 line-clamp-1 shrink-0"
+        >
+          {{ lastUpdatedAt }}
+        </span>
+      </div>
     </div>
   </CardLayout>
 </template>

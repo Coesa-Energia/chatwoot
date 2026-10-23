@@ -22,6 +22,19 @@ class WhatsappCallsAPI extends ApiClient {
       .then(r => r.data);
   }
 
+  // What the contact allowed us to do + WhatsApp's request limits; same lookup keys as initiate().
+  permissionStatus({ conversationId, contactId, inboxId }) {
+    return axios
+      .get(`${this.url}/permission_status`, {
+        params: {
+          conversation_id: conversationId,
+          contact_id: contactId,
+          inbox_id: inboxId,
+        },
+      })
+      .then(r => r.data);
+  }
+
   accept(callId, sdpAnswer) {
     return axios
       .post(`${this.url}/${callId}/accept`, { sdp_answer: sdpAnswer })

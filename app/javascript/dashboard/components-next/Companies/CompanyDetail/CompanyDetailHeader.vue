@@ -6,8 +6,6 @@ import { useAlert } from 'dashboard/composables';
 import { useMapGetter } from 'dashboard/composables/store';
 import { useAccount } from 'dashboard/composables/useAccount';
 import { useAdmin } from 'dashboard/composables/useAdmin';
-import { usePolicy } from 'dashboard/composables/usePolicy';
-import { FEATURE_FLAGS } from 'dashboard/featureFlags';
 import { dynamicTime } from 'shared/helpers/timeHelper';
 
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
@@ -30,7 +28,6 @@ const companiesStore = useCompaniesStore();
 const { isAdmin } = useAdmin();
 const router = useRouter();
 const { accountId } = useAccount();
-const { shouldShowPaywall } = usePolicy();
 const globalConfig = useMapGetter('globalConfig/get');
 const upgradeDialogRef = ref(null);
 
@@ -77,10 +74,6 @@ const goToBilling = () => {
 };
 
 const handleRefresh = async () => {
-  if (shouldShowPaywall(FEATURE_FLAGS.COMPANY_ENRICHMENT)) {
-    upgradeDialogRef.value?.open();
-    return;
-  }
   try {
     await companiesStore.enrich(props.company.id);
     useAlert(t('COMPANIES.DETAIL.PROFILE.MESSAGES.REFRESH_SUCCESS'));

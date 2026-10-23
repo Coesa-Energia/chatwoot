@@ -12,6 +12,19 @@ class AccountAPI extends ApiClient {
       : super.get();
   }
 
+  // field: 'logo' (main logo) or 'collapsed_logo' (image for the collapsed sidebar)
+  uploadLogo(file, field = 'logo') {
+    const data = new FormData();
+    data.append(field, file);
+    return axios.patch(this.url.replace(/\/$/, ''), data);
+  }
+
+  removeLogo(field = 'logo') {
+    return axios.patch(this.url.replace(/\/$/, ''), {
+      [`remove_${field}`]: true,
+    });
+  }
+
   createAccount(data) {
     return axios.post(`${this.apiVersion}/accounts`, data);
   }

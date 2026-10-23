@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { relativeDayTimestamp } from 'shared/helpers/timeHelper';
 import { useExactTimestamp } from 'shared/composables/useExactTimestamp';
@@ -26,6 +26,7 @@ const exactTimestamp = useExactTimestamp();
 
 const { t } = useI18n();
 const route = useRoute();
+const router = useRouter();
 
 const kind = computed(() => getCallKind(props.call));
 
@@ -83,10 +84,19 @@ const conversationRoute = computed(() => ({
   },
   query: { messageId: props.call.messageId },
 }));
+
+// The whole row opens the conversation; the player and the link keep their own clicks.
+const openConversation = event => {
+  if (event.target.closest('a, button, input, [data-no-row-click]')) return;
+  router.push(conversationRoute.value);
+};
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 py-3.5 border-b border-n-weak lg:hidden">
+  <div
+    class="flex flex-col gap-2 py-3.5 px-2 border-b cursor-pointer border-n-weak lg:hidden hover:bg-n-alpha-1"
+    @click="openConversation"
+  >
     <div class="flex items-center gap-2 min-w-0">
       <Avatar
         :src="call.contact?.avatar"
@@ -103,7 +113,7 @@ const conversationRoute = computed(() => ({
       <CallStatusBadge :kind="kind" class="ms-auto shrink-0" />
       <RouterLink
         :to="conversationRoute"
-        class="inline-flex items-center h-6 gap-1 px-2 text-label-small outline outline-1 -outline-offset-1 rounded-md outline-n-weak text-n-slate-11 hover:bg-n-alpha-1 shrink-0"
+        class="inline-flex items-center h-6 gap-1 px-2 text-label-small outline outline-1 -outline-offset-1 rounded-md outline-n-weak text-n-slate-11 hover:bg-n-alpha-2 focus-visible:outline-2 focus-visible:outline-n-brand shrink-0"
       >
         <Icon icon="i-lucide-message-circle" class="size-3.5 text-n-slate-11" />
         {{ call.conversation.displayId }}
@@ -151,6 +161,7 @@ const conversationRoute = computed(() => ({
       <AudioPlayer
         :src="call.recordingUrl"
         :fallback-duration="call.durationSeconds || 0"
+        data-no-row-click
         class="flex-1 sm:flex-[0.7] min-w-0"
       />
       <span
@@ -166,7 +177,8 @@ const conversationRoute = computed(() => ({
   </div>
 
   <div
-    class="hidden items-center gap-x-1.5 gap-y-2.5 border-b border-n-weak lg:flex lg:items-center lg:gap-1.5"
+    class="hidden items-center gap-x-1.5 gap-y-2.5 px-2 border-b cursor-pointer border-n-weak lg:flex lg:items-center lg:gap-1.5 hover:bg-n-alpha-1 transition-colors duration-150 motion-reduce:transition-none"
+    @click="openConversation"
   >
     <div class="flex items-center gap-2.5 min-w-0 w-52 shrink-0 py-3.5">
       <Avatar
@@ -225,6 +237,7 @@ const conversationRoute = computed(() => ({
         v-if="call.recordingUrl"
         :src="call.recordingUrl"
         :fallback-duration="call.durationSeconds || 0"
+        data-no-row-click
         class="w-auto min-w-44 shrink mx-auto"
       />
     </div>
@@ -242,7 +255,7 @@ const conversationRoute = computed(() => ({
     </div>
     <RouterLink
       :to="conversationRoute"
-      class="inline-flex items-center h-6 gap-1 px-2 text-label-small py-3.5 outline outline-1 -outline-offset-1 rounded-md outline-n-weak text-n-slate-11 hover:bg-n-alpha-1 shrink-0 justify-self-start"
+      class="inline-flex items-center h-6 gap-1 px-2 text-label-small py-3.5 outline outline-1 -outline-offset-1 rounded-md outline-n-weak text-n-slate-11 hover:bg-n-alpha-2 focus-visible:outline-2 focus-visible:outline-n-brand shrink-0 justify-self-start"
     >
       <Icon icon="i-lucide-message-circle" class="size-3.5 text-n-slate-11" />
       {{ call.conversation.displayId }}

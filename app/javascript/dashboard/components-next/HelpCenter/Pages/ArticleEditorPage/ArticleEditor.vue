@@ -5,6 +5,7 @@ import { onBeforeRouteLeave } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
 import { ARTICLE_EDITOR_MENU_OPTIONS } from 'dashboard/constants/editor';
+import MessageFormatter from 'shared/helpers/MessageFormatter.js';
 
 import HelpCenterLayout from 'dashboard/components-next/HelpCenter/HelpCenterLayout.vue';
 import TextArea from 'dashboard/components-next/textarea/TextArea.vue';
@@ -23,6 +24,10 @@ const props = defineProps({
     default: false,
   },
   isSaved: {
+    type: Boolean,
+    default: false,
+  },
+  readOnly: {
     type: Boolean,
     default: false,
   },
@@ -47,6 +52,11 @@ const effectiveTitle = () =>
   props.article?.draftTitle ?? props.article?.title ?? '';
 const effectiveContent = () =>
   props.article?.draftContent ?? props.article?.content ?? '';
+
+// Readers see the live version, never the staged draft.
+const readOnlyContent = computed(
+  () => new MessageFormatter(props.article?.content ?? '').formattedMessage
+);
 
 const hasPendingChanges = computed(
   () => props.article?.draftTitle != null || props.article?.draftContent != null
@@ -205,13 +215,30 @@ const handleCreateArticle = event => {
         :pending-changes="hasPendingChanges"
         :is-saving="isSaving"
         :has-pending-uploads="hasPendingUploads"
+        :ai-only="article.aiOnly"
+        :read-only="readOnly"
         @go-back="onClickGoBack"
         @preview-article="previewArticle"
         @show-diff="diffPanelRef?.open()"
       />
-      <ArticleDiffPanel ref="diffPanelRef" :article="article" />
+      <ArticleDiffPanel
+        v-if="!readOnly"
+        ref="diffPanelRef"
+        :article="article"
+      />
     </template>
-    <template #content>
+    <template v-if="readOnly" #content>
+      <div class="flex flex-col gap-6 px-4 pb-10">
+        <h1 class="text-[32px] leading-[48px] font-medium text-n-slate-12">
+          {{ article.title }}
+        </h1>
+        <div
+          v-dompurify-html="readOnlyContent"
+          class="prose prose-sm max-w-none break-words text-n-slate-12"
+        />
+      </div>
+    </template>
+    <template v-else #content>
       <div class="flex flex-col gap-3 pl-4 mb-3 rtl:pr-3 rtl:pl-0">
         <TextArea
           v-model="articleTitle"

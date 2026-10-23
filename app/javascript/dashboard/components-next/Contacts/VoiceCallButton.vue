@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useMapGetter, useStore } from 'dashboard/composables/store';
 import {
   isVoiceCallEnabled,
+  canCallWithoutConversation,
   getVoiceCallProvider,
   VOICE_CALL_PROVIDERS,
 } from 'dashboard/helper/inbox';
@@ -46,8 +47,12 @@ const callsStore = useCallsStore();
 const inboxesList = useMapGetter('inboxes/getInboxes');
 const contactsUiFlags = useMapGetter('contacts/getUIFlags');
 
+// Inside a conversation every voice inbox may call; outside one (contact page) WhatsApp is left out,
+// because the call has to happen where the permission request and the call history live.
 const voiceInboxes = computed(() =>
-  (inboxesList.value || []).filter(isVoiceCallEnabled)
+  (inboxesList.value || []).filter(
+    props.conversationId ? isVoiceCallEnabled : canCallWithoutConversation
+  )
 );
 const hasVoiceInboxes = computed(() => voiceInboxes.value.length > 0);
 const conversationVoiceInbox = computed(() => {
@@ -156,10 +161,12 @@ const startCall = async (inboxId, conversationIdHint = null) => {
   }
 
   try {
+    // Always hint the open conversation: the server logs the phone call in it when it is
+    // this voice inbox's or the contact's WhatsApp thread, otherwise it opens a new one.
     const response = await store.dispatch('contacts/initiateCall', {
       contactId: props.contactId,
       inboxId,
-      conversationId: conversationIdHint,
+      conversationId: conversationIdHint ?? props.conversationId,
     });
     const { call_sid: callSid, conversation_id: conversationId } = response;
 
@@ -171,7 +178,9 @@ const startCall = async (inboxId, conversationIdHint = null) => {
     });
 
     useAlert(t('CONTACT_PANEL.CALL_INITIATED'));
-    navigateToConversation(response?.conversation_id);
+    if (String(conversationId) !== String(props.conversationId)) {
+      navigateToConversation(conversationId);
+    }
   } catch (error) {
     const apiError = error?.message;
     useAlert(apiError || t('CONTACT_PANEL.CALL_FAILED'));

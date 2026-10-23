@@ -119,12 +119,27 @@ class MessageApi extends ApiClient {
     );
   }
 
+  // An empty emoji removes the agent's reaction.
+  react({ conversationId, messageId, emoji }) {
+    return axios.post(
+      `${this.url}/${conversationId}/messages/${messageId}/react`,
+      { emoji }
+    );
+  }
+
   getPreviousMessages({ conversationId, after, before }) {
     const params = { before };
     if (after && Number(after) !== Number(before)) {
       params.after = after;
     }
     return axios.get(`${this.url}/${conversationId}/messages`, { params });
+  }
+
+  searchInConversation({ conversationId, q }, options = {}) {
+    return axios.get(`${this.url}/${conversationId}/messages/search`, {
+      signal: options.signal,
+      params: { q },
+    });
   }
 
   translateMessage(conversationId, messageId, targetLanguage) {

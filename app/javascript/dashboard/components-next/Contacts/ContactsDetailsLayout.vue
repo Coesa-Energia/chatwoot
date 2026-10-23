@@ -6,7 +6,7 @@ import { vOnClickOutside } from '@vueuse/components';
 
 import Button from 'dashboard/components-next/button/Button.vue';
 import Breadcrumb from 'dashboard/components-next/breadcrumb/Breadcrumb.vue';
-import ComposeConversation from 'dashboard/components-next/NewConversation/ComposeConversation.vue';
+import OpenConversationMenu from 'dashboard/components-next/Contacts/OpenConversationMenu.vue';
 import VoiceCallButton from 'dashboard/components-next/Contacts/VoiceCallButton.vue';
 
 const props = defineProps({
@@ -95,7 +95,8 @@ const closeMobileSidebar = () => {
                     : $t('CONTACTS_LAYOUT.HEADER.UNBLOCK_CONTACT')
                 "
                 size="sm"
-                slate
+                variant="ghost"
+                color="slate"
                 :is-loading="isUpdating"
                 :disabled="isUpdating"
                 @click="toggleBlock"
@@ -104,22 +105,26 @@ const closeMobileSidebar = () => {
                 :phone="selectedContact?.phoneNumber"
                 :contact-id="contactId"
                 :label="$t('CONTACT_PANEL.CALL')"
+                icon="i-lucide-phone"
+                variant="faded"
+                color="slate"
                 size="sm"
               />
-              <ComposeConversation :contact-id="contactId">
+              <OpenConversationMenu :contact-id="contactId">
                 <template #trigger>
                   <Button
-                    :label="$t('CONTACTS_LAYOUT.HEADER.SEND_MESSAGE')"
+                    :label="$t('CONTACTS_LAYOUT.OPEN_CONVERSATION.BUTTON')"
+                    icon="i-lucide-message-circle"
                     size="sm"
                   />
                 </template>
-              </ComposeConversation>
+              </OpenConversationMenu>
             </div>
           </div>
         </div>
       </header>
       <main class="flex-1 px-6 overflow-y-auto 3xl:px-px">
-        <div class="w-full py-4 mx-auto max-w-[40.625rem]">
+        <div class="w-full pt-2 pb-8 mx-auto max-w-[40.625rem]">
           <slot name="default" />
         </div>
       </main>

@@ -7,6 +7,7 @@ import InlineInput from 'dashboard/components-next/inline-input/InlineInput.vue'
 import TextArea from 'dashboard/components-next/textarea/TextArea.vue';
 import TagInput from 'dashboard/components-next/taginput/TagInput.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
+import Switch from 'dashboard/components-next/switch/Switch.vue';
 import ArticleSlugField from 'dashboard/components-next/HelpCenter/Pages/ArticleEditorPage/ArticleSlugField.vue';
 
 const props = defineProps({
@@ -19,6 +20,7 @@ const props = defineProps({
 const emit = defineEmits([
   'saveArticle',
   'saveSlug',
+  'saveAiOnly',
   'previewArticle',
   'close',
 ]);
@@ -138,6 +140,20 @@ onMounted(() => {
               )
             "
             class="w-[14rem]"
+          />
+        </div>
+        <div class="flex justify-between w-full gap-3 py-2">
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-n-slate-12">
+              {{ t('HELP_CENTER.AI_ONLY.LABEL') }}
+            </label>
+            <p class="mb-0 text-xs text-n-slate-11">
+              {{ t('HELP_CENTER.AI_ONLY.HINT') }}
+            </p>
+          </div>
+          <Switch
+            :model-value="article.aiOnly"
+            @update:model-value="value => emit('saveAiOnly', value)"
           />
         </div>
       </div>

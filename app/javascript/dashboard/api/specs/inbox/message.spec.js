@@ -1,6 +1,55 @@
 import messageAPI, { buildCreatePayload } from '../../inbox/message';
 import ApiClient from '../../ApiClient';
 
+describe('#MessageAPI searchInConversation', () => {
+  const originalAxios = window.axios;
+  const axiosMock = { get: vi.fn(() => Promise.resolve()) };
+
+  beforeEach(() => {
+    window.axios = axiosMock;
+  });
+
+  afterEach(() => {
+    window.axios = originalAxios;
+  });
+
+  it('searches the messages of one conversation', () => {
+    const signal = new AbortController().signal;
+
+    messageAPI.searchInConversation(
+      { conversationId: 12, q: 'orçamento' },
+      { signal }
+    );
+
+    expect(axiosMock.get).toHaveBeenCalledWith(
+      '/api/v1/conversations/12/messages/search',
+      { signal, params: { q: 'orçamento' } }
+    );
+  });
+});
+
+describe('#MessageAPI react', () => {
+  const originalAxios = window.axios;
+  const axiosMock = { post: vi.fn(() => Promise.resolve()) };
+
+  beforeEach(() => {
+    window.axios = axiosMock;
+  });
+
+  afterEach(() => {
+    window.axios = originalAxios;
+  });
+
+  it('posts the emoji to the message react endpoint', () => {
+    messageAPI.react({ conversationId: 12, messageId: 34, emoji: '👍' });
+
+    expect(axiosMock.post).toHaveBeenCalledWith(
+      '/api/v1/conversations/12/messages/34/react',
+      { emoji: '👍' }
+    );
+  });
+});
+
 describe('#ConversationAPI', () => {
   it('creates correct instance', () => {
     expect(messageAPI).toBeInstanceOf(ApiClient);

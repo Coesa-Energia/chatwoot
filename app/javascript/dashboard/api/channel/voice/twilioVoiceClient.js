@@ -3,6 +3,14 @@ import VoiceAPI from './voiceAPIClient';
 
 const createCallDisconnectedEvent = () => new CustomEvent('call:disconnected');
 
+// The Device is created after the click that started the call, so Chrome
+// leaves its AudioContext suspended. The conference still records, but the
+// browser plays silence until the context is resumed.
+const resumeSpeaker = async () => {
+  const audioContext = Device.audioContext;
+  if (audioContext?.state === 'suspended') await audioContext.resume();
+};
+
 class TwilioVoiceClient extends EventTarget {
   constructor() {
     super();
@@ -40,6 +48,7 @@ class TwilioVoiceClient extends EventTarget {
 
     this.initialized = true;
     this.inboxId = inboxId;
+    await resumeSpeaker();
 
     return this.device;
   }
@@ -88,6 +97,7 @@ class TwilioVoiceClient extends EventTarget {
 
     const connection = await this.device.connect({ params });
     this.activeConnection = connection;
+    await resumeSpeaker();
 
     connection.on('disconnect', this.onDisconnect);
 

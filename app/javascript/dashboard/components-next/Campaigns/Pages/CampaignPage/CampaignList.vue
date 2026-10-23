@@ -2,7 +2,6 @@
 import CampaignCard from 'dashboard/components-next/Campaigns/CampaignCard/CampaignCard.vue';
 import { INBOX_TYPES } from 'dashboard/helper/inbox';
 import { useCampaignAnalytics } from 'dashboard/composables/useCampaignAnalytics';
-import { useConfig } from 'dashboard/composables/useConfig';
 
 defineProps({
   campaigns: {
@@ -21,8 +20,7 @@ defineProps({
 
 const emit = defineEmits(['edit', 'delete', 'analytics']);
 const ANALYTICS_CAMPAIGN_STATUSES = ['processing', 'completed'];
-const { isEnterprise } = useConfig();
-const { canViewAnalytics, showPaywall } = useCampaignAnalytics();
+const { canViewAnalytics } = useCampaignAnalytics();
 
 const handleEdit = campaign => emit('edit', campaign);
 const handleDelete = campaign => emit('delete', campaign);
@@ -44,8 +42,7 @@ const handleAnalytics = campaign => emit('analytics', campaign);
       :is-live-chat-type="isLiveChatType"
       :show-edit="showEdit"
       :show-analytics="
-        isEnterprise &&
-        (canViewAnalytics || showPaywall) &&
+        canViewAnalytics &&
         campaign.inbox?.channel_type === INBOX_TYPES.WHATSAPP &&
         ANALYTICS_CAMPAIGN_STATUSES.includes(campaign.campaign_status)
       "

@@ -48,6 +48,14 @@ const props = defineProps({
     type: Function,
     default: () => false,
   },
+  aiOnly: {
+    type: Boolean,
+    default: false,
+  },
+  readOnly: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(['goBack', 'previewArticle', 'showDiff']);
@@ -270,8 +278,16 @@ const onDraftFailed = error => {
       @click="onClickGoBack"
     />
     <div class="flex items-center gap-4">
+      <span
+        v-if="aiOnly"
+        :title="t('HELP_CENTER.AI_ONLY.HINT')"
+        class="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg text-n-iris-11 bg-n-iris-3"
+      >
+        <span class="i-lucide-sparkles size-3" />
+        {{ t('HELP_CENTER.AI_ONLY.BADGE') }}
+      </span>
       <button
-        v-if="hasPendingChanges"
+        v-if="hasPendingChanges && !readOnly"
         type="button"
         :title="t('HELP_CENTER.EDIT_ARTICLE_PAGE.HEADER.VIEW_CHANGES')"
         class="flex items-center gap-1.5 px-2 py-1 text-xs font-medium transition-colors rounded-lg cursor-pointer text-n-amber-11 bg-n-amber-3 outline outline-1 outline-n-amber-5 hover:bg-n-amber-4"
@@ -291,10 +307,10 @@ const onDraftFailed = error => {
           :label="t('HELP_CENTER.EDIT_ARTICLE_PAGE.HEADER.PREVIEW')"
           color="slate"
           size="sm"
-          :disabled="!articleId"
+          :disabled="!articleId || aiOnly"
           @click="previewArticle"
         />
-        <ButtonGroup class="flex items-center">
+        <ButtonGroup v-if="!readOnly" class="flex items-center">
           <Button
             :label="
               hasPendingChanges
@@ -332,6 +348,7 @@ const onDraftFailed = error => {
           </div>
         </ButtonGroup>
         <ArticlePendingChangesPopover
+          v-if="!readOnly"
           ref="pendingChangesPopoverRef"
           :article-id="articleId"
           :blocked="blockedWhileBusy"

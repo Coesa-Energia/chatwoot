@@ -28,6 +28,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  readOnly: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits([
@@ -137,6 +141,7 @@ const handleTabChange = value => {
 <template>
   <div class="flex flex-col items-start w-full gap-2 lg:flex-row">
     <TabBar
+      v-if="!readOnly"
       :tabs="tabs"
       :initial-active-tab="activeTabIndex"
       @tab-changed="handleTabChange"
@@ -195,6 +200,7 @@ const handleTabChange = value => {
         </div>
       </div>
       <Button
+        v-if="!readOnly"
         :label="t('HELP_CENTER.ARTICLES_PAGE.ARTICLES_HEADER.NEW_ARTICLE')"
         icon="i-lucide-plus"
         size="sm"

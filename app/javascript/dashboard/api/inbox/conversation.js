@@ -17,6 +17,9 @@ class ConversationApi extends ApiClient {
       conversationType,
       sortBy,
       updatedWithin,
+      unread,
+      awaitingReply,
+      archived,
     },
     options = {}
   ) {
@@ -32,6 +35,9 @@ class ConversationApi extends ApiClient {
         conversation_type: conversationType,
         sort_by: sortBy,
         updated_within: updatedWithin,
+        unread: unread || undefined,
+        awaiting_reply: awaitingReply || undefined,
+        archived: archived || undefined,
       },
     });
   }
@@ -103,7 +109,22 @@ class ConversationApi extends ApiClient {
     return axios.post(`${this.url}/${conversationId}/unmute`);
   }
 
-  meta({ inboxId, status, assigneeType, labels, teamId, conversationType }) {
+  // Ids of the conversations the current agent archived.
+  archivedIds() {
+    return axios.get(`${this.url}/archived_ids`);
+  }
+
+  meta({
+    inboxId,
+    status,
+    assigneeType,
+    labels,
+    teamId,
+    conversationType,
+    unread,
+    awaitingReply,
+    archived,
+  }) {
     return axios.get(`${this.url}/meta`, {
       params: {
         inbox_id: inboxId,
@@ -112,8 +133,19 @@ class ConversationApi extends ApiClient {
         labels,
         team_id: teamId,
         conversation_type: conversationType,
+        unread: unread || undefined,
+        awaiting_reply: awaitingReply || undefined,
+        archived: archived || undefined,
       },
     });
+  }
+
+  // Pinned/archived state of the current agent only. Send just the keys that change.
+  updateUserState({ conversationId, pinned, archived }) {
+    const payload = {};
+    if (pinned !== undefined) payload.pinned = pinned;
+    if (archived !== undefined) payload.archived = archived;
+    return axios.patch(`${this.url}/${conversationId}/user_state`, payload);
   }
 
   sendEmailTranscript({ conversationId, email }) {
@@ -148,10 +180,6 @@ class ConversationApi extends ApiClient {
 
   getAllAttachments(conversationId) {
     return axios.get(`${this.url}/${conversationId}/attachments`);
-  }
-
-  getInboxAssistant(conversationId) {
-    return axios.get(`${this.url}/${conversationId}/inbox_assistant`);
   }
 
   delete(conversationId) {

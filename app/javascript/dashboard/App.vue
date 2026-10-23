@@ -22,6 +22,7 @@ import {
   verifyServiceWorkerExistence,
 } from './helper/pushHelper';
 import ReconnectService from 'dashboard/helper/ReconnectService';
+import { setDateFnsLocale } from 'shared/helpers/timeHelper';
 import { useUISettings } from 'dashboard/composables/useUISettings';
 
 export default {
@@ -107,6 +108,7 @@ export default {
     setLocale(locale) {
       if (locale) {
         this.$root.$i18n.locale = locale;
+        setDateFnsLocale(locale);
       }
     },
     async initializeAccount() {

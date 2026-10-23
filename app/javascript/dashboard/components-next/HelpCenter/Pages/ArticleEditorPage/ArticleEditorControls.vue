@@ -262,6 +262,7 @@ onMounted(() => {
           class="right-0 z-[100] mt-2 xl:left-0 top-full"
           @save-article="updateMeta"
           @save-slug="slug => emit('saveArticle', { slug })"
+          @save-ai-only="aiOnly => emit('saveArticle', { ai_only: aiOnly })"
           @preview-article="emit('previewArticle')"
           @close="openProperties = false"
         />

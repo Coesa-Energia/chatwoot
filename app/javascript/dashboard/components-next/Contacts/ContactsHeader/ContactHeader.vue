@@ -5,6 +5,7 @@ import Icon from 'dashboard/components-next/icon/Icon.vue';
 import ContactSortMenu from './components/ContactSortMenu.vue';
 import ContactMoreActions from './components/ContactMoreActions.vue';
 import ComposeConversation from 'dashboard/components-next/NewConversation/ComposeConversation.vue';
+import { useSellerMode } from 'dashboard/composables/useSellerMode';
 
 defineProps({
   showSearch: { type: Boolean, default: true },
@@ -29,6 +30,8 @@ const emit = defineEmits([
   'createSegment',
   'deleteSegment',
 ]);
+
+const { isSellerMode } = useSellerMode();
 </script>
 
 <template>
@@ -36,9 +39,9 @@ const emit = defineEmits([
     <div
       class="flex items-start sm:items-center justify-between w-full py-6 gap-2 mx-auto max-w-5xl"
     >
-      <span class="text-xl font-medium truncate text-n-slate-12">
+      <h1 class="text-lg font-medium truncate text-n-slate-12">
         {{ headerTitle }}
-      </span>
+      </h1>
       <div class="flex items-center flex-col sm:flex-row flex-shrink-0 gap-4">
         <div v-if="showSearch" class="flex items-center gap-2 w-full">
           <Input
@@ -63,6 +66,7 @@ const emit = defineEmits([
           <div class="flex items-center gap-2">
             <div v-if="!isLabelView && !isActiveView" class="relative">
               <Button
+                v-if="!(isSellerMode && isSegmentsView)"
                 id="toggleContactsFilterButton"
                 :icon="
                   isSegmentsView ? 'i-lucide-pen-line' : 'i-lucide-list-filter'
@@ -71,6 +75,7 @@ const emit = defineEmits([
                 size="sm"
                 class="relative w-8"
                 variant="ghost"
+                :aria-label="$t('CONTACTS_LAYOUT.HEADER.ARIA.FILTER')"
                 @click="emit('filter')"
               >
                 <div
@@ -82,20 +87,25 @@ const emit = defineEmits([
             </div>
             <Button
               v-if="
+                !isSellerMode &&
                 hasActiveFilters &&
                 !isSegmentsView &&
                 !isLabelView &&
                 !isActiveView
               "
               icon="i-lucide-save"
+              :aria-label="$t('CONTACTS_LAYOUT.HEADER.ARIA.SAVE_SEGMENT')"
               color="slate"
               size="sm"
               variant="ghost"
               @click="emit('createSegment')"
             />
             <Button
-              v-if="isSegmentsView && !isLabelView && !isActiveView"
+              v-if="
+                !isSellerMode && isSegmentsView && !isLabelView && !isActiveView
+              "
               icon="i-lucide-trash"
+              :aria-label="$t('CONTACTS_LAYOUT.HEADER.ARIA.DELETE_SEGMENT')"
               color="slate"
               size="sm"
               variant="ghost"
@@ -113,11 +123,24 @@ const emit = defineEmits([
             />
           </div>
           <div class="w-px h-4 bg-n-strong" />
-          <ComposeConversation>
-            <template #trigger>
-              <Button :label="buttonLabel" size="sm" />
-            </template>
-          </ComposeConversation>
+          <div class="flex items-center gap-2">
+            <Button
+              :label="
+                $t(
+                  'CONTACTS_LAYOUT.HEADER.ACTIONS.CONTACT_CREATION.ADD_CONTACT'
+                )
+              "
+              icon="i-lucide-plus"
+              size="sm"
+              data-testid="add-contact-button"
+              @click="emit('add')"
+            />
+            <ComposeConversation>
+              <template #trigger>
+                <Button :label="buttonLabel" size="sm" slate faded />
+              </template>
+            </ComposeConversation>
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, toRef } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useSellerMode } from 'dashboard/composables/useSellerMode';
 
 import Button from 'dashboard/components-next/button/Button.vue';
 import SelectMenu from 'dashboard/components-next/selectmenu/SelectMenu.vue';
@@ -19,6 +20,7 @@ const props = defineProps({
 const emit = defineEmits(['update:sort']);
 
 const { t } = useI18n();
+const { isSellerMode } = useSellerMode();
 
 const isMenuOpen = ref(false);
 
@@ -52,6 +54,13 @@ const sortMenus = [
     value: 'created_at',
   },
 ];
+
+// Modo Vendedor: WhatsApp contacts rarely have an email, so that sort is hidden.
+const visibleSortMenus = computed(() =>
+  isSellerMode.value
+    ? sortMenus.filter(menu => menu.value !== 'email')
+    : sortMenus
+);
 
 const orderingMenus = [
   {
@@ -113,7 +122,7 @@ const handleOrderChange = value => {
         </span>
         <SelectMenu
           :model-value="activeSort"
-          :options="sortMenus"
+          :options="visibleSortMenus"
           :label="activeSortLabel"
           @update:model-value="handleSortChange"
         />
