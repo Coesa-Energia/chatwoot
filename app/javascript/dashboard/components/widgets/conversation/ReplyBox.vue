@@ -22,7 +22,6 @@ import WootMessageEditor from 'dashboard/components/widgets/WootWriter/Editor.vu
 import AudioRecorder from 'dashboard/components/widgets/WootWriter/AudioRecorder.vue';
 import { AUDIO_FORMATS } from 'shared/constants/messages';
 import { BUS_EVENTS } from 'shared/constants/busEvents';
-import { CMD_AI_ASSIST } from 'dashboard/helper/commandbar/events';
 import { getUndefinedVariablesInMessage } from '@chatwoot/utils';
 import WhatsappTemplates from './WhatsappTemplates/Modal.vue';
 import ContentTemplates from './ContentTemplates/ContentTemplatesModal.vue';
@@ -462,8 +461,9 @@ export default {
     isSignatureAvailable() {
       return !!this.messageSignature;
     },
+    // COESA FORK: messages are never sent with an auto-appended signature.
     sendWithSignature() {
-      return this.fetchSignatureFlagFromUISettings(this.channelType);
+      return false;
     },
     conversationId() {
       return this.currentChat.id;
@@ -635,6 +635,10 @@ export default {
 
     this.fetchAndSetReplyTo();
     emitter.on(BUS_EVENTS.TOGGLE_REPLY_TO_MESSAGE, this.onReplyToMessage);
+    emitter.on(
+      BUS_EVENTS.OPEN_WHATSAPP_TEMPLATES,
+      this.openWhatsappTemplateModal
+    );
 
     // A hacky fix to solve the drag and drop
     // Is showing on top of new conversation modal drag and drop
@@ -643,16 +647,18 @@ export default {
       BUS_EVENTS.NEW_CONVERSATION_MODAL,
       this.onNewConversationModalActive
     );
-    emitter.on(CMD_AI_ASSIST, this.executeCopilotAction);
   },
   unmounted() {
     document.removeEventListener('paste', this.onPaste);
     emitter.off(BUS_EVENTS.TOGGLE_REPLY_TO_MESSAGE, this.onReplyToMessage);
     emitter.off(
+      BUS_EVENTS.OPEN_WHATSAPP_TEMPLATES,
+      this.openWhatsappTemplateModal
+    );
+    emitter.off(
       BUS_EVENTS.NEW_CONVERSATION_MODAL,
       this.onNewConversationModalActive
     );
-    emitter.off(CMD_AI_ASSIST, this.executeCopilotAction);
   },
   methods: {
     openContactInfoTemplateModal() {
@@ -1447,7 +1453,6 @@ export default {
           enable-variables
           :variables="messageVariables"
           :signature="messageSignature"
-          allow-signature
           :channel-type="channelType"
           :medium="inbox.medium"
           @typing-off="onTypingOff"
@@ -1540,6 +1545,7 @@ export default {
         :portal-slug="connectedPortalSlug"
         :new-conversation-modal-active="newConversationModalActive"
         @select-whatsapp-template="openWhatsappTemplateModal"
+        @open-canned-responses="messageEditor?.openCannedResponses()"
         @select-content-template="openContentTemplateModal"
         @toggle-insert-article="toggleInsertArticle"
         @request-contact-info-template="openContactInfoTemplateModal"

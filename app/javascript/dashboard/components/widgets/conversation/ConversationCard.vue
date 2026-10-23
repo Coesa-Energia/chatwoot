@@ -1,17 +1,22 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useNow } from '@vueuse/core';
+import { differenceInCalendarDays, fromUnixTime } from 'date-fns';
 import { getLastMessage } from 'dashboard/helper/conversationHelper';
+import { useExactTimestamp } from 'shared/composables/useExactTimestamp';
+import { useLocale } from 'shared/composables/useLocale';
 import Avatar from 'next/avatar/Avatar.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import MessagePreview from './MessagePreview.vue';
 import InboxName from '../InboxName.vue';
-import TimeAgo from 'dashboard/components/ui/TimeAgo.vue';
 import CardLabels from './conversationCardComponents/CardLabels.vue';
 import CardPriorityIcon from 'dashboard/components-next/Conversation/ConversationCard/CardPriorityIcon.vue';
 import UnreadBadge from 'dashboard/components-next/Conversation/ConversationCard/UnreadBadge.vue';
 import SLACardLabel from './components/SLACardLabel.vue';
 import VoiceCallStatus from './VoiceCallStatus.vue';
 import Checkbox from 'dashboard/components-next/checkbox/Checkbox.vue';
+import { useSellerMode } from 'dashboard/composables/useSellerMode';
 
 const props = defineProps({
   chat: { type: Object, required: true },
@@ -34,9 +39,45 @@ const emit = defineEmits([
 ]);
 
 const hovered = ref(false);
+const { isSellerMode } = useSellerMode();
+const showPriority = computed(
+  () => !!props.chat.priority && !isSellerMode.value
+);
 
 const unreadCount = computed(() => props.chat.unread_count);
 const hasUnread = computed(() => unreadCount.value > 0);
+
+const { t } = useI18n();
+const { resolvedLocale } = useLocale();
+const exactTimestamp = useExactTimestamp();
+const now = useNow({ interval: 60000 });
+
+// Like the WhatsApp list: time today, "Yesterday", weekday this week, then the date.
+const lastActivityLabel = computed(() => {
+  const date = fromUnixTime(props.chat.timestamp);
+  const intlLocale = resolvedLocale.value;
+  const days = differenceInCalendarDays(now.value, date);
+  if (days < 1) {
+    return date.toLocaleTimeString(intlLocale, {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+  if (days === 1) return t('CHAT_LIST.CHAT_TIME_STAMP.YESTERDAY');
+  if (days < 7) {
+    return date.toLocaleDateString(intlLocale, { weekday: 'short' });
+  }
+  return date.toLocaleDateString(intlLocale, {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+  });
+});
+
+const timestampTooltip = computed(
+  () =>
+    `${t('CHAT_LIST.CHAT_TIME_STAMP.CREATED.OLDEST')} ${exactTimestamp(props.chat.created_at)}\n${t('CHAT_LIST.CHAT_TIME_STAMP.LAST_ACTIVITY.NOT_ACTIVE')} ${exactTimestamp(props.chat.timestamp)}`
+);
 const lastMessageInChat = computed(() => getLastMessage(props.chat));
 
 const voiceCallData = computed(() => {
@@ -54,7 +95,7 @@ const showMetaSection = computed(() => {
   return (
     props.showInboxName ||
     (props.showAssignee && props.assignee.name) ||
-    props.chat.priority
+    showPriority.value
   );
 });
 
@@ -63,7 +104,10 @@ const isAIAssignee = computed(() =>
 );
 
 const hasSlaPolicyId = computed(
-  () => props.chat?.applied_sla?.id && !props.currentContact?.blocked
+  () =>
+    props.chat?.applied_sla?.id &&
+    !props.currentContact?.blocked &&
+    !isSellerMode.value
 );
 
 const showLabelsSection = computed(() => {
@@ -73,8 +117,8 @@ const showLabelsSection = computed(() => {
 const messagePreviewClass = computed(() => {
   return [
     hasUnread.value ? 'font-medium text-n-slate-12' : 'text-n-slate-11',
-    !props.compact && hasUnread.value ? 'ltr:pr-4 rtl:pl-4' : '',
-    props.compact && hasUnread.value ? 'ltr:pr-6 rtl:pl-6' : '',
+    !props.compact && hasUnread.value ? 'pe-6' : '',
+    props.compact && hasUnread.value ? 'pe-8' : '',
   ];
 });
 
@@ -109,15 +153,17 @@ watch(
 
 <template>
   <div
-    class="relative flex items-start flex-grow-0 flex-shrink-0 w-auto max-w-full py-0 cursor-pointer conversation border-b border-n-slate-3 hover:border-n-surface-1 hover:bg-n-alpha-1 dark:hover:bg-n-alpha-3 group hover:z-[1] before:content-[none] before:absolute before:-top-px before:inset-x-0 before:h-px before:bg-n-surface-1 before:pointer-events-none hover:before:content-['']"
+    tabindex="0"
+    class="relative flex items-start flex-grow-0 flex-shrink-0 w-auto max-w-full py-0 cursor-pointer conversation border-b border-n-slate-3 hover:border-n-surface-1 hover:bg-n-alpha-1 dark:hover:bg-n-alpha-3 group hover:z-[1] before:content-[none] before:absolute before:-top-px before:inset-x-0 before:h-px before:bg-n-surface-1 before:pointer-events-none hover:before:content-[''] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-n-brand"
     :class="{
-      'active animate-card-select bg-n-background !border-n-surface-1':
+      'active animate-card-select bg-n-background !border-n-surface-1 ltr:shadow-[inset_3px_0_0_rgb(var(--brand))] rtl:shadow-[inset_-3px_0_0_rgb(var(--brand))]':
         isActiveChat,
       'selected bg-n-slate-2 !border-n-surface-1': selected,
       'px-0': compact,
       'px-3': !compact,
     }"
     @click="$emit('click', $event)"
+    @keydown.enter.self="$emit('click', $event)"
     @contextmenu="$emit('contextmenu', $event)"
   >
     <div
@@ -129,9 +175,9 @@ watch(
         v-if="!hideThumbnail"
         :name="currentContact.name"
         :src="currentContact.thumbnail"
-        :size="32"
+        :size="40"
         :status="currentContact.availability_status"
-        :class="!showInboxName ? 'mt-4' : 'mt-8'"
+        :class="!showInboxName ? 'mt-3.5' : 'mt-7'"
         hide-offline-status
       >
         <template #overlay="{ size }">
@@ -173,6 +219,7 @@ watch(
             <span class="truncate">{{ assignee.name }}</span>
           </span>
           <CardPriorityIcon
+            v-if="showPriority"
             :priority="chat.priority"
             class="flex-shrink-0 !size-3.5"
           />
@@ -217,17 +264,29 @@ watch(
         class="absolute flex flex-col ltr:right-3 rtl:left-3"
         :class="showMetaSection ? 'top-8' : 'top-4'"
       >
-        <span class="ml-auto font-normal leading-4 text-xxs">
-          <TimeAgo
-            :last-activity-timestamp="chat.timestamp"
-            :created-at-timestamp="chat.created_at"
-            :conversation-id="chat.id"
+        <span class="flex items-center justify-end gap-1 ms-auto leading-4">
+          <Icon
+            v-if="chat.pinned_at"
+            icon="i-lucide-pin"
+            class="flex-shrink-0 size-3 text-n-slate-11"
           />
+          <span
+            v-tooltip.top="{
+              content: timestampTooltip,
+              popperClass: 'whitespace-pre-line',
+              delay: { show: 1000, hide: 0 },
+            }"
+            class="text-xs tabular-nums"
+            :class="hasUnread ? 'text-n-brand font-medium' : 'text-n-slate-11'"
+            data-testid="card-timestamp"
+          >
+            {{ lastActivityLabel }}
+          </span>
         </span>
         <UnreadBadge
           v-if="hasUnread"
           :count="unreadCount"
-          class="ltr:ml-auto rtl:mr-auto mt-1"
+          class="ms-auto mt-1"
         />
       </div>
       <CardLabels

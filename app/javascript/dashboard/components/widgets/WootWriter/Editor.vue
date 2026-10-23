@@ -941,7 +941,20 @@ onMounted(() => {
   }
 });
 
-defineExpose({ focusEditorInputField });
+// Opens the canned responses list from a button: same as typing "/" at the end of the text.
+function openCannedResponses() {
+  if (props.disabled || props.isPrivate) return;
+  focusEditorInputField('end');
+  const { state: viewState } = editorView;
+  const { from } = viewState.selection;
+  const previousChar = viewState.doc.textBetween(Math.max(0, from - 1), from);
+  if (previousChar === '/') return;
+  const needsSpace = previousChar && !/\s/.test(previousChar);
+  editorView.dispatch(viewState.tr.insertText(needsSpace ? ' /' : '/'));
+  emitOnChange();
+}
+
+defineExpose({ focusEditorInputField, openCannedResponses });
 
 // BUS Event to insert text or markdown into the editor at the
 // current cursor position.

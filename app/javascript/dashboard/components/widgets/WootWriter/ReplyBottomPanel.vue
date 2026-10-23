@@ -129,6 +129,7 @@ export default {
     'selectWhatsappTemplate',
     'selectContentTemplate',
     'requestContactInfoTemplate',
+    'openCannedResponses',
   ],
   setup(props) {
     const { setSignatureFlagForInbox, fetchSignatureFlagFromUISettings } =
@@ -234,9 +235,9 @@ export default {
           return 'i-ph-stop';
       }
     },
+    // COESA FORK: no per-message signature in the chat, so the toggle is hidden.
     showMessageSignatureButton() {
-      if (this.isEditorDisabled) return false;
-      return !this.isOnPrivateNote;
+      return false;
     },
     sendWithSignature() {
       // channelType is sourced from inboxMixin
@@ -274,6 +275,7 @@ export default {
       <NextButton
         v-if="!isEditorDisabled"
         v-tooltip.top-end="$t('CONVERSATION.REPLYBOX.TIP_EMOJI_ICON')"
+        :aria-label="$t('CONVERSATION.REPLYBOX.TIP_EMOJI_ICON')"
         icon="i-ph-smiley-sticker"
         slate
         faded
@@ -299,6 +301,7 @@ export default {
         <NextButton
           v-if="showAttachButton"
           v-tooltip.top-end="$t('CONVERSATION.REPLYBOX.TIP_ATTACH_ICON')"
+          :aria-label="$t('CONVERSATION.REPLYBOX.TIP_ATTACH_ICON')"
           icon="i-ph-paperclip"
           slate
           faded
@@ -306,8 +309,20 @@ export default {
         />
       </FileUpload>
       <NextButton
+        v-if="!isEditorDisabled && !isOnPrivateNote"
+        v-tooltip.top-end="$t('CONVERSATION.QUICK_ACTIONS.CANNED_RESPONSES')"
+        :aria-label="$t('CONVERSATION.QUICK_ACTIONS.CANNED_RESPONSES')"
+        icon="i-lucide-message-square-quote"
+        slate
+        faded
+        sm
+        data-testid="open-canned-responses"
+        @click="$emit('openCannedResponses')"
+      />
+      <NextButton
         v-if="showAudioRecorderButton"
         v-tooltip.top-end="$t('CONVERSATION.REPLYBOX.TIP_AUDIORECORDER_ICON')"
+        :aria-label="$t('CONVERSATION.REPLYBOX.TIP_AUDIORECORDER_ICON')"
         :icon="!isRecordingAudio ? 'i-ph-microphone' : 'i-ph-microphone-slash'"
         slate
         faded
@@ -335,6 +350,7 @@ export default {
       <NextButton
         v-if="enableWhatsAppTemplates"
         v-tooltip.top-end="$t('CONVERSATION.FOOTER.WHATSAPP_TEMPLATES')"
+        :aria-label="$t('CONVERSATION.FOOTER.WHATSAPP_TEMPLATES')"
         icon="i-ph-whatsapp-logo"
         slate
         faded
@@ -347,7 +363,8 @@ export default {
       />
       <NextButton
         v-if="enableContentTemplates"
-        v-tooltip.top-end="'Content Templates'"
+        v-tooltip.top-end="$t('CONVERSATION.FOOTER.CONTENT_TEMPLATES')"
+        :aria-label="$t('CONVERSATION.FOOTER.CONTENT_TEMPLATES')"
         icon="i-ph-whatsapp-logo"
         slate
         faded
@@ -376,6 +393,7 @@ export default {
       <NextButton
         v-if="enableInsertArticleInReply"
         v-tooltip.top-end="$t('HELP_CENTER.ARTICLE_SEARCH.OPEN_ARTICLE_SEARCH')"
+        :aria-label="$t('HELP_CENTER.ARTICLE_SEARCH.OPEN_ARTICLE_SEARCH')"
         icon="i-ph-article-ny-times"
         slate
         faded

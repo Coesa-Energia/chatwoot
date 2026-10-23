@@ -4,10 +4,12 @@ import ConversationHeader from './ConversationHeader.vue';
 import DashboardAppFrame from '../DashboardApp/Frame.vue';
 import EmptyState from './EmptyState/EmptyState.vue';
 import MessagesView from './MessagesView.vue';
+import ConversationSearchBar from './ConversationSearchBar.vue';
 
 export default {
   components: {
     ConversationHeader,
+    ConversationSearchBar,
     DashboardAppFrame,
     EmptyState,
     MessagesView,
@@ -32,13 +34,20 @@ export default {
     },
   },
   data() {
-    return { activeIndex: 0 };
+    return { activeIndex: 0, showMessageSearch: false };
   },
   computed: {
     ...mapGetters({
       currentChat: 'getSelectedChat',
       dashboardApps: 'dashboardApps/getRecords',
     }),
+    // Apps without inboxes chosen show everywhere; otherwise only in the chosen inboxes.
+    inboxDashboardApps() {
+      const inboxId = this.currentChat.inbox_id;
+      return this.dashboardApps.filter(
+        app => !app.inbox_ids?.length || app.inbox_ids.includes(inboxId)
+      );
+    },
     dashboardAppTabs() {
       return [
         {
@@ -46,7 +55,7 @@ export default {
           index: 0,
           name: this.$t('CONVERSATION.DASHBOARD_APP_TAB_MESSAGES'),
         },
-        ...this.dashboardApps.map((dashboardApp, index) => ({
+        ...this.inboxDashboardApps.map((dashboardApp, index) => ({
           key: `dashboard-${dashboardApp.id}`,
           index: index + 1,
           name: dashboardApp.title,
@@ -72,6 +81,7 @@ export default {
     'currentChat.id'() {
       this.fetchLabels();
       this.activeIndex = 0;
+      this.showMessageSearch = false;
     },
   },
   mounted() {
@@ -103,12 +113,19 @@ export default {
       v-if="currentChat.id"
       :chat="currentChat"
       :show-back-button="isOnExpandedLayout && !isInboxView"
+      :is-search-open="showMessageSearch"
       :class="{
-        'border-b border-b-n-weak !pt-2': !dashboardApps.length,
+        'border-b border-b-n-weak !pt-2': !inboxDashboardApps.length,
       }"
+      @toggle-search="showMessageSearch = !showMessageSearch"
+    />
+    <ConversationSearchBar
+      v-if="showMessageSearch && currentChat.id"
+      :conversation-id="currentChat.id"
+      @close="showMessageSearch = false"
     />
     <woot-tabs
-      v-if="dashboardApps.length && currentChat.id"
+      v-if="inboxDashboardApps.length && currentChat.id"
       :index="activeIndex"
       class="h-10"
       @change="onDashboardAppTabChange"
@@ -135,11 +152,11 @@ export default {
       <slot />
     </div>
     <DashboardAppFrame
-      v-for="(dashboardApp, index) in dashboardApps"
+      v-for="(dashboardApp, index) in inboxDashboardApps"
       v-show="activeIndex - 1 === index"
       :key="currentChat.id + '-' + dashboardApp.id"
       :is-visible="activeIndex - 1 === index"
-      :config="dashboardApps[index].content"
+      :config="dashboardApp.content"
       :position="index"
       :current-chat="currentChat"
     />

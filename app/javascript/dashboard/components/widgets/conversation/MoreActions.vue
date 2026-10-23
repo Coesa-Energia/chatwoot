@@ -9,6 +9,7 @@ import EmailTranscriptModal from './EmailTranscriptModal.vue';
 import ResolveAction from '../../buttons/ResolveAction.vue';
 import ButtonV4 from 'dashboard/components-next/button/Button.vue';
 import DropdownMenu from 'dashboard/components-next/dropdown-menu/DropdownMenu.vue';
+import { useSellerMode } from 'dashboard/composables/useSellerMode';
 
 import {
   CMD_MUTE_CONVERSATION,
@@ -19,6 +20,7 @@ import {
 // No props needed as we're getting currentChat from the store directly
 const store = useStore();
 const { t } = useI18n();
+const { isSellerMode } = useSellerMode();
 
 const [showEmailActionsModal, toggleEmailModal] = useToggle(false);
 const [showActionsDropdown, toggleDropdown] = useToggle(false);
@@ -44,12 +46,15 @@ const actionMenuItems = computed(() => {
     });
   }
 
-  items.push({
-    icon: 'i-lucide-share',
-    label: t('CONTACT_PANEL.SEND_TRANSCRIPT'),
-    action: 'send_transcript',
-    value: 'send_transcript',
-  });
+  // The transcript goes by email: not a WhatsApp sales action (see docs/FUNCOES_ESCONDIDAS.md).
+  if (!isSellerMode.value) {
+    items.push({
+      icon: 'i-lucide-share',
+      label: t('CONTACT_PANEL.SEND_TRANSCRIPT'),
+      action: 'send_transcript',
+      value: 'send_transcript',
+    });
+  }
 
   return items;
 });
@@ -98,15 +103,17 @@ onUnmounted(() => {
     />
     <div
       v-on-clickaway="() => toggleDropdown(false)"
-      class="relative flex items-center group"
+      class="relative flex items-center"
     >
       <ButtonV4
-        v-tooltip="$t('CONVERSATION.HEADER.MORE_ACTIONS')"
+        v-tooltip.bottom="$t('CONVERSATION.HEADER.MORE_ACTIONS')"
         size="sm"
         variant="ghost"
         color="slate"
         icon="i-lucide-more-vertical"
-        class="rounded-md group-hover:bg-n-alpha-2"
+        :class="{ 'bg-n-alpha-2': showActionsDropdown }"
+        :aria-label="$t('CONVERSATION.HEADER.MORE_ACTIONS')"
+        :aria-expanded="showActionsDropdown"
         @click="toggleDropdown()"
       />
       <DropdownMenu

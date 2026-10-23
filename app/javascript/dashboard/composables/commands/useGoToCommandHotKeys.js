@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMapGetter } from 'dashboard/composables/store';
 import { useRouter } from 'vue-router';
@@ -28,7 +28,6 @@ import {
   ICON_USERS,
   ICON_USER_PEN,
 } from 'dashboard/helper/commandbar/icons';
-import { isUpgradePageBypassRoute } from 'dashboard/helper/routeHelpers';
 
 const SECTION_GENERAL = 'COMMAND_BAR.SECTIONS.GENERAL';
 const SECTION_REPORTS = 'COMMAND_BAR.SECTIONS.REPORTS';
@@ -263,7 +262,7 @@ const GO_TO_COMMANDS = [
   },
 ];
 
-export function useGoToCommandHotKeys(isPaywalled = ref(false)) {
+export function useGoToCommandHotKeys() {
   const { t } = useI18n();
   const router = useRouter();
   const { checkPermissions, checkInstallationType, isFeatureFlagEnabled } =
@@ -286,7 +285,7 @@ export function useGoToCommandHotKeys(isPaywalled = ref(false)) {
     if (!checkPermissions(meta?.permissions)) return false;
     if (!checkInstallationType(meta?.installationTypes)) return false;
 
-    return !isPaywalled.value || isUpgradePageBypassRoute(route.name);
+    return true;
   };
 
   const goToCommandHotKeys = computed(() =>

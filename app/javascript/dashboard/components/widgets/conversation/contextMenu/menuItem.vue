@@ -17,10 +17,19 @@ defineProps({
 <template>
   <div class="menu group text-n-slate-12 min-h-7 min-w-0" role="button">
     <fluent-icon
-      v-if="variant === 'icon' && option.icon"
+      v-if="
+        variant === 'icon' &&
+        option.icon &&
+        !option.icon.startsWith('i-lucide-')
+      "
       :icon="option.icon"
       size="14"
       class="flex-shrink-0"
+    />
+    <Icon
+      v-else-if="variant === 'icon' && option.icon"
+      :icon="option.icon"
+      class="flex-shrink-0 size-3.5"
     />
     <span
       v-if="

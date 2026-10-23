@@ -11,6 +11,11 @@ vi.mock('dashboard/composables/useUISettings', async () => {
   };
 });
 
+vi.mock('dashboard/composables/useSellerMode', async () => {
+  const { ref } = await import('vue');
+  return { useSellerMode: () => ({ isSellerMode: ref(false) }) };
+});
+
 const mountHeader = props =>
   shallowMount(ChatListHeader, {
     props: {

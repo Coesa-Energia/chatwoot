@@ -43,7 +43,7 @@ describe('ContactConversationLink', () => {
 
     expect(wrapper.text()).toContain('CONVERSATION.CONTACT_HISTORY.OLDER');
     expect(wrapper.text()).toContain('Hello there');
-    expect(wrapper.text()).toContain('Nov 14, 2023');
+    expect(wrapper.text()).toContain('14/11/2023');
     expect(wrapper.find('a').attributes('href')).toBe('/conversations/11');
   });
 

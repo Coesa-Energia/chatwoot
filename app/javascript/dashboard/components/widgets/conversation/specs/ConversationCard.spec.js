@@ -1,6 +1,11 @@
 import { shallowMount } from '@vue/test-utils';
 import ConversationCard from '../ConversationCard.vue';
 
+vi.mock('dashboard/composables/useSellerMode', async () => {
+  const { ref } = await import('vue');
+  return { useSellerMode: () => ({ isSellerMode: ref(false) }) };
+});
+
 const defaultChat = {
   id: 1,
   labels: [],
@@ -57,6 +62,29 @@ describe('ConversationCard', () => {
     );
 
     expect(wrapper.findComponent({ name: 'CardLabels' }).exists()).toBe(false);
+  });
+
+  describe('last activity time', () => {
+    const at = iso => Math.floor(new Date(iso).getTime() / 1000);
+    const timestampText = chat =>
+      mountComponent(chat).find('[data-testid="card-timestamp"]').text();
+
+    beforeEach(() => {
+      vi.useFakeTimers({ now: new Date('2026-10-21T15:00:00Z') });
+    });
+    afterEach(() => vi.useRealTimers());
+
+    it('shows the time for today, "yesterday", and a short date for older ones', () => {
+      expect(
+        timestampText({ timestamp: at('2026-10-21T12:34:00Z') })
+      ).toContain('12:34');
+      expect(timestampText({ timestamp: at('2026-10-20T10:00:00Z') })).toBe(
+        'CHAT_LIST.CHAT_TIME_STAMP.YESTERDAY'
+      );
+      expect(timestampText({ timestamp: at('2026-09-01T10:00:00Z') })).toBe(
+        '09/01/26'
+      );
+    });
   });
 
   it('uses the bot icon for a Captain assignee', () => {

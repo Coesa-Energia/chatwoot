@@ -7,6 +7,7 @@ import { useStore, useStoreGetters } from 'dashboard/composables/store';
 import { useEmitter } from 'dashboard/composables/emitter';
 import { useKeyboardEvents } from 'dashboard/composables/useKeyboardEvents';
 import { useConversationRequiredAttributes } from 'dashboard/composables/useConversationRequiredAttributes';
+import { useSellerMode } from 'dashboard/composables/useSellerMode';
 
 import WootDropdownItem from 'shared/components/ui/dropdown/DropdownItem.vue';
 import WootDropdownMenu from 'shared/components/ui/dropdown/DropdownMenu.vue';
@@ -24,6 +25,7 @@ const store = useStore();
 const getters = useStoreGetters();
 const { t } = useI18n();
 const { checkMissingAttributes } = useConversationRequiredAttributes();
+const { isSellerMode } = useSellerMode();
 
 const arrowDownButtonRef = ref(null);
 const isLoading = ref(false);
@@ -48,8 +50,14 @@ const isSnoozed = computed(
   () => currentChat.value.status === wootConstants.STATUS_TYPE.SNOOZED
 );
 
+// Snooze / pending are support-queue tools: hidden in seller mode (docs/FUNCOES_ESCONDIDAS.md).
 const showAdditionalActions = computed(
-  () => !isPending.value && !isSnoozed.value
+  () => !isSellerMode.value && !isPending.value && !isSnoozed.value
+);
+const mainButtonClass = computed(() =>
+  showAdditionalActions.value
+    ? 'ltr:rounded-r-none rtl:rounded-l-none !outline-0'
+    : '!outline-0'
 );
 
 const showOpenButton = computed(() => {
@@ -187,7 +195,7 @@ useEmitter(CMD_RESOLVE_CONVERSATION, onCmdResolveConversation);
         size="sm"
         color="slate"
         no-animation
-        class="ltr:rounded-r-none rtl:rounded-l-none !outline-0"
+        :class="mainButtonClass"
         :is-loading="isLoading"
         @click="onCmdResolveConversation"
       />
@@ -197,7 +205,7 @@ useEmitter(CMD_RESOLVE_CONVERSATION, onCmdResolveConversation);
         size="sm"
         color="slate"
         no-animation
-        class="ltr:rounded-r-none rtl:rounded-l-none !outline-0"
+        :class="mainButtonClass"
         :is-loading="isLoading"
         @click="onCmdOpenConversation"
       />

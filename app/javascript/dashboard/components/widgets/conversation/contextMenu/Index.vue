@@ -1,6 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import { useAdmin } from 'dashboard/composables/useAdmin';
+import { useSellerMode } from 'dashboard/composables/useSellerMode';
 import { useAlert } from 'dashboard/composables';
 import { copyTextToClipboard } from 'shared/helpers/clipboard';
 import {
@@ -16,6 +17,8 @@ import NextInput from 'dashboard/components-next/input/Input.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 
 const MENU = {
+  PIN: 'pin',
+  ARCHIVE: 'archive',
   MARK_AS_READ: 'mark-as-read',
   MARK_AS_UNREAD: 'mark-as-unread',
   PRIORITY: 'priority',
@@ -28,6 +31,15 @@ const MENU = {
   OPEN_NEW_TAB: 'open-new-tab',
   COPY_LINK: 'copy-link',
 };
+
+// Modo Vendedor: card menu entries hidden for agents (pending is filtered in show()).
+const SELLER_MODE_HIDDEN_MENU = [
+  MENU.PRIORITY,
+  MENU.SNOOZE,
+  MENU.TEAM,
+  MENU.OPEN_NEW_TAB,
+  MENU.COPY_LINK,
+];
 
 export default {
   components: {
@@ -47,6 +59,14 @@ export default {
       default: '',
     },
     hasUnreadMessages: {
+      type: Boolean,
+      default: false,
+    },
+    isPinned: {
+      type: Boolean,
+      default: false,
+    },
+    isArchived: {
       type: Boolean,
       default: false,
     },
@@ -74,6 +94,8 @@ export default {
   emits: [
     'updateConversation',
     'assignPriority',
+    'togglePin',
+    'toggleArchive',
     'markAsUnread',
     'markAsRead',
     'assignAgent',
@@ -85,8 +107,10 @@ export default {
   ],
   setup() {
     const { isAdmin } = useAdmin();
+    const { isSellerMode } = useSellerMode();
     return {
       isAdmin,
+      isSellerMode,
     };
   },
   data() {
@@ -101,6 +125,22 @@ export default {
       unreadOption: {
         label: this.$t('CONVERSATION.CARD_CONTEXT_MENU.MARK_AS_UNREAD'),
         icon: 'mail-unread',
+      },
+      pinOption: {
+        label: this.$t('CONVERSATION.CARD_CONTEXT_MENU.PIN'),
+        icon: 'i-lucide-pin',
+      },
+      unpinOption: {
+        label: this.$t('CONVERSATION.CARD_CONTEXT_MENU.UNPIN'),
+        icon: 'i-lucide-pin-off',
+      },
+      archiveOption: {
+        label: this.$t('CONVERSATION.CARD_CONTEXT_MENU.ARCHIVE'),
+        icon: 'i-lucide-archive',
+      },
+      unarchiveOption: {
+        label: this.$t('CONVERSATION.CARD_CONTEXT_MENU.UNARCHIVE'),
+        icon: 'i-lucide-archive-restore',
       },
       statusMenuConfig: [
         {
@@ -236,8 +276,11 @@ export default {
   },
   methods: {
     isAllowed(keys) {
-      if (!this.allowedOptions.length) return true;
-      return keys.some(key => this.allowedOptions.includes(key));
+      const visibleKeys = this.isSellerMode
+        ? keys.filter(key => !SELLER_MODE_HIDDEN_MENU.includes(key))
+        : keys;
+      if (!this.allowedOptions.length) return visibleKeys.length > 0;
+      return visibleKeys.some(key => this.allowedOptions.includes(key));
     },
     toggleStatus(status, snoozedUntil) {
       this.$emit('updateConversation', status, snoozedUntil);
@@ -274,6 +317,9 @@ export default {
     show(key) {
       // If the conversation status is same as the action, then don't display the option
       // i.e.: Don't show an option to resolve if the conversation is already resolved.
+      if (this.isSellerMode && key === wootConstants.STATUS_TYPE.PENDING) {
+        return false;
+      }
       return this.status !== key;
     },
     generateMenuLabelConfig(option, type = 'text') {
@@ -295,8 +341,23 @@ export default {
 
 <template>
   <div
-    class="p-1 rounded-md shadow-xl bg-n-alpha-3/50 backdrop-blur-[100px] outline-1 outline outline-n-weak/50"
+    class="p-1 rounded-xl shadow-xl bg-n-alpha-3/50 backdrop-blur-[100px] outline-1 outline outline-n-weak/50"
   >
+    <template v-if="isAllowed([MENU.PIN, MENU.ARCHIVE])">
+      <MenuItem
+        v-if="isAllowed([MENU.PIN])"
+        :option="isPinned ? unpinOption : pinOption"
+        variant="icon"
+        @click.stop="$emit('togglePin')"
+      />
+      <MenuItem
+        v-if="isAllowed([MENU.ARCHIVE])"
+        :option="isArchived ? unarchiveOption : archiveOption"
+        variant="icon"
+        @click.stop="$emit('toggleArchive')"
+      />
+      <hr class="m-1 rounded border-b border-n-weak dark:border-n-weak" />
+    </template>
     <template v-if="isAllowed([MENU.MARK_AS_READ, MENU.MARK_AS_UNREAD])">
       <MenuItem
         v-if="!hasUnreadMessages"

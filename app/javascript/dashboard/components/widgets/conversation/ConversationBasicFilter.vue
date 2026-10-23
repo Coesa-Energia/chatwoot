@@ -8,6 +8,11 @@ import { useMapGetter, useStore } from 'dashboard/composables/store.js';
 import wootConstants from 'dashboard/constants/globals';
 import SelectMenu from 'dashboard/components-next/selectmenu/SelectMenu.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
+import {
+  useSellerMode,
+  SELLER_MODE_STATUS_FILTERS,
+  SELLER_MODE_SORT_OPTIONS,
+} from 'dashboard/composables/useSellerMode';
 
 defineProps({
   isOnExpandedLayout: {
@@ -24,6 +29,7 @@ const emit = defineEmits(['changeFilter']);
 
 const store = useStore();
 const { t } = useI18n();
+const { isSellerMode } = useSellerMode();
 
 const { updateUISettings } = useUISettings();
 
@@ -42,7 +48,7 @@ const currentSortBy = computed(() => {
   );
 });
 
-const chatStatusOptions = computed(() => [
+const allChatStatusOptions = computed(() => [
   {
     label: t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.open.TEXT'),
     value: 'open',
@@ -65,7 +71,7 @@ const chatStatusOptions = computed(() => [
   },
 ]);
 
-const chatSortOptions = computed(() => [
+const allChatSortOptions = computed(() => [
   {
     label: t('CHAT_LIST.SORT_ORDER_ITEMS.last_activity_at_asc.TEXT'),
     value: 'last_activity_at_asc',
@@ -107,6 +113,22 @@ const chatSortOptions = computed(() => [
     value: 'waiting_since_desc',
   },
 ]);
+
+const chatStatusOptions = computed(() =>
+  isSellerMode.value
+    ? allChatStatusOptions.value.filter(option =>
+        SELLER_MODE_STATUS_FILTERS.includes(option.value)
+      )
+    : allChatStatusOptions.value
+);
+
+const chatSortOptions = computed(() =>
+  isSellerMode.value
+    ? allChatSortOptions.value.filter(option =>
+        SELLER_MODE_SORT_OPTIONS.includes(option.value)
+      )
+    : allChatSortOptions.value
+);
 
 const activeChatStatusLabel = computed(
   () =>

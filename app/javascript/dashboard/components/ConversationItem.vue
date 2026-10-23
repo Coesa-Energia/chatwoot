@@ -7,6 +7,10 @@ import ConversationCard from './widgets/conversation/ConversationCard.vue';
 import ConversationCardExpanded from 'dashboard/components-next/Conversation/ConversationCard/ConversationCardExpanded.vue';
 import ContextMenu from 'dashboard/components/ui/ContextMenu.vue';
 import ConversationContextMenu from './widgets/conversation/contextMenu/Index.vue';
+import {
+  isConversationArchived,
+  isConversationPinned,
+} from 'dashboard/helper/conversationUserState';
 
 const props = defineProps({
   source: { type: Object, required: true },
@@ -32,6 +36,8 @@ const toggleContextMenu = inject('toggleContextMenu');
 const markAsUnread = inject('markAsUnread');
 const markAsRead = inject('markAsRead');
 const assignPriority = inject('assignPriority');
+const toggleConversationPin = inject('toggleConversationPin');
+const toggleConversationArchive = inject('toggleConversationArchive');
 const isConversationSelected = inject('isConversationSelected');
 const deleteConversation = inject('deleteConversation');
 
@@ -71,8 +77,11 @@ const inbox = computed(() => {
   return inboxId ? store.getters['inboxes/getInbox'](inboxId) : {};
 });
 
+const appliedContactFilter = useMapGetter('getAppliedContactFilter');
 const showInboxName = computed(
-  () => !activeInbox.value && inboxesList.value.length > 1
+  () =>
+    inboxesList.value.length > 1 &&
+    (!activeInbox.value || !!appliedContactFilter.value)
 );
 const isInboxView = computed(() => !!activeInbox.value);
 const showAssigneeForExpandedCard = computed(
@@ -172,6 +181,19 @@ const onAssignPriority = priority => {
   closeContextMenu();
 };
 
+const onTogglePin = () => {
+  toggleConversationPin(props.source.id, !isConversationPinned(props.source));
+  closeContextMenu();
+};
+
+const onToggleArchive = () => {
+  toggleConversationArchive(
+    props.source.id,
+    !isConversationArchived(props.source)
+  );
+  closeContextMenu();
+};
+
 const onDeleteConversation = () => {
   deleteConversation(props.source.id);
   closeContextMenu();
@@ -227,6 +249,8 @@ const onDeleteConversation = () => {
       :priority="source.priority"
       :chat-id="source.id"
       :has-unread-messages="source.unread_count > 0"
+      :is-pinned="isConversationPinned(source)"
+      :is-archived="isConversationArchived(source)"
       :conversation-labels="source.labels"
       :conversation-url="conversationPath"
       @update-conversation="onUpdateConversation"
@@ -237,6 +261,8 @@ const onDeleteConversation = () => {
       @mark-as-unread="onMarkAsUnread"
       @mark-as-read="onMarkAsRead"
       @assign-priority="onAssignPriority"
+      @toggle-pin="onTogglePin"
+      @toggle-archive="onToggleArchive"
       @delete-conversation="onDeleteConversation"
       @close="closeContextMenu"
     />

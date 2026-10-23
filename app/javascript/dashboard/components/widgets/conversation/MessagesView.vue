@@ -55,7 +55,6 @@ import {
 
 // constants
 import { BUS_EVENTS } from 'shared/constants/busEvents';
-import { CMD_AI_ASSIST } from 'dashboard/helper/commandbar/events';
 import { REPLY_POLICY } from 'shared/constants/links';
 import { META_RESTRICTION_STATUS_URL } from 'dashboard/constants/globals';
 import { SESSION_STORAGE_KEYS } from 'dashboard/constants/sessionStorage';
@@ -195,6 +194,7 @@ export default {
       conversationPanel: null,
       hasUserScrolled: false,
       isProgrammaticScroll: false,
+      isFarFromLatest: false,
     };
   },
 
@@ -262,6 +262,13 @@ export default {
     timelineMessages() {
       return this.isCampaignHistoryReady ? this.getMessages : [];
     },
+    isEmptyConversation() {
+      return (
+        !this.shouldShowSpinner &&
+        !this.timelineMessages.length &&
+        !this.visibleCampaignHistory.length
+      );
+    },
     // Check there is a instagram inbox exists with the same instagram_id
     hasDuplicateInstagramInbox() {
       const instagramId = this.inbox.instagram_id;
@@ -304,6 +311,13 @@ export default {
         return '';
       }
       return this.$t('CONVERSATION.CANNOT_REPLY');
+    },
+    // The only way to reach the customer after the 24h window: make it a real button.
+    hasWhatsappTemplates() {
+      const templates = this.$store.getters['inboxes/getWhatsAppTemplates'](
+        this.currentChat.inbox_id
+      );
+      return !!templates?.length;
     },
     replyWindowLink() {
       if (this.isAFacebookInbox || this.isAnInstagramChannel) {
@@ -383,6 +397,7 @@ export default {
       if (newChat.id === oldChat.id) {
         return;
       }
+      this.isFarFromLatest = false;
       this.fetchAllAttachmentsFromCurrentChat();
       this.resetReplyEditorHeight();
     },
@@ -402,7 +417,6 @@ export default {
     // Anything that wants to write must bring the folded editor back first.
     emitter.on(BUS_EVENTS.TOGGLE_REPLY_TO_MESSAGE, this.showReplyBox);
     emitter.on(BUS_EVENTS.INSERT_INTO_RICH_EDITOR, this.showReplyBox);
-    emitter.on(CMD_AI_ASSIST, this.showReplyBox);
   },
 
   mounted() {
@@ -416,6 +430,10 @@ export default {
   },
 
   methods: {
+    openWhatsappTemplates() {
+      this.showReplyBox();
+      emitter.emit(BUS_EVENTS.OPEN_WHATSAPP_TEMPLATES);
+    },
     fetchAllAttachmentsFromCurrentChat() {
       this.$store.dispatch('fetchAllAttachments', this.currentChat.id);
     },
@@ -423,14 +441,16 @@ export default {
       emitter.off(BUS_EVENTS.SCROLL_TO_MESSAGE, this.onScrollToMessage);
       emitter.off(BUS_EVENTS.TOGGLE_REPLY_TO_MESSAGE, this.showReplyBox);
       emitter.off(BUS_EVENTS.INSERT_INTO_RICH_EDITOR, this.showReplyBox);
-      emitter.off(CMD_AI_ASSIST, this.showReplyBox);
     },
     onScrollToMessage({ messageId = '' } = {}) {
       this.$nextTick(() => {
         const messageElement = document.getElementById('message' + messageId);
         if (messageElement) {
           this.isProgrammaticScroll = true;
-          messageElement.scrollIntoView({ behavior: 'smooth' });
+          messageElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          });
           this.fetchPreviousMessages();
         } else {
           this.scrollToBottom();
@@ -515,7 +535,15 @@ export default {
         this.hasUserScrolled = true;
       }
       emitter.emit(BUS_EVENTS.ON_MESSAGE_LIST_SCROLL);
-      this.fetchPreviousMessages(e.target.scrollTop);
+      // More than one screen above the end: offer the "jump to latest" button.
+      const { scrollTop, scrollHeight, clientHeight } = e.target;
+      this.isFarFromLatest =
+        scrollHeight - scrollTop - clientHeight > clientHeight;
+      this.fetchPreviousMessages(scrollTop);
+    },
+    jumpToLatest() {
+      this.isProgrammaticScroll = true;
+      this.conversationPanel.scrollTop = this.conversationPanel.scrollHeight;
     },
 
     makeMessagesRead() {
@@ -550,6 +578,7 @@ export default {
         :href-link="instagramRestrictionStatusUrl"
         :href-link-text="$t('CONVERSATION.INSTAGRAM_RESTRICTION_STATUS_LINK')"
       />
+      <!-- An expected state, not an error: calm colours, the green button is the way out. -->
       <Banner
         v-if="currentChat.anonymous_caller"
         color-scheme="alert"
@@ -558,11 +587,16 @@ export default {
       />
       <Banner
         v-else-if="!currentChat.can_reply"
-        color-scheme="alert"
-        class="mx-2 mt-2 overflow-hidden rounded-lg"
+        color-scheme="secondary"
+        class="mx-2 mt-2 overflow-hidden rounded-lg min-h-12 !h-auto"
         :banner-message="replyWindowBannerMessage"
         :href-link="replyWindowLink"
         :href-link-text="replyWindowLinkText"
+        :has-action-button="hasWhatsappTemplates"
+        action-button-variant="solid"
+        action-button-icon="i-lucide-send"
+        :action-button-label="$t('CONVERSATION.QUICK_ACTIONS.SEND_TEMPLATE')"
+        @primary-action="openWhatsappTemplates"
       />
       <Banner
         v-if="hasDuplicateInstagramInbox"
@@ -620,13 +654,27 @@ export default {
           class="list-none flex justify-center items-center"
         >
           <span
-            class="shadow-lg rounded-full bg-n-brand text-white text-xs font-medium my-2.5 mx-auto px-2.5 py-1.5"
+            class="rounded-lg bg-n-solid-1 dark:bg-n-solid-3 outline outline-1 -outline-offset-1 outline-n-weak text-n-blue-11 text-xs font-medium my-2 mx-auto px-3 py-1"
           >
             {{ unreadMessageLabel }}
           </span>
         </li>
       </template>
       <template #after>
+        <li
+          v-if="isEmptyConversation"
+          class="flex flex-col items-center gap-2 my-auto py-8 text-center"
+          data-testid="empty-conversation"
+        >
+          <span class="i-lucide-message-circle size-6 text-n-slate-10" />
+          <p class="mb-0 text-sm text-n-slate-11 max-w-xs">
+            {{
+              currentChat.can_reply
+                ? $t('CONVERSATION.EMPTY_CONVERSATION.CAN_REPLY')
+                : $t('CONVERSATION.EMPTY_CONVERSATION.CANNOT_REPLY')
+            }}
+          </p>
+        </li>
         <ContactConversationLink
           v-if="newerConversation"
           direction="newer"
@@ -647,16 +695,23 @@ export default {
         :class="isReplyFolded ? '-top-[5.5rem]' : '-top-7'"
       >
         <div
-          class="flex py-2 pr-4 pl-5 shadow-md rounded-full bg-white dark:bg-n-solid-3 text-n-slate-11 text-xs font-semibold my-2.5 mx-auto"
+          class="flex py-2 pe-4 ps-5 shadow-md rounded-full bg-n-solid-1 dark:bg-n-solid-3 text-n-slate-11 text-xs font-semibold my-2.5 mx-auto"
         >
           {{ typingUserNames }}
-          <img
-            class="w-6 ltr:ml-2 rtl:mr-2"
-            src="assets/images/typing.gif"
-            alt="Someone is typing"
-          />
+          <img class="w-6 ms-2" src="assets/images/typing.gif" alt="" />
         </div>
       </div>
+      <NextButton
+        v-if="isFarFromLatest"
+        v-tooltip.left="$t('CONVERSATION.JUMP_TO_LATEST')"
+        icon="i-lucide-arrow-down"
+        slate
+        class="absolute z-10 end-4 !rounded-full shadow-md"
+        :class="isReplyFolded ? '-top-[6.5rem]' : '-top-12'"
+        :aria-label="$t('CONVERSATION.JUMP_TO_LATEST')"
+        data-testid="jump-to-latest"
+        @click="jumpToLatest"
+      />
       <Transition v-bind="foldTransition">
         <div
           v-if="isReplyFolded"

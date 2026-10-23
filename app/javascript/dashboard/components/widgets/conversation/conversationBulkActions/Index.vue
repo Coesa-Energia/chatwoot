@@ -7,6 +7,7 @@ import { findSnoozeTime } from 'dashboard/helper/snoozeHelpers';
 import { emitter } from 'shared/helpers/mitt';
 import { useBulkActions } from 'dashboard/composables/chatlist/useBulkActions.js';
 import { usePolicy } from 'dashboard/composables/usePolicy';
+import { useSellerMode } from 'dashboard/composables/useSellerMode';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
 import wootConstants from 'dashboard/constants/globals';
 import {
@@ -71,6 +72,7 @@ const {
 } = useBulkActions();
 
 const { isFeatureFlagEnabled } = usePolicy();
+const { isSellerMode } = useSellerMode();
 const isMacrosEnabled = computed(() =>
   isFeatureFlagEnabled(FEATURE_FLAGS.MACROS)
 );
@@ -165,7 +167,7 @@ onUnmounted(() => {
         {{ $t('BULK_ACTION.ALL_CONVERSATIONS_SELECTED_ALERT') }}
       </div>
       <div
-        class="flex items-center justify-between gap-2 p-2 bg-n-button-color outline outline-1 -outline-offset-1 rounded-[10px] outline-n-weak shadow-[0_0_12px_0_rgba(27,40,59,0.08)]"
+        class="flex items-center justify-between gap-2 p-2 bg-n-button-color outline outline-1 -outline-offset-1 rounded-xl outline-n-weak shadow-[0_0_12px_0_rgba(27,40,59,0.08)]"
       >
         <div class="ms-0.5 flex items-center gap-1 min-w-0">
           <label class="cursor-pointer flex items-center gap-1.5 min-w-0">
@@ -197,7 +199,7 @@ onUnmounted(() => {
           <BulkUpdateActions
             :show-resolve="!showResolvedAction"
             :show-reopen="!showOpenAction"
-            :show-snooze="!showSnoozedAction"
+            :show-snooze="!showSnoozedAction && !isSellerMode"
             @update="onUpdateConversations"
           />
           <BulkAgentActions
@@ -206,11 +208,12 @@ onUnmounted(() => {
             @select="onAssignAgent"
           />
           <BulkTeamActions
+            v-if="!isSellerMode"
             :conversation-count="conversations.length"
             @select="onAssignTeam"
           />
           <BulkMacroActions
-            v-if="isMacrosEnabled"
+            v-if="isMacrosEnabled && !isSellerMode"
             :conversation-count="conversations.length"
             @execute="onExecuteMacro"
           />

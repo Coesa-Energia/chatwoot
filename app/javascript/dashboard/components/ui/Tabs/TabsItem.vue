@@ -59,12 +59,8 @@ const onTabClick = event => {
       {{ name }}
       <div
         v-if="showBadge"
-        class="rounded-full h-5 flex items-center justify-center text-xs font-medium my-0 ltr:ml-1 rtl:mr-1 px-1.5 py-0 min-w-[20px]"
-        :class="[
-          active
-            ? 'bg-n-blue-3 text-n-blue-11'
-            : 'bg-n-alpha-1 text-n-slate-10',
-        ]"
+        class="flex items-center text-xs font-medium tabular-nums my-0 ltr:ml-1.5 rtl:mr-1.5"
+        :class="[active ? 'text-n-blue-11' : 'text-n-slate-10']"
       >
         <span>
           {{ getItemCount }}

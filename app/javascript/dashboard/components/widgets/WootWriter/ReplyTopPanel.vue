@@ -171,6 +171,9 @@ export default {
       <div class="relative">
         <NextButton
           ref="copilotToggleRef"
+          v-tooltip.top="$t('CONVERSATION.SIDEBAR.COPILOT')"
+          :aria-label="$t('CONVERSATION.SIDEBAR.COPILOT')"
+          :aria-expanded="showCopilotMenu"
           ghost
           :disabled="disabled || isEditorDisabled"
           :class="{
@@ -195,6 +198,8 @@ export default {
         />
       </div>
       <NextButton
+        v-tooltip.top="$t('CONVERSATION.REPLYBOX.EXPAND_EDITOR')"
+        :aria-label="$t('CONVERSATION.REPLYBOX.EXPAND_EDITOR')"
         ghost
         class="text-n-slate-11"
         sm

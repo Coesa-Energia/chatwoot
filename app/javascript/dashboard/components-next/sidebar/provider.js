@@ -5,50 +5,83 @@ import { useUISettings } from 'dashboard/composables/useUISettings';
 
 const SidebarControl = Symbol('SidebarControl');
 
-const DEFAULT_WIDTH = 200;
 const MIN_WIDTH = 56;
-const COLLAPSED_THRESHOLD = 160;
 const MAX_WIDTH = 320;
+// Open width: 60% of the maximum. It is also the smallest the open sidebar can be dragged to; the only way to
+// make it narrower than this is to collapse it with the button in the header (icons only, MIN_WIDTH).
+const OPEN_WIDTH = Math.round(MAX_WIDTH * 0.6);
+// Widths saved by the old drag-to-resize handle: anything below this was a collapsed sidebar.
+const LEGACY_COLLAPSED_THRESHOLD = 160;
 
 // Shared state for active popover (only one can be open at a time)
 const activePopover = ref(null);
 let globalCloseTimeout = null;
 
-export function useSidebarResize() {
+// Shared by the sidebar and the header button that toggles it.
+const isSidebarOpen = ref(null);
+const openWidth = ref(OPEN_WIDTH);
+
+const clampOpenWidth = width =>
+  Math.max(
+    OPEN_WIDTH,
+    Math.min(MAX_WIDTH, Math.round(Number(width) || OPEN_WIDTH))
+  );
+
+export function useSidebarState() {
   const { uiSettings, updateUISettings } = useUISettings();
 
-  const sidebarWidth = ref(uiSettings.value.sidebar_width || DEFAULT_WIDTH);
-  const isCollapsed = computed(() => sidebarWidth.value < COLLAPSED_THRESHOLD);
+  if (isSidebarOpen.value === null) {
+    const {
+      sidebar_width: savedWidth,
+      sidebar_collapsed: savedCollapsed,
+      sidebar_open_width: savedOpenWidth,
+    } = uiSettings.value;
+    const legacyCollapsed =
+      savedWidth !== undefined && savedWidth < LEGACY_COLLAPSED_THRESHOLD;
+    isSidebarOpen.value =
+      savedCollapsed === undefined ? !legacyCollapsed : !savedCollapsed;
+    openWidth.value = clampOpenWidth(
+      savedOpenWidth ?? (legacyCollapsed ? OPEN_WIDTH : savedWidth)
+    );
+  }
 
-  const setSidebarWidth = width => {
-    sidebarWidth.value = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, width));
+  const sidebarWidth = computed(() =>
+    isSidebarOpen.value ? openWidth.value : MIN_WIDTH
+  );
+  const isCollapsed = computed(() => !isSidebarOpen.value);
+
+  const persist = () =>
+    updateUISettings({
+      sidebar_collapsed: !isSidebarOpen.value,
+      sidebar_open_width: openWidth.value,
+    });
+
+  const toggleSidebar = () => {
+    isSidebarOpen.value = !isSidebarOpen.value;
+    persist();
   };
 
-  const saveWidth = () => {
-    updateUISettings({ sidebar_width: sidebarWidth.value });
+  // While dragging: follows the pointer but never gets narrower than OPEN_WIDTH nor wider than MAX_WIDTH.
+  const setOpenWidth = width => {
+    openWidth.value = clampOpenWidth(width);
   };
-
-  const snapToCollapsed = () => {
-    sidebarWidth.value = MIN_WIDTH;
-    updateUISettings({ sidebar_width: MIN_WIDTH });
-  };
-
-  const snapToExpanded = () => {
-    sidebarWidth.value = DEFAULT_WIDTH;
-    updateUISettings({ sidebar_width: DEFAULT_WIDTH });
+  const saveOpenWidth = persist;
+  const resetOpenWidth = () => {
+    openWidth.value = OPEN_WIDTH;
+    persist();
   };
 
   return {
     sidebarWidth,
     isCollapsed,
-    setSidebarWidth,
-    saveWidth,
-    snapToCollapsed,
-    snapToExpanded,
+    isSidebarOpen,
+    toggleSidebar,
+    setOpenWidth,
+    saveOpenWidth,
+    resetOpenWidth,
     MIN_WIDTH,
+    OPEN_WIDTH,
     MAX_WIDTH,
-    COLLAPSED_THRESHOLD,
-    DEFAULT_WIDTH,
   };
 }
 

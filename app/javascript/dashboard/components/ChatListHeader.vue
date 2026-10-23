@@ -5,8 +5,10 @@ import { formatNumber } from '@chatwoot/utils';
 import wootConstants from 'dashboard/constants/globals';
 
 import ConversationBasicFilter from './widgets/conversation/ConversationBasicFilter.vue';
+import VoiceInboxDialer from './widgets/conversation/VoiceInboxDialer.vue';
 import SwitchLayout from 'dashboard/routes/dashboard/conversation/search/SwitchLayout.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
+import { useSellerMode } from 'dashboard/composables/useSellerMode';
 
 const props = defineProps({
   pageTitle: { type: String, required: true },
@@ -17,6 +19,7 @@ const props = defineProps({
   isOnExpandedLayout: { type: Boolean, required: true },
   conversationStats: { type: Object, required: true },
   isListLoading: { type: Boolean, required: true },
+  voiceInboxId: { type: [Number, String], default: null },
 });
 
 const emit = defineEmits([
@@ -28,6 +31,7 @@ const emit = defineEmits([
 ]);
 
 const { uiSettings, updateUISettings } = useUISettings();
+const { isSellerMode } = useSellerMode();
 
 const onBasicFilterChange = (value, type) => {
   emit('basicFilterChange', value, type);
@@ -72,16 +76,25 @@ const toggleConversationLayout = () => {
 
 <template>
   <div
-    class="flex items-center justify-between gap-2 px-3 h-[3.25rem]"
-    :class="{
-      'border-b border-n-strong': hasAppliedFiltersOrActiveFolders,
-    }"
+    class="flex items-center justify-between gap-2 px-3"
+    :class="[
+      isContactScoped ? 'h-16' : 'h-[3.25rem]',
+      { 'border-b border-n-strong': hasAppliedFiltersOrActiveFolders },
+    ]"
   >
     <div class="flex items-center justify-center min-w-0">
       <NextButton
         v-if="showFilterScope"
-        v-tooltip.right="$t('FILTER.CLEAR_BUTTON_LABEL')"
-        :aria-label="$t('FILTER.CLEAR_BUTTON_LABEL')"
+        v-tooltip.right="
+          isContactScoped
+            ? $t('CHAT_LIST.CONTACT_SCOPE_BACK')
+            : $t('FILTER.CLEAR_BUTTON_LABEL')
+        "
+        :aria-label="
+          isContactScoped
+            ? $t('CHAT_LIST.CONTACT_SCOPE_BACK')
+            : $t('FILTER.CLEAR_BUTTON_LABEL')
+        "
         icon="i-lucide-chevron-left"
         class="shrink-0 -ms-2 !h-6 !w-6 me-1"
         slate
@@ -89,29 +102,38 @@ const toggleConversationLayout = () => {
         ghost
         @click="emit('resetFilters')"
       />
-      <h1 class="text-base font-medium truncate text-n-slate-12" :title="title">
-        {{ title }}
-      </h1>
+      <div class="flex flex-col min-w-0">
+        <p v-if="isContactScoped" class="text-xs truncate text-n-slate-11">
+          {{ $t('CHAT_LIST.CONTACT_SCOPE') }}
+        </p>
+        <h1 class="text-lg font-medium truncate text-n-slate-12" :title="title">
+          {{ title }}
+        </h1>
+      </div>
       <span
         v-if="
           allCount > 0 && hasAppliedFiltersOrActiveFolders && !isListLoading
         "
-        class="px-2 py-1 my-0.5 mx-1 rounded-md capitalize bg-n-slate-3 text-xxs text-n-slate-12 shrink-0"
+        class="mx-2 text-sm text-n-slate-11 shrink-0"
         :title="allCount"
       >
         {{ formattedAllCount }}
       </span>
       <span
         v-if="!hasAppliedFiltersOrActiveFolders"
-        class="px-2 py-1 my-0.5 mx-1 rounded-md capitalize bg-n-slate-3 text-xxs text-n-slate-12 shrink-0"
+        class="mx-2 text-sm text-n-slate-11 shrink-0"
       >
         {{ $t(`CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.${activeStatus}.TEXT`) }}
       </span>
     </div>
     <div class="flex items-center gap-1">
-      <template v-if="hasAppliedFilters && !hasActiveFolders">
+      <VoiceInboxDialer v-if="voiceInboxId" :inbox-id="voiceInboxId" />
+      <template
+        v-if="hasAppliedFilters && !hasActiveFolders && !isContactScoped"
+      >
         <div class="relative">
           <NextButton
+            v-if="!isSellerMode"
             v-tooltip.top-end="$t('FILTER.CUSTOM_VIEWS.ADD.SAVE_BUTTON')"
             icon="i-lucide-save"
             slate
@@ -129,6 +151,7 @@ const toggleConversationLayout = () => {
       <template v-if="hasActiveFolders">
         <div class="relative">
           <NextButton
+            v-if="!isSellerMode"
             id="toggleConversationFilterButton"
             v-tooltip.top-end="$t('FILTER.CUSTOM_VIEWS.EDIT.EDIT_BUTTON')"
             icon="i-lucide-pen-line"
@@ -144,6 +167,7 @@ const toggleConversationLayout = () => {
           />
         </div>
         <NextButton
+          v-if="!isSellerMode"
           id="toggleConversationFilterButton"
           v-tooltip.top-end="$t('FILTER.CUSTOM_VIEWS.DELETE.DELETE_BUTTON')"
           icon="i-lucide-trash-2"
@@ -155,6 +179,7 @@ const toggleConversationLayout = () => {
       </template>
       <div v-else-if="!isContactScoped" class="relative">
         <NextButton
+          v-if="!isSellerMode"
           id="toggleConversationFilterButton"
           v-tooltip.right="$t('FILTER.TOOLTIP_LABEL')"
           icon="i-lucide-list-filter"

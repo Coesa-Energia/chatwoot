@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useAdmin } from 'dashboard/composables/useAdmin';
 import { useDetectKeyboardLayout } from 'dashboard/composables/useDetectKeyboardLayout';
 import { SHORTCUT_KEYS, KEYS } from './constants';
 import {
@@ -14,6 +15,17 @@ defineEmits(['close']);
 
 const { t } = useI18n();
 const currentLayout = ref(null);
+const { isAdmin } = useAdmin();
+
+// Reports and settings are admin areas, so agents don't see those shortcuts.
+const ADMIN_ONLY_SHORTCUTS = ['GO_TO_REPORTS_SIDEBAR', 'GO_TO_SETTINGS'];
+const visibleShortcuts = computed(() =>
+  isAdmin.value
+    ? SHORTCUT_KEYS
+    : SHORTCUT_KEYS.filter(
+        shortcut => !ADMIN_ONLY_SHORTCUTS.includes(shortcut.label)
+      )
+);
 
 const title = computed(
   () => item => t(`KEYBOARD_SHORTCUTS.TITLE.${item.label}`)
@@ -59,7 +71,7 @@ onMounted(async () => {
 
       <div class="grid grid-cols-2 px-8 pt-0 pb-8 gap-x-5 gap-y-3">
         <div
-          v-for="shortcut in SHORTCUT_KEYS"
+          v-for="shortcut in visibleShortcuts"
           :key="shortcut.id"
           class="flex justify-between items-center min-w-[25rem]"
         >
