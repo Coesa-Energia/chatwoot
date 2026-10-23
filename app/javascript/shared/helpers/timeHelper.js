@@ -8,6 +8,13 @@ import {
   formatDistanceToNow,
   differenceInDays,
 } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+// shortcut: date-fns 2.21 has no global locale, so the app sets it here; only pt-BR is translated (others stay English).
+let dateFnsLocale;
+export const setDateFnsLocale = code => {
+  dateFnsLocale = code?.startsWith('pt') ? ptBR : undefined;
+};
 
 /**
  * Formats a Unix timestamp into a human-readable time format.
@@ -59,7 +66,10 @@ export const relativeDayTimestamp = (time, yesterdayLabel) => {
  */
 export const dynamicTime = time => {
   const unixTime = fromUnixTime(time);
-  return formatDistanceToNow(unixTime, { addSuffix: true });
+  return formatDistanceToNow(unixTime, {
+    addSuffix: true,
+    locale: dateFnsLocale,
+  });
 };
 
 /**

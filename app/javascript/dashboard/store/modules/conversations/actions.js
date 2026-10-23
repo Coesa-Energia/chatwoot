@@ -676,6 +676,23 @@ const actions = {
     commit(types.CLEAR_LIST_LOADING_STATUS);
   },
 
+  // Pin or archive a conversation for the current agent. Pass only the key that changes.
+  updateConversationUserState: async (
+    { commit },
+    { conversationId, ...changes }
+  ) => {
+    const { data } = await ConversationApi.updateUserState({
+      conversationId,
+      ...changes,
+    });
+    commit(types.SET_CONVERSATION_USER_STATE, {
+      conversationId,
+      pinnedAt: data.pinned_at,
+      archivedAt: data.archived_at,
+    });
+    return data;
+  },
+
   assignPriority: async ({ dispatch }, { conversationId, priority }) => {
     try {
       await ConversationApi.togglePriority({
@@ -698,15 +715,6 @@ const actions = {
 
   setContextMenuChatId({ commit }, chatId) {
     commit(types.SET_CONTEXT_MENU_CHAT_ID, chatId);
-  },
-
-  getInboxCaptainAssistantById: async ({ commit }, conversationId) => {
-    try {
-      const response = await ConversationApi.getInboxAssistant(conversationId);
-      commit(types.SET_INBOX_CAPTAIN_ASSISTANT, response.data);
-    } catch (error) {
-      // Handle error
-    }
   },
 
   ...messageReadActions,

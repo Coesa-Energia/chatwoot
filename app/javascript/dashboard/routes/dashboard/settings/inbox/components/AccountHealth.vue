@@ -8,6 +8,10 @@ import ButtonV4 from 'next/button/Button.vue';
 import Avatar from 'next/avatar/Avatar.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import { useAlert } from 'dashboard/composables';
+import {
+  effectiveWhatsappWebhookUrl,
+  isWhatsappWebhookUrlValid,
+} from 'dashboard/helper/whatsappWebhookHelper';
 
 const props = defineProps({
   healthData: {
@@ -428,20 +432,22 @@ const showWebhookSection = computed(
   () => props.healthData?.webhook_configuration !== undefined
 );
 
-// Phone-level override takes precedence over WABA-level (application), so prefer it.
-const webhookUrl = computed(
-  () =>
-    props.healthData?.webhook_configuration?.phone_number ||
-    props.healthData?.webhook_configuration?.whatsapp_business_account ||
-    props.healthData?.webhook_configuration?.application
+// Meta resolves the callback by priority: phone number override, then WABA, then app.
+const webhookUrl = computed(() =>
+  effectiveWhatsappWebhookUrl(props.healthData?.webhook_configuration)
 );
 
 const webhookConfigured = computed(() => !!webhookUrl.value);
 
+// Several numbers of one WABA can share a single callback URL, so only a different host or a
+// non-WhatsApp path is a real mismatch (the inbox is resolved from the payload, not the URL).
 const webhookUrlMismatch = computed(
   () =>
     webhookConfigured.value &&
-    webhookUrl.value !== props.healthData?.expected_webhook_url
+    !isWhatsappWebhookUrlValid(
+      webhookUrl.value,
+      props.healthData?.expected_webhook_url
+    )
 );
 
 const handleRegisterWebhook = () => {

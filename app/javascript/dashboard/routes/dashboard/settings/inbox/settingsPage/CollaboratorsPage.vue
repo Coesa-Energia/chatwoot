@@ -17,6 +17,9 @@ import Icon from 'dashboard/components-next/icon/Icon.vue';
 import TagInput from 'dashboard/components-next/taginput/TagInput.vue';
 import assignmentPoliciesAPI from 'dashboard/api/assignmentPolicies';
 import { useI18n } from 'vue-i18n';
+import InboxAgentAccess from '../InboxAgentAccess.vue';
+import InboxAgentRotation from '../InboxAgentRotation.vue';
+import InboxDefaultTeam from '../InboxDefaultTeam.vue';
 
 const props = defineProps({
   inbox: {
@@ -40,6 +43,9 @@ const isLicensedSelfHosted = computed(
 );
 
 const selectedAgentIds = ref([]);
+const seeAllAgentIds = ref([]);
+const rotationAgentIds = ref([]);
+const defaultTeamId = ref(null);
 const isAgentListUpdating = ref(false);
 const enableAutoAssignment = ref(false);
 const maxAssignmentLimit = ref(null);
@@ -60,6 +66,12 @@ const selectedAgentNames = computed(() =>
   )
 );
 
+const selectedAgents = computed(() =>
+  selectedAgentIds.value
+    .map(id => agentList.value.find(a => a.id === id))
+    .filter(Boolean)
+);
+
 const agentMenuItems = computed(() =>
   agentList.value
     .filter(({ id }) => !selectedAgentIds.value.includes(id))
@@ -74,11 +86,16 @@ const agentMenuItems = computed(() =>
 const handleAgentAdd = ({ value }) => {
   if (!selectedAgentIds.value.includes(value)) {
     selectedAgentIds.value.push(value);
+    rotationAgentIds.value.push(value);
   }
 };
 
 const handleAgentRemove = index => {
-  selectedAgentIds.value.splice(index, 1);
+  const [removedId] = selectedAgentIds.value.splice(index, 1);
+  seeAllAgentIds.value = seeAllAgentIds.value.filter(id => id !== removedId);
+  rotationAgentIds.value = rotationAgentIds.value.filter(
+    id => id !== removedId
+  );
 };
 
 const isFeatureEnabled = feature => {
@@ -162,6 +179,12 @@ const fetchAttachedAgents = async () => {
       data: { payload: inboxMembers },
     } = response;
     selectedAgentIds.value = inboxMembers.map(m => m.id);
+    seeAllAgentIds.value = inboxMembers
+      .filter(m => m.see_all_conversations)
+      .map(m => m.id);
+    rotationAgentIds.value = inboxMembers
+      .filter(m => m.in_rotation !== false)
+      .map(m => m.id);
   } catch (error) {
     //  Handle error
   }
@@ -276,12 +299,30 @@ const updateAgents = async () => {
     await store.dispatch('inboxMembers/create', {
       inboxId: props.inbox.id,
       agentList: selectedAgentIds.value,
+      seeAllIds: seeAllAgentIds.value,
+      rotationIds: rotationAgentIds.value,
     });
     useAlert(t('AGENT_MGMT.EDIT.API.SUCCESS_MESSAGE'));
   } catch (error) {
     useAlert(t('AGENT_MGMT.EDIT.API.ERROR_MESSAGE'));
   }
   isAgentListUpdating.value = false;
+};
+
+const handleDefaultTeamChange = async teamId => {
+  const previous = defaultTeamId.value;
+  defaultTeamId.value = teamId;
+  try {
+    await store.dispatch('inboxes/updateInbox', {
+      id: props.inbox.id,
+      formData: false,
+      default_team_id: teamId,
+    });
+    useAlert(t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+  } catch (error) {
+    defaultTeamId.value = previous;
+    useAlert(t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
+  }
 };
 
 const updateInbox = async () => {
@@ -361,6 +402,7 @@ const deleteAssignmentPolicy = async () => {
 
 const setDefaults = () => {
   enableAutoAssignment.value = props.inbox.enable_auto_assignment;
+  defaultTeamId.value = props.inbox.default_team_id || null;
   maxAssignmentLimit.value =
     props.inbox.auto_assignment_config?.max_assignment_limit || null;
   fetchAttachedAgents();
@@ -399,6 +441,12 @@ onMounted(() => {
           @remove="handleAgentRemove"
         />
       </div>
+
+      <InboxAgentAccess
+        v-model="seeAllAgentIds"
+        :agents="selectedAgents"
+        class="mt-4"
+      />
 
       <template #extra>
         <div class="grid grid-cols-1 lg:grid-cols-8">
@@ -699,6 +747,25 @@ onMounted(() => {
           </template>
         </template>
       </SettingsToggleSection>
+      <div class="grid gap-6 px-4 pb-4">
+        <InboxDefaultTeam
+          :model-value="defaultTeamId"
+          @update:model-value="handleDefaultTeamChange"
+        />
+        <template v-if="enableAutoAssignment && selectedAgents.length">
+          <InboxAgentRotation
+            v-model="rotationAgentIds"
+            :agents="selectedAgents"
+          />
+          <div class="flex justify-end">
+            <NextButton
+              :label="$t('INBOX_MGMT.SETTINGS_POPUP.UPDATE')"
+              :is-loading="isAgentListUpdating"
+              @click="updateAgents"
+            />
+          </div>
+        </template>
+      </div>
     </SettingsAccordion>
 
     <woot-modal

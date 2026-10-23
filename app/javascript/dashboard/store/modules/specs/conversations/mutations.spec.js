@@ -806,6 +806,50 @@ describe('#mutations', () => {
     });
   });
 
+  describe('#SET_CONVERSATION_USER_STATE', () => {
+    it('sets the pinned and archived time of the conversation', () => {
+      const state = { allConversations: [{ id: 1 }, { id: 2 }] };
+
+      mutations[types.SET_CONVERSATION_USER_STATE](state, {
+        conversationId: 1,
+        pinnedAt: 1700000000,
+        archivedAt: null,
+      });
+
+      expect(state.allConversations[0].pinned_at).toBe(1700000000);
+      expect(state.allConversations[0].archived_at).toBeNull();
+      expect(state.allConversations[1].pinned_at).toBeUndefined();
+    });
+
+    it('clears a previous state when the server returns null', () => {
+      const state = {
+        allConversations: [{ id: 1, pinned_at: 10, archived_at: 20 }],
+      };
+
+      mutations[types.SET_CONVERSATION_USER_STATE](state, {
+        conversationId: 1,
+        pinnedAt: undefined,
+        archivedAt: undefined,
+      });
+
+      expect(state.allConversations[0].pinned_at).toBeNull();
+      expect(state.allConversations[0].archived_at).toBeNull();
+    });
+
+    it('ignores conversations that are not loaded', () => {
+      const state = { allConversations: [{ id: 1 }] };
+
+      expect(() =>
+        mutations[types.SET_CONVERSATION_USER_STATE](state, {
+          conversationId: 99,
+          pinnedAt: 5,
+          archivedAt: null,
+        })
+      ).not.toThrow();
+      expect(state.allConversations[0].pinned_at).toBeUndefined();
+    });
+  });
+
   describe('#MUTE_CONVERSATION', () => {
     it('should mute selected conversation', () => {
       const state = {

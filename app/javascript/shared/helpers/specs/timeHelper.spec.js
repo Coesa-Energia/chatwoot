@@ -1,6 +1,7 @@
 import {
   dateFormat,
   dynamicTime,
+  setDateFnsLocale,
   getDayDifferenceFromNow,
   hasOneDayPassed,
   messageStamp,
@@ -69,6 +70,13 @@ describe('#dynamicTime', () => {
   it('returns correct value', () => {
     Date.now = vi.fn(() => new Date(Date.UTC(2023, 1, 14)).valueOf());
     expect(dynamicTime(1612971343)).toEqual('about 2 years ago');
+  });
+
+  it('speaks Portuguese once the app locale is pt_BR', () => {
+    Date.now = vi.fn(() => new Date(Date.UTC(2023, 1, 14)).valueOf());
+    setDateFnsLocale('pt_BR');
+    expect(dynamicTime(1612971343)).toEqual('há cerca de 2 anos');
+    setDateFnsLocale('en');
   });
 });
 

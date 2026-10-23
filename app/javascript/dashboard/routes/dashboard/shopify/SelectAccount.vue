@@ -3,10 +3,7 @@ import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useMapGetter } from 'dashboard/composables/store';
-import {
-  getShopifyInstallAccount,
-  getShopifyInstallPath,
-} from 'v3/helpers/AuthHelper';
+import { getShopifyInstallAccount } from 'v3/helpers/AuthHelper';
 import { frontendURL } from 'dashboard/helper/URLHelper';
 import Button from 'dashboard/components-next/button/Button.vue';
 
@@ -25,11 +22,7 @@ const validToken = computed(
 );
 const selectAccount = account => {
   const redirect = `settings/integrations/shopify?shopify_pending_install=${token.value}`;
-  router.push(
-    frontendURL(
-      `accounts/${account.id}/${getShopifyInstallPath(account, redirect)}`
-    )
-  );
+  router.push(frontendURL(`accounts/${account.id}/${redirect}`));
 };
 </script>
 

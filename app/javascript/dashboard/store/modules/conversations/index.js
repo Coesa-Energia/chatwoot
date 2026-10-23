@@ -172,6 +172,17 @@ export const mutations = {
     chat.priority = priority;
   },
 
+  // The current agent's pinned/archived state (unix timestamps, null when off).
+  [types.SET_CONVERSATION_USER_STATE](
+    _state,
+    { conversationId, pinnedAt, archivedAt }
+  ) {
+    const chat = _state.allConversations.find(c => c.id === conversationId);
+    if (!chat) return;
+    chat.pinned_at = pinnedAt ?? null;
+    chat.archived_at = archivedAt ?? null;
+  },
+
   [types.UPDATE_CONVERSATION_CUSTOM_ATTRIBUTES](
     _state,
     { conversationId, customAttributes }

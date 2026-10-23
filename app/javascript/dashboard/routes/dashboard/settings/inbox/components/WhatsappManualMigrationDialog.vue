@@ -237,7 +237,7 @@ defineExpose({ open, close });
           <p class="mb-1 text-sm font-medium text-n-slate-11">
             {{ copy.eyebrow }}
           </p>
-          <h3 class="m-0 text-xl font-semibold text-n-slate-12">
+          <h3 class="m-0 text-lg font-medium text-n-slate-12">
             {{ copy.title }}
           </h3>
           <p class="mt-2 mb-0 text-sm text-n-slate-11 min-h-[2.5rem]">

@@ -3,11 +3,9 @@ import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useStore } from 'vuex';
 import { useAlert } from 'dashboard/composables';
-import { useAccount } from 'dashboard/composables/useAccount';
 import { useMessageFormatter } from 'shared/composables/useMessageFormatter';
 import Button from 'dashboard/components-next/button/Button.vue';
 import Editor from 'dashboard/components-next/Editor/Editor.vue';
-import CsatReviewNotesPaywall from './CsatReviewNotesPaywall.vue';
 import { dynamicTime } from 'shared/helpers/timeHelper';
 import { useExactTimestamp } from 'shared/composables/useExactTimestamp';
 
@@ -22,15 +20,7 @@ const exactTimestamp = useExactTimestamp();
 
 const { t } = useI18n();
 const store = useStore();
-const { isCloudFeatureEnabled, isOnChatwootCloud } = useAccount();
 const { formatMessage } = useMessageFormatter();
-
-const isFeatureEnabled = computed(() =>
-  isCloudFeatureEnabled('csat_review_notes')
-);
-const showPaywall = computed(
-  () => !isFeatureEnabled.value && isOnChatwootCloud.value
-);
 
 const reviewNotes = ref(props.response.csat_review_notes || '');
 const isEditing = ref(!props.response.csat_review_notes);
@@ -74,8 +64,7 @@ const saveReviewNotes = async () => {
 
 <template>
   <div class="py-4 px-5 border-t border-n-container bg-n-background">
-    <CsatReviewNotesPaywall v-if="showPaywall" />
-    <div v-else-if="isFeatureEnabled" class="flex flex-col gap-3">
+    <div class="flex flex-col gap-3">
       <div class="flex items-start gap-4">
         <div
           class="flex items-center gap-1.5 text-n-slate-11 shrink-0 w-36 pt-3"

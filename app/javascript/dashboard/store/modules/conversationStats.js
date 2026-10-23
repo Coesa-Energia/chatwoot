@@ -19,6 +19,9 @@ const getViewKey = ({
   labels,
   teamId,
   conversationType,
+  unread,
+  awaitingReply,
+  archived,
   queryData,
 }) =>
   JSON.stringify([
@@ -29,6 +32,9 @@ const getViewKey = ({
       labels,
       teamId,
       conversationType,
+      unread,
+      awaitingReply,
+      archived,
     },
   ]);
 

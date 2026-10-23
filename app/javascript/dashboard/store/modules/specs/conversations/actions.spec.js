@@ -539,6 +539,63 @@ describe('#actions', () => {
     });
   });
 
+  describe('#updateConversationUserState', () => {
+    beforeEach(() => {
+      commit.mockClear();
+    });
+
+    it('pins a conversation and stores the state the server returns', async () => {
+      axios.patch.mockResolvedValue({
+        data: { id: 5, pinned_at: 1700000000, archived_at: null },
+      });
+
+      await actions.updateConversationUserState(
+        { commit },
+        { conversationId: 5, pinned: true }
+      );
+
+      expect(axios.patch).toHaveBeenCalledWith(
+        '/api/v1/conversations/5/user_state',
+        { pinned: true }
+      );
+      expect(commit).toHaveBeenCalledWith(types.SET_CONVERSATION_USER_STATE, {
+        conversationId: 5,
+        pinnedAt: 1700000000,
+        archivedAt: null,
+      });
+    });
+
+    it('archives a conversation sending only the archived key', async () => {
+      axios.patch.mockResolvedValue({
+        data: { id: 5, pinned_at: null, archived_at: 1700000100 },
+      });
+
+      await actions.updateConversationUserState(
+        { commit },
+        { conversationId: 5, archived: true }
+      );
+
+      expect(axios.patch).toHaveBeenLastCalledWith(
+        '/api/v1/conversations/5/user_state',
+        { archived: true }
+      );
+    });
+
+    it('lets the caller handle API errors and does not change the store', async () => {
+      axios.patch.mockRejectedValue({
+        response: { data: { error: 'limit' } },
+      });
+
+      await expect(
+        actions.updateConversationUserState(
+          { commit },
+          { conversationId: 5, pinned: true }
+        )
+      ).rejects.toBeDefined();
+      expect(commit).not.toHaveBeenCalled();
+    });
+  });
+
   describe('#assignAgent', () => {
     it('sends correct mutations if assignment is successful', async () => {
       axios.post.mockResolvedValue({
@@ -1067,25 +1124,6 @@ describe('#addMentions', () => {
 
       // Instead it commits a mutation that finds the conversation by ID in the store
       expect(localCommit).toHaveBeenCalledWith(types.SET_CHAT_DATA_FETCHED, 42);
-    });
-  });
-
-  describe('#getInboxCaptainAssistantById', () => {
-    it('fetches inbox assistant by id', async () => {
-      axios.get.mockResolvedValue({
-        data: {
-          id: 1,
-          name: 'Assistant',
-          description: 'Assistant description',
-        },
-      });
-      await actions.getInboxCaptainAssistantById({ commit }, 1);
-      expect(commit.mock.calls).toEqual([
-        [
-          types.SET_INBOX_CAPTAIN_ASSISTANT,
-          { id: 1, name: 'Assistant', description: 'Assistant description' },
-        ],
-      ]);
     });
   });
 

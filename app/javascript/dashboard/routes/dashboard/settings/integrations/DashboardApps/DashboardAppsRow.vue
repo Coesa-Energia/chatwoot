@@ -1,8 +1,11 @@
 <script setup>
 import { BaseTableRow, BaseTableCell } from 'dashboard/components-next/table';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useMapGetter } from 'dashboard/composables/store';
 import Button from 'dashboard/components-next/button/Button.vue';
 
-defineProps({
+const props = defineProps({
   app: {
     type: Object,
     default: () => ({}),
@@ -10,6 +13,18 @@ defineProps({
 });
 
 defineEmits(['edit', 'delete']);
+const { t } = useI18n();
+const inboxes = useMapGetter('inboxes/getInboxes');
+
+const inboxesLabel = computed(() => {
+  const ids = props.app.inbox_ids || [];
+  if (!ids.length)
+    return t('INTEGRATION_SETTINGS.DASHBOARD_APPS.LIST.ALL_INBOXES');
+  return inboxes.value
+    .filter(inbox => ids.includes(inbox.id))
+    .map(inbox => inbox.name)
+    .join(', ');
+});
 </script>
 
 <template>
@@ -21,6 +36,12 @@ defineEmits(['edit', 'delete']);
           :title="app.title"
         >
           {{ app.title }}
+        </span>
+        <span
+          class="block truncate text-label-small text-n-slate-10"
+          :title="inboxesLabel"
+        >
+          {{ inboxesLabel }}
         </span>
       </BaseTableCell>
 

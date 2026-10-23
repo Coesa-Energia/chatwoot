@@ -4,6 +4,7 @@ import { useAlert } from 'dashboard/composables';
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import { useFontSize } from 'dashboard/composables/useFontSize';
 import { useBranding } from 'shared/composables/useBranding';
+import { useSellerMode } from 'dashboard/composables/useSellerMode';
 import { clearCookiesOnLogout } from 'dashboard/store/utils/api.js';
 import { copyTextToClipboard } from 'shared/helpers/clipboard';
 import { parseAPIErrorResponse } from 'dashboard/store/utils/api';
@@ -50,8 +51,10 @@ export default {
     const { isEditorHotKeyEnabled, updateUISettings } = useUISettings();
     const { currentFontSize, updateFontSize } = useFontSize();
     const { replaceInstallationName } = useBranding();
+    const { isSellerMode } = useSellerMode();
 
     return {
+      isSellerMode,
       currentFontSize,
       updateFontSize,
       isEditorHotKeyEnabled,
@@ -274,6 +277,7 @@ export default {
       </div>
     </SectionLayout>
     <SectionLayout
+      v-if="!isSellerMode"
       with-border
       :title="$t('PROFILE_SETTINGS.FORM.MESSAGE_SIGNATURE_SECTION.TITLE')"
       :description="$t('PROFILE_SETTINGS.FORM.MESSAGE_SIGNATURE_SECTION.NOTE')"
@@ -358,6 +362,7 @@ export default {
       </SectionLayout>
     </Policy>
     <SectionLayout
+      v-if="!isSellerMode"
       with-border
       :title="$t('PROFILE_SETTINGS.FORM.ACCESS_TOKEN.TITLE')"
       :description="accessTokenDescription"

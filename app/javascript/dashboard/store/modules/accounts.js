@@ -5,7 +5,6 @@ import OnboardingAPI from '../../api/onboarding';
 import { differenceInDays } from 'date-fns';
 import EnterpriseAccountAPI from '../../api/enterprise/account';
 import WhatsappChannel from '../../api/channel/whatsappChannel';
-import { throwErrorMessage } from '../utils/api';
 import { getLanguageDirection } from 'dashboard/components/widgets/conversation/advancedFilterItems/languages';
 
 const findRecordById = ($state, id) =>
@@ -19,7 +18,6 @@ const state = {
     isFetching: false,
     isFetchingItem: false,
     isUpdating: false,
-    isCheckoutInProcess: false,
     isFetchingLimits: false,
   },
 };
@@ -96,6 +94,18 @@ export const actions = {
       throw new Error(error);
     }
   },
+  // `file` is a File to upload, or null to remove the image. `field` is 'logo' or 'collapsed_logo'.
+  updateLogo: async ({ commit }, { file, field = 'logo' }) => {
+    commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: true });
+    try {
+      const response = file
+        ? await AccountAPI.uploadLogo(file, field)
+        : await AccountAPI.removeLogo(field);
+      commit(types.default.EDIT_ACCOUNT, response.data);
+    } finally {
+      commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: false });
+    }
+  },
   finishOnboarding: async ({ commit }, payload) => {
     commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: true });
     try {
@@ -138,42 +148,6 @@ export const actions = {
     } catch (error) {
       commit(types.default.SET_ACCOUNT_UI_FLAG, { isCreating: false });
       throw error;
-    }
-  },
-
-  checkout: async ({ commit }) => {
-    commit(types.default.SET_ACCOUNT_UI_FLAG, { isCheckoutInProcess: true });
-    try {
-      const response = await EnterpriseAccountAPI.checkout();
-      window.location = response.data.redirect_url;
-    } catch (error) {
-      throwErrorMessage(error);
-    } finally {
-      commit(types.default.SET_ACCOUNT_UI_FLAG, { isCheckoutInProcess: false });
-    }
-  },
-
-  subscription: async ({ commit }) => {
-    commit(types.default.SET_ACCOUNT_UI_FLAG, { isCheckoutInProcess: true });
-    try {
-      const response = await EnterpriseAccountAPI.subscription();
-      return response.data;
-    } catch (error) {
-      throwErrorMessage(error);
-      return null;
-    } finally {
-      commit(types.default.SET_ACCOUNT_UI_FLAG, { isCheckoutInProcess: false });
-    }
-  },
-
-  selectBillingCurrency: async ({ commit }, currency) => {
-    commit(types.default.SET_ACCOUNT_UI_FLAG, { isCheckoutInProcess: true });
-    try {
-      await EnterpriseAccountAPI.selectBillingCurrency(currency);
-    } catch (error) {
-      throwErrorMessage(error);
-    } finally {
-      commit(types.default.SET_ACCOUNT_UI_FLAG, { isCheckoutInProcess: false });
     }
   },
 

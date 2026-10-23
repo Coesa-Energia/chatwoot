@@ -11,12 +11,17 @@ import {
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
 import ToggleSwitch from 'dashboard/components-next/switch/Switch.vue';
 import { NOTIFICATION_TYPES } from './constants';
+import { useSellerMode } from 'dashboard/composables/useSellerMode';
 
 export default {
   components: {
     TableHeaderCell,
     ToggleSwitch,
     CheckBox,
+  },
+  setup() {
+    const { isSellerMode } = useSellerMode();
+    return { isSellerMode };
   },
   data() {
     return {
@@ -38,7 +43,10 @@ export default {
       return !!('Notification' in window);
     },
     isSLAEnabled() {
-      return this.isFeatureEnabledonAccount(this.accountId, FEATURE_FLAGS.SLA);
+      return (
+        !this.isSellerMode &&
+        this.isFeatureEnabledonAccount(this.accountId, FEATURE_FLAGS.SLA)
+      );
     },
     // Missed-call notifications are produced only where phones are rung for calls
     isMissedCallNotificationEnabled() {

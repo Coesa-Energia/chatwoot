@@ -9,8 +9,6 @@ import {
   getShopifyShopFromRedirect,
   getTargetAccount,
   isShopifyInstallRedirect,
-  isShopifyBillingAccount,
-  requiresShopifyBilling,
 } from 'v3/helpers/AuthHelper';
 import AnalyticsHelper from '../helper/AnalyticsHelper';
 
@@ -20,23 +18,12 @@ const routes = [...dashboard.routes];
 const onboardingPath = step =>
   step === 'inbox_setup' ? 'onboarding/inbox-setup' : 'onboarding';
 
-const shopifyBillingRedirect = query => {
-  const { plan_handle: planHandle, shop } = query || {};
-  if (!planHandle && !shop) return '';
-
-  const params = new URLSearchParams();
-  if (planHandle) params.set('plan_handle', planHandle);
-  if (shop) params.set('shop', shop);
-  return `settings/billing?${params.toString()}`;
-};
-
 export const router = createRouter({ history: createWebHistory(), routes });
 
 export const validateAuthenticateRoutePermission = async (to, next) => {
   const { isLoggedIn, getCurrentUser: user } = store.getters;
 
   if (!isLoggedIn) {
-    const billingRedirect = shopifyBillingRedirect(to.query);
     const integrationRedirect =
       to.name === 'settings_integrations_shopify'
         ? 'settings/integrations/shopify'
@@ -53,8 +40,7 @@ export const validateAuthenticateRoutePermission = async (to, next) => {
     const pendingRedirect = hasPendingInstall
       ? `settings/integrations/shopify?shopify_pending_install=${pendingToken}`
       : '';
-    const redirectUrl =
-      pendingRedirect || billingRedirect || integrationRedirect;
+    const redirectUrl = pendingRedirect || integrationRedirect;
     const loginParams = new URLSearchParams();
     if (redirectUrl) {
       if (to.params?.accountId) {
@@ -81,16 +67,14 @@ export const validateAuthenticateRoutePermission = async (to, next) => {
   if (to.name === 'shopify_select_account') return next();
 
   const requestedRedirectUrl = to.query?.redirect_url;
-  const pricingRedirectUrl = shopifyBillingRedirect(to.query);
-  const targetRedirectUrl = requestedRedirectUrl || pricingRedirectUrl;
   const redirectAccount = getTargetAccount({
     ssoAccountId: to.query?.sso_account_id,
-    redirectUrl: targetRedirectUrl,
+    redirectUrl: requestedRedirectUrl,
     user,
   });
   if (
     !to.params?.accountId &&
-    getShopifyShopFromRedirect(targetRedirectUrl) &&
+    getShopifyShopFromRedirect(requestedRedirectUrl) &&
     !redirectAccount
   ) {
     return next(frontendURL(`accounts/${accountId}/dashboard`));
@@ -102,16 +86,10 @@ export const validateAuthenticateRoutePermission = async (to, next) => {
   const userAccount = accounts.find(a => a.id === routeAccountId);
   const isAdmin = userAccount?.role === 'administrator';
   const isActive = userAccount?.status === 'active';
-  const needsShopifyBilling = isAdmin && requiresShopifyBilling(userAccount);
-  const billingRedirect =
-    isAdmin && isShopifyBillingAccount(userAccount)
-      ? shopifyBillingRedirect(to.query)
-      : '';
   const needsOnboarding =
     ONBOARDING_STEPS.includes(userAccount?.onboarding_step) &&
     isAdmin &&
-    isActive &&
-    !needsShopifyBilling;
+    isActive;
 
   if (to.name === 'captain_toolset_install_link') {
     return next({
@@ -122,9 +100,6 @@ export const validateAuthenticateRoutePermission = async (to, next) => {
   }
 
   if (to.name === 'no_accounts' || !to.name) {
-    if (billingRedirect) {
-      return next(frontendURL(`accounts/${routeAccountId}/${billingRedirect}`));
-    }
     if (requestedRedirectUrl) {
       if (!isShopifyInstallRedirect(requestedRedirectUrl)) {
         return next(
@@ -138,22 +113,10 @@ export const validateAuthenticateRoutePermission = async (to, next) => {
         )
       );
     }
-    if (needsShopifyBilling) {
-      return next(frontendURL(`accounts/${routeAccountId}/settings/billing`));
-    }
     const target = needsOnboarding
       ? onboardingPath(userAccount?.onboarding_step)
       : 'dashboard';
     return next(frontendURL(`accounts/${routeAccountId}/${target}`));
-  }
-
-  if (needsShopifyBilling && to.name !== 'billing_settings_index') {
-    return next({
-      path: frontendURL(`accounts/${routeAccountId}/settings/billing`),
-      query: to.query.shopify_pending_install
-        ? { shopify_pending_install: to.query.shopify_pending_install }
-        : {},
-    });
   }
 
   if (needsOnboarding && !isOnOnboardingView(to)) {

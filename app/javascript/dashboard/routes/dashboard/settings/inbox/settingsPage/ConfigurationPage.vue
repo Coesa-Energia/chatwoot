@@ -385,6 +385,14 @@ export default {
   </div>
   <div v-else-if="isAWhatsAppChannel && !isATwilioChannel">
     <div v-if="inbox.provider_config">
+      <!-- Only sent by the API to administrators -->
+      <p
+        v-if="inbox.webhook_secret_missing"
+        class="flex items-start gap-1.5 mb-4 text-xs text-n-amber-11"
+      >
+        <span class="i-lucide-triangle-alert size-3.5 mt-px flex-shrink-0" />
+        {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_WEBHOOK_SECRET_MISSING') }}
+      </p>
       <!-- Embedded Signup Section -->
       <template v-if="isEmbeddedSignupWhatsApp">
         <SettingsFieldSection

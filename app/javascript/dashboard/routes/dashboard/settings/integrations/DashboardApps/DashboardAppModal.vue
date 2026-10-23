@@ -1,13 +1,16 @@
 <script>
 import { useVuelidate } from '@vuelidate/core';
 import { required, url } from '@vuelidate/validators';
+import { mapGetters } from 'vuex';
 import { useAlert } from 'dashboard/composables';
 
 import NextButton from 'dashboard/components-next/button/Button.vue';
+import TagMultiSelectComboBox from 'dashboard/components-next/combobox/TagMultiSelectComboBox.vue';
 
 export default {
   components: {
     NextButton,
+    TagMultiSelectComboBox,
   },
   props: {
     show: {
@@ -45,10 +48,18 @@ export default {
           type: 'frame',
           url: '',
         },
+        inboxIds: [],
       },
     };
   },
   computed: {
+    ...mapGetters({ inboxes: 'inboxes/getInboxes' }),
+    inboxOptions() {
+      return this.inboxes.map(inbox => ({
+        value: inbox.id,
+        label: inbox.name,
+      }));
+    },
     header() {
       return this.$t(`INTEGRATION_SETTINGS.DASHBOARD_APPS.${this.mode}.HEADER`);
     },
@@ -62,6 +73,7 @@ export default {
     if (this.mode === 'UPDATE' && this.selectedAppData) {
       this.app.title = this.selectedAppData.title;
       this.app.content = this.selectedAppData.content[0];
+      this.app.inboxIds = [...(this.selectedAppData.inbox_ids || [])];
     }
   },
   methods: {
@@ -70,6 +82,7 @@ export default {
       this.app = {
         title: '',
         content: { type: 'frame', url: '' },
+        inboxIds: [],
       };
       this.$emit('close');
     },
@@ -84,6 +97,7 @@ export default {
         const payload = {
           title: this.app.title,
           content: [this.app.content],
+          inbox_ids: this.app.inboxIds,
         };
 
         if (action === 'update') {
@@ -149,6 +163,22 @@ export default {
           @input="v$.app.content.url.$touch"
           @blur="v$.app.content.url.$touch"
         />
+        <div class="flex flex-col gap-1 mb-4">
+          <label class="text-sm font-medium text-n-slate-12">
+            {{ $t('INTEGRATION_SETTINGS.DASHBOARD_APPS.FORM.INBOXES_LABEL') }}
+          </label>
+          <TagMultiSelectComboBox
+            v-model="app.inboxIds"
+            :options="inboxOptions"
+            :placeholder="
+              $t('INTEGRATION_SETTINGS.DASHBOARD_APPS.FORM.INBOXES_PLACEHOLDER')
+            "
+            data-testid="app-inboxes"
+          />
+          <p class="text-xs text-n-slate-11">
+            {{ $t('INTEGRATION_SETTINGS.DASHBOARD_APPS.FORM.INBOXES_HELP') }}
+          </p>
+        </div>
         <div class="flex flex-row justify-end w-full gap-2 px-0 py-2">
           <NextButton
             faded
