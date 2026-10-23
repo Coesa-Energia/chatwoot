@@ -40,14 +40,13 @@ const props = defineProps({
     type: Number,
     default: 1,
   },
+  readOnly: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-const emit = defineEmits([
-  'translateArticle',
-  'toggleSelect',
-  'navigatePage',
-  'dragging',
-]);
+const emit = defineEmits(['toggleSelect', 'navigatePage', 'dragging']);
 
 const { ARTICLE_STATUS_TYPES } = wootConstants;
 
@@ -61,6 +60,7 @@ const hoveredArticleId = ref(null);
 const dragEnabled = computed(() => {
   const canReorder = props.articles?.length > 1 || props.totalPages > 1;
   return (
+    !props.readOnly &&
     props.isCategoryArticles &&
     !props.isSearching &&
     canReorder &&
@@ -71,6 +71,7 @@ const dragEnabled = computed(() => {
 const hasBulkSelection = computed(() => props.selectedArticleIds.size > 0);
 
 const shouldShowSelectionControl = id => {
+  if (props.readOnly) return false;
   return hoveredArticleId.value === id || hasBulkSelection.value;
 };
 
@@ -212,10 +213,6 @@ const handleArticleAction = async (action, { status, id }) => {
 };
 
 const updateArticle = ({ action, value, id }) => {
-  if (action === 'translate') {
-    emit('translateArticle', id);
-    return;
-  }
   const status = action !== 'delete' ? getArticleStatus(value) : null;
   handleArticleAction(action, { status, id });
 };
@@ -244,7 +241,9 @@ const updateArticle = ({ action, value, id }) => {
         :has-pending-changes="
           item.status === ARTICLE_STATUSES.PUBLISHED && hasPendingChanges(item)
         "
-        selectable
+        :ai-only="item.aiOnly"
+        :selectable="!readOnly"
+        :read-only="readOnly"
         :show-selection-control="shouldShowSelectionControl(item.id)"
         @open-article="openArticle"
         @article-action="updateArticle"
@@ -263,6 +262,7 @@ const updateArticle = ({ action, value, id }) => {
         :category="getCategory(item.category.id)"
         :views="item.views || 0"
         :updated-at="item.updatedAt"
+        :ai-only="item.aiOnly"
       />
     </template>
   </DraggableReorderList>

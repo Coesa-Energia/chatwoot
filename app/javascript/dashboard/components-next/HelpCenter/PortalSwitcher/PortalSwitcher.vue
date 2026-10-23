@@ -4,6 +4,8 @@ import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { useMapGetter, useStore } from 'dashboard/composables/store.js';
 import { buildPortalURL } from 'dashboard/helper/portalHelper';
+import { usePolicy } from 'dashboard/composables/usePolicy';
+import { PORTAL_PERMISSIONS } from 'dashboard/constants/permissions';
 
 import Button from 'dashboard/components-next/button/Button.vue';
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
@@ -14,6 +16,10 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
+const { checkPermissions } = usePolicy();
+const canManageKnowledgeBase = computed(() =>
+  checkPermissions(['administrator', PORTAL_PERMISSIONS])
+);
 
 const DEFAULT_ROUTE = 'portals_articles_index';
 const CATEGORY_ROUTE = 'portals_categories_index';
@@ -121,6 +127,7 @@ const redirectToPortalHomePage = () => {
         </p>
       </div>
       <Button
+        v-if="canManageKnowledgeBase"
         :label="t('HELP_CENTER.PORTAL_SWITCHER.NEW_PORTAL')"
         color="slate"
         icon="i-lucide-plus"

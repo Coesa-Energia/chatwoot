@@ -45,10 +45,12 @@ const {
   contentAttributes,
   conversationId,
   currentUserId,
-  inboxId,
+  inboxId: messageInboxId,
   sender,
   messageType,
 } = useMessageContext();
+// The call's own inbox: a Twilio call logged in a WhatsApp thread joins/calls back through the voice inbox
+const inboxId = computed(() => call.value?.inboxId ?? messageInboxId.value);
 const { joinCall, endCall, activeCall, hasActiveCall, isJoining } =
   useCallActions();
 const whatsappCallSession = useWhatsappCallSession();
@@ -313,7 +315,7 @@ const handleCallBack = async () => {
       callDirection: VOICE_CALL_DIRECTION.OUTBOUND,
     });
   } catch (error) {
-    useAlert(error?.message || t('CONTACT_PANEL.CALL_FAILED'));
+    useAlert(error?.response?.data?.error || t('CONTACT_PANEL.CALL_FAILED'));
   }
 };
 </script>

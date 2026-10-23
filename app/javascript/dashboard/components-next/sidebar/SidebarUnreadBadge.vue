@@ -19,7 +19,7 @@ const displayCount = computed(() =>
   <span
     v-if="normalizedCount > 0"
     data-test-id="sidebar-unread-badge"
-    class="inline-grid h-5 min-w-5 place-items-center rounded-full bg-n-slate-4 px-1 text-xxs font-medium leading-3 text-n-slate-12 dark:bg-n-slate-5 flex-shrink-0"
+    class="inline-grid h-5 min-w-5 place-items-center rounded-full bg-n-brand px-1.5 text-xs font-semibold leading-3 text-white dark:text-n-slate-1 tabular-nums flex-shrink-0"
   >
     {{ displayCount }}
   </span>

@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n';
 import Avatar from 'next/avatar/Avatar.vue';
 import SidebarProfileMenuStatus from './SidebarProfileMenuStatus.vue';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
+import { useSellerMode } from 'dashboard/composables/useSellerMode';
 
 import {
   DropdownContainer,
@@ -26,6 +27,7 @@ defineOptions({
 });
 
 const { t } = useI18n();
+const { isSellerMode } = useSellerMode();
 
 const currentUser = useMapGetter('getCurrentUser');
 const currentUserAvailability = useMapGetter('getCurrentUserAvailability');
@@ -53,7 +55,7 @@ const toggleChatSupport = () => {
 const menuItems = computed(() => {
   return [
     {
-      show: showChatSupport.value,
+      show: showChatSupport.value && !isSellerMode.value,
       showOnCustomBrandedInstance: false,
       label: t('SIDEBAR_ITEMS.CONTACT_SUPPORT'),
       icon: 'i-lucide-life-buoy',
@@ -86,7 +88,7 @@ const menuItems = computed(() => {
       },
     },
     {
-      show: true,
+      show: !isSellerMode.value,
       showOnCustomBrandedInstance: false,
       label: t('SIDEBAR_ITEMS.DOCS'),
       icon: 'i-lucide-book',
@@ -95,7 +97,7 @@ const menuItems = computed(() => {
       target: '_blank',
     },
     {
-      show: true,
+      show: !isSellerMode.value,
       showOnCustomBrandedInstance: false,
       label: t('SIDEBAR_ITEMS.CHANGELOG'),
       icon: 'i-lucide-scroll-text',
@@ -135,7 +137,7 @@ const allowedMenuItems = computed(() => {
   >
     <template #trigger="{ toggle, isOpen }">
       <button
-        class="flex gap-2 items-center p-1 text-left rounded-lg cursor-pointer hover:bg-n-alpha-1"
+        class="flex gap-2 items-center p-1 text-start rounded-lg cursor-pointer hover:bg-n-alpha-1 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-n-brand"
         :class="[
           { 'bg-n-alpha-1': isOpen },
           isCollapsed ? 'justify-center' : 'w-full',

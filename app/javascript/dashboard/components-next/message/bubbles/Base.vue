@@ -11,7 +11,7 @@ import { useI18n } from 'vue-i18n';
 
 import MessageFormatter from 'shared/helpers/MessageFormatter.js';
 import { BUS_EVENTS } from 'shared/constants/busEvents';
-import { MESSAGE_VARIANTS, ORIENTATION } from '../constants';
+import { MESSAGE_STATUS, MESSAGE_VARIANTS, ORIENTATION } from '../constants';
 
 const props = defineProps({
   hideMeta: { type: Boolean, default: false },
@@ -21,12 +21,35 @@ const {
   variant,
   orientation,
   inReplyTo,
-  shouldGroupWithNext,
   id,
   isCaptainMessage,
   showingOriginal,
+  sender,
+  senderType,
+  status,
+  additionalAttributes,
 } = useMessageContext();
 const { t } = useI18n();
+
+const isPrivateNote = computed(
+  () => variant.value === MESSAGE_VARIANTS.PRIVATE
+);
+
+// A note not typed by a person: AgentBot (incl. automation profiles), Captain or the system
+// (no sender; a note still being sent has none yet either, so it is skipped).
+const AUTOMATED_SENDER_TYPES = ['agentbot', 'captainassistant'];
+const isAutomatedNote = computed(() => {
+  if (!isPrivateNote.value) return false;
+  if (!sender.value) return status.value !== MESSAGE_STATUS.PROGRESS;
+  const type = (sender.value.type ?? senderType.value ?? '')
+    .toLowerCase()
+    .replace(/[^a-z]/g, '');
+  return AUTOMATED_SENDER_TYPES.includes(type);
+});
+
+const noteAuthor = computed(
+  () => sender.value?.name || additionalAttributes.value?.senderName || ''
+);
 
 const metaColorClass = computed(() =>
   variant.value === MESSAGE_VARIANTS.PRIVATE
@@ -42,10 +65,11 @@ const varaintBaseMap = {
   [MESSAGE_VARIANTS.AGENT]: 'bg-n-solid-blue text-n-slate-12',
   [MESSAGE_VARIANTS.PRIVATE]:
     'bg-n-solid-amber text-n-amber-12 [&_.prosemirror-mention-node]:font-semibold',
-  [MESSAGE_VARIANTS.USER]: 'bg-n-slate-4 text-n-slate-12',
+  [MESSAGE_VARIANTS.USER]:
+    'bg-n-solid-1 dark:bg-n-solid-3 text-n-slate-12 shadow-[0_1px_2px_rgb(0_0_0/0.06)] outline outline-1 -outline-offset-1 outline-n-weak',
   [MESSAGE_VARIANTS.ACTIVITY]: 'bg-n-alpha-1 text-n-slate-11 text-sm',
-  [MESSAGE_VARIANTS.BOT]: 'bg-n-solid-iris text-n-slate-12',
-  [MESSAGE_VARIANTS.TEMPLATE]: 'bg-n-solid-iris text-n-slate-12',
+  [MESSAGE_VARIANTS.BOT]: 'bg-n-slate-4 text-n-slate-12',
+  [MESSAGE_VARIANTS.TEMPLATE]: 'bg-n-slate-4 text-n-slate-12',
   [MESSAGE_VARIANTS.ERROR]: 'bg-n-ruby-4 text-n-ruby-12',
   [MESSAGE_VARIANTS.EMAIL]: 'w-full',
   [MESSAGE_VARIANTS.UNSUPPORTED]:
@@ -54,9 +78,9 @@ const varaintBaseMap = {
 
 const orientationMap = {
   [ORIENTATION.LEFT]:
-    'left-bubble rounded-xl ltr:rounded-bl-sm rtl:rounded-br-sm',
+    'left-bubble rounded-2xl ltr:rounded-bl-md rtl:rounded-br-md',
   [ORIENTATION.RIGHT]:
-    'right-bubble rounded-xl ltr:rounded-br-sm rtl:rounded-bl-sm',
+    'right-bubble rounded-2xl ltr:rounded-br-md rtl:rounded-bl-md',
   [ORIENTATION.CENTER]: 'rounded-md',
 };
 
@@ -73,6 +97,16 @@ const flexOrientationClass = computed(() => {
 const messageClass = computed(() => {
   const classToApply = [varaintBaseMap[variant.value]];
 
+  // Never confused with a message the customer receives: accent bar + outline, stronger for automations.
+  if (isPrivateNote.value) {
+    classToApply.push(
+      'border-s-4 outline outline-1 -outline-offset-1',
+      isAutomatedNote.value
+        ? 'border-n-amber-10 outline-n-amber-8'
+        : 'border-n-amber-9 outline-n-amber-6'
+    );
+  }
+
   if (variant.value !== MESSAGE_VARIANTS.ACTIVITY) {
     classToApply.push(orientationMap[orientation.value]);
   } else {
@@ -88,11 +122,9 @@ const scrollToMessage = () => {
   });
 };
 
+// Every message shows its time (the day is on the divider), grouped or not.
 const shouldShowMeta = computed(
-  () =>
-    !props.hideMeta &&
-    !shouldGroupWithNext.value &&
-    variant.value !== MESSAGE_VARIANTS.ACTIVITY
+  () => !props.hideMeta && variant.value !== MESSAGE_VARIANTS.ACTIVITY
 );
 
 const replyToPreview = computed(() => {
@@ -122,6 +154,30 @@ const replyToPreview = computed(() => {
       },
     ]"
   >
+    <div
+      v-if="isPrivateNote"
+      class="flex flex-wrap items-center gap-1.5 mb-1.5 text-xs font-medium text-n-amber-11"
+      data-testid="private-note-header"
+    >
+      <span class="i-lucide-lock size-3.5 shrink-0" />
+      <span class="min-w-0 truncate">
+        {{
+          noteAuthor
+            ? t('CONVERSATION.PRIVATE_NOTE_HEADER.TITLE_WITH_AUTHOR', {
+                author: noteAuthor,
+              })
+            : t('CONVERSATION.PRIVATE_NOTE_HEADER.TITLE')
+        }}
+      </span>
+      <span
+        v-if="isAutomatedNote"
+        class="inline-flex items-center gap-1 px-1.5 rounded-md bg-n-amber-9 text-n-amber-12 dark:text-n-amber-3 font-semibold"
+        data-testid="private-note-automation-badge"
+      >
+        <span class="i-lucide-bot size-3.5 shrink-0" />
+        {{ t('CONVERSATION.PRIVATE_NOTE_HEADER.AUTOMATION') }}
+      </span>
+    </div>
     <div
       v-if="inReplyTo"
       class="p-2 -mx-1 mb-2 rounded-lg cursor-pointer bg-n-alpha-black1"

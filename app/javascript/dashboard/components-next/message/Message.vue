@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, computed, ref, toRefs } from 'vue';
 import { useTimeoutFn } from '@vueuse/core';
+import { activeSearchMessageId } from 'dashboard/helper/chatSearchHighlight';
 import { provideMessageContext } from './provider.js';
 import { isContactSide } from 'dashboard/store/modules/conversations/helpers';
 import { useTrack } from 'dashboard/composables';
@@ -48,9 +49,12 @@ import WhatsappReferral from './bubbles/Text/WhatsappReferral.vue';
 import MessageError from './MessageError.vue';
 import ForwardEmailPanel from './forward/ForwardEmailPanel.vue';
 import ForwardedEmailBanner from './forward/ForwardedEmailBanner.vue';
+import Reactions from './chips/Reactions.vue';
 import ContextMenu from 'dashboard/modules/conversations/components/MessageContextMenu.vue';
 import { useBranding } from 'shared/composables/useBranding';
 import { useTranslations } from 'dashboard/composables/useTranslations';
+import { useAdmin } from 'dashboard/composables/useAdmin';
+import { useSellerMode } from 'dashboard/composables/useSellerMode';
 
 /**
  * @typedef {Object} Attachment
@@ -130,7 +134,7 @@ const props = defineProps({
   },
   conversationId: { type: Number, required: true },
   createdAt: { type: Number, required: true }, // eslint-disable-line vue/no-unused-properties
-  currentUserId: { type: Number, required: true }, // eslint-disable-line vue/no-unused-properties
+  currentUserId: { type: Number, required: true },
   groupWithNext: { type: Boolean, default: false },
   inboxId: { type: Number, default: null }, // eslint-disable-line vue/no-unused-properties
   inboxSupportsReplyTo: { type: Object, default: () => ({}) },
@@ -141,7 +145,7 @@ const props = defineProps({
   sender: { type: Object, default: null },
   senderId: { type: Number, default: null },
   senderType: { type: String, default: null },
-  sourceId: { type: String, default: '' }, // eslint-disable-line vue/no-unused-properties
+  sourceId: { type: String, default: '' },
 });
 
 const emit = defineEmits(['retry']);
@@ -157,6 +161,8 @@ const inboxGetter = useMapGetter('inboxes/getInbox');
 const inbox = computed(() => inboxGetter.value(props.inboxId) || {});
 const isOnChatwootCloud = useMapGetter('globalConfig/isOnChatwootCloud');
 const { replaceInstallationName } = useBranding();
+const { isAdmin } = useAdmin();
+const { isSellerMode } = useSellerMode();
 const autoTranslate = useMapGetter('getAutoTranslate');
 const translationState = useMapGetter('getMessageTranslationState');
 const showingOriginal = ref(false);
@@ -418,6 +424,22 @@ const payloadForContextMenu = computed(() => {
   };
 });
 
+const reactions = computed(() => props.contentAttributes?.reactions || {});
+const hasReactions = computed(
+  () => !!(reactions.value.contact || reactions.value.business)
+);
+
+// Only WhatsApp Cloud can react, and only to messages that have a WhatsApp id.
+const canReact = computed(
+  () =>
+    inbox.value.channel_type === 'Channel::Whatsapp' &&
+    inbox.value.provider === 'whatsapp_cloud' &&
+    !props.private &&
+    props.sourceId?.startsWith('wamid.') &&
+    props.status !== MESSAGE_STATUS.FAILED &&
+    !isMessageDeleted.value
+);
+
 const contextMenuEnabledOptions = computed(() => {
   const hasText = !!props.content;
   const hasAttachments = !!(props.attachments && props.attachments.length > 0);
@@ -426,16 +448,25 @@ const contextMenuEnabledOptions = computed(() => {
   const isFailedOrProcessing =
     props.status === MESSAGE_STATUS.FAILED ||
     props.status === MESSAGE_STATUS.PROGRESS;
+  // mirrors the backend: agents may only delete messages they sent themselves
+  const isSentByCurrentUser =
+    isOutgoing &&
+    (props.sender?.type ?? props.senderType)?.toLowerCase() ===
+      SENDER_TYPES.USER.toLowerCase() &&
+    (props.senderId ?? props.sender?.id) === props.currentUserId;
 
   return {
+    react: canReact.value,
     copy: hasText,
     delete:
+      (isAdmin.value || isSentByCurrentUser) &&
       (hasText || hasAttachments) &&
       !isFailedOrProcessing &&
       !isMessageDeleted.value,
     cannedResponse: isOutgoing && hasText && !isMessageDeleted.value,
-    copyLink: !isFailedOrProcessing,
+    copyLink: !isSellerMode.value && !isFailedOrProcessing,
     translate:
+      !isSellerMode.value &&
       !isFailedOrProcessing &&
       !isMessageDeleted.value &&
       hasText &&
@@ -598,13 +629,18 @@ provideMessageContext({
   <div
     v-if="shouldRenderMessage"
     :id="`message${props.id}`"
-    class="flex w-full mb-2 message-bubble-container"
+    class="flex w-full message-bubble-container"
     :data-message-id="props.id"
     :class="[
       flexOrientationClass,
       {
         'group-with-next': shouldGroupWithNext,
+        // Messages of the same block sit closer together than separate blocks.
+        'mb-0.5': shouldGroupWithNext,
+        'mb-2': !shouldGroupWithNext,
         'bg-n-alpha-1': showBackgroundHighlight,
+        // The message the in-conversation search is showing.
+        'bg-n-brand/10': activeSearchMessageId === props.id,
       },
     ]"
   >
@@ -639,6 +675,14 @@ provideMessageContext({
           'ltr:mr-8 rtl:ml-8': orientation === ORIENTATION.LEFT,
           'flex-col items-start gap-2':
             shouldShowWhatsappReferral || isForwardedEmail,
+          'flex-col':
+            hasReactions && !shouldShowWhatsappReferral && !isForwardedEmail,
+          'items-end': hasReactions && orientation === ORIENTATION.RIGHT,
+          'items-start':
+            hasReactions &&
+            orientation === ORIENTATION.LEFT &&
+            !shouldShowWhatsappReferral &&
+            !isForwardedEmail,
         }"
         @contextmenu="openContextMenu($event)"
       >
@@ -648,6 +692,7 @@ provideMessageContext({
         />
         <ForwardedEmailBanner v-if="isForwardedEmail" />
         <Component :is="componentToRender" />
+        <Reactions v-if="hasReactions" :reactions="reactions" />
       </div>
       <MessageError
         v-if="contentAttributes.externalError"
@@ -664,6 +709,7 @@ provideMessageContext({
         :is-open="showContextMenu"
         :enabled-options="contextMenuEnabledOptions"
         :message="payloadForContextMenu"
+        :current-reaction="reactions.business || ''"
         hide-button
         @open="openContextMenu"
         @close="closeContextMenu"

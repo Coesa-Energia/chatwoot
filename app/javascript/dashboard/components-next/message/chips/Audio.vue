@@ -1,6 +1,7 @@
 <script setup>
 import {
   computed,
+  onBeforeUnmount,
   onMounted,
   useTemplateRef,
   ref,
@@ -11,6 +12,7 @@ import { timeStampAppendedURL } from 'dashboard/helper/URLHelper';
 import { downloadFile } from '@chatwoot/utils';
 import { useEmitter } from 'dashboard/composables/emitter';
 import { emitter } from 'shared/helpers/mitt';
+import { useAudioWaveform } from 'dashboard/composables/useAudioWaveform';
 
 const { attachment } = defineProps({
   attachment: {
@@ -88,10 +90,27 @@ const playbackSpeedLabel = computed(() => {
 // There maybe a chance that the audioPlayer ref is not available
 // When the onLoadMetadata is called, so we need to set the duration
 // value when the component is mounted
+const { peaks, load: loadWaveform } = useAudioWaveform();
+let observer;
+onBeforeUnmount(() => observer?.disconnect());
+const waveform = useTemplateRef('waveform');
+const playedRatio = computed(() =>
+  duration.value ? Math.min(1, currentTime.value / duration.value) : 0
+);
+
 onMounted(() => {
   const d = audioPlayer.value?.duration;
   if (Number.isFinite(d)) duration.value = d;
   audioPlayer.value.playbackRate = playbackSpeed.value;
+
+  // Decode the audio only once the bubble is on screen, not for the whole history.
+  if (typeof IntersectionObserver === 'undefined' || !waveform.value) return;
+  observer = new IntersectionObserver(entries => {
+    if (!entries.some(entry => entry.isIntersecting)) return;
+    observer.disconnect();
+    loadWaveform(attachment.dataUrl);
+  });
+  observer.observe(waveform.value);
 });
 
 // Listen for global audio play events and pause if it's not this audio
@@ -124,6 +143,15 @@ const onTimeUpdate = () => {
 
 const seek = event => {
   const time = Number(event.target.value);
+  audioPlayer.value.currentTime = time;
+  currentTime.value = time;
+};
+
+const seekFromWaveform = event => {
+  const { left, width } = event.currentTarget.getBoundingClientRect();
+  if (!width || !duration.value) return;
+  const ratio = Math.min(1, Math.max(0, (event.clientX - left) / width));
+  const time = ratio * duration.value;
   audioPlayer.value.currentTime = time;
   currentTime.value = time;
 };
@@ -189,8 +217,27 @@ const downloadAudio = async () => {
       <div class="tabular-nums text-xs">
         {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
       </div>
-      <div class="flex-1 items-center flex px-2">
+      <div ref="waveform" class="flex-1 items-center flex px-2">
+        <div
+          v-if="peaks.length"
+          class="flex items-center gap-px w-full h-7 cursor-pointer"
+          data-testid="audio-waveform"
+          @click="seekFromWaveform"
+        >
+          <span
+            v-for="(peak, index) in peaks"
+            :key="index"
+            class="flex-1 rounded-full"
+            :class="
+              index / peaks.length < playedRatio
+                ? 'bg-n-brand'
+                : 'bg-n-slate-12/30'
+            "
+            :style="{ height: `${Math.round(peak * 100)}%` }"
+          />
+        </div>
         <input
+          v-else
           type="range"
           min="0"
           :max="duration"

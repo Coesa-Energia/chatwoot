@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
-import { messageTimestamp } from 'shared/helpers/timeHelper';
+import { useI18n } from 'vue-i18n';
+import { messageTimeLabel } from './helpers/daySeparator';
 import { useExactTimestamp } from 'shared/composables/useExactTimestamp';
 
 import MessageStatus from './MessageStatus.vue';
@@ -35,8 +36,12 @@ const {
   contentAttributes,
 } = useMessageContext();
 
+const { locale } = useI18n();
+
+// Only the time: the day is shown by the divider above the first message of each day. The full date and
+// time stay in the tooltip.
 const readableTime = computed(() =>
-  messageTimestamp(createdAt.value, 'LLL d, h:mm a')
+  messageTimeLabel(createdAt.value, locale.value)
 );
 
 const exactTime = computed(() => exactTimestamp(createdAt.value));

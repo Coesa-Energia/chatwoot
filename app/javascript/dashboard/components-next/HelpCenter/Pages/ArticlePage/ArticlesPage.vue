@@ -5,6 +5,8 @@ import { useI18n } from 'vue-i18n';
 import { OnClickOutside } from '@vueuse/components';
 import { useStore, useMapGetter } from 'dashboard/composables/store.js';
 import { useConfig } from 'dashboard/composables/useConfig';
+import { usePolicy } from 'dashboard/composables/usePolicy';
+import { PORTAL_PERMISSIONS } from 'dashboard/constants/permissions';
 import { debounce } from '@chatwoot/utils';
 import {
   ARTICLE_TABS,
@@ -84,6 +86,10 @@ const searchQuery = ref(route.query.search || '');
 const debouncedSearch = debounce(() => emit('search', searchQuery.value), 500);
 
 const { isEnterprise } = useConfig();
+const { checkPermissions } = usePolicy();
+const canManageKnowledgeBase = computed(() =>
+  checkPermissions(['administrator', PORTAL_PERMISSIONS])
+);
 
 const isTranslationAvailable = computed(
   () =>
@@ -146,6 +152,7 @@ const updateRoute = newParams => {
 const articlesCount = computed(() => {
   const { tab } = route.params;
   const { meta } = props;
+  if (!canManageKnowledgeBase.value) return Number(meta.publishedCount) || 0;
   const countMap = {
     '': meta.articlesCount,
     mine: meta.mineArticlesCount,
@@ -368,6 +375,7 @@ watch(
           :categories="categories"
           :allowed-locales="allowedLocales"
           :meta="meta"
+          :read-only="!canManageKnowledgeBase"
           @tab-change="handleTabChange"
           @locale-change="handleLocaleAction"
           @category-change="handleCategoryAction"
@@ -496,6 +504,7 @@ watch(
           :selected-article-ids="selectedArticleIds"
           :current-page="Number(meta.currentPage)"
           :total-pages="totalPages"
+          :read-only="!canManageKnowledgeBase"
           class="relative z-0"
           @translate-article="handleTranslateArticle"
           @toggle-select="handleToggleSelect"
@@ -508,7 +517,9 @@ watch(
         class="pt-14"
         :title="getEmptyStateTitle"
         :subtitle="getEmptyStateSubtitle"
-        :show-button="hasNoArticlesInPortal && !isSearching"
+        :show-button="
+          hasNoArticlesInPortal && !isSearching && canManageKnowledgeBase
+        "
         :button-label="
           t('HELP_CENTER.ARTICLES_PAGE.EMPTY_STATE.ALL.BUTTON_LABEL')
         "

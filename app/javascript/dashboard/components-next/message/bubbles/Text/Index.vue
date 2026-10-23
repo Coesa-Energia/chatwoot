@@ -6,7 +6,8 @@ import BaseBubble from 'next/message/bubbles/Base.vue';
 import FormattedContent from './FormattedContent.vue';
 import AttachmentChips from 'next/message/chips/AttachmentChips.vue';
 import TranslationToggle from 'dashboard/components-next/message/TranslationToggle.vue';
-import { MESSAGE_TYPES } from '../../constants';
+import TemplateButtons from 'next/message/chips/TemplateButtons.vue';
+import { ATTACHMENT_TYPES, MESSAGE_TYPES } from '../../constants';
 import { MESSAGE_STATUS } from 'shared/constants/messages';
 import { useMessageContext } from '../../provider.js';
 import { useTranslations } from 'dashboard/composables/useTranslations';
@@ -68,6 +69,15 @@ const isEmpty = computed(() => {
   return !content.value && !attachments.value?.length;
 });
 
+// Photos and videos go on top, like WhatsApp, with the caption underneath.
+const hasMedia = computed(() =>
+  (attachments.value || []).some(attachment =>
+    [ATTACHMENT_TYPES.IMAGE, ATTACHMENT_TYPES.VIDEO].includes(
+      attachment.fileType
+    )
+  )
+);
+
 const handleSeeOriginal = () => {
   showingOriginal.value = !showingOriginal.value;
 };
@@ -88,8 +98,18 @@ const morphHeight = () => {
 </script>
 
 <template>
-  <BaseBubble class="px-4 py-3" data-bubble-name="text">
+  <BaseBubble
+    :class="hasMedia ? 'px-4 pt-3 pb-3' : 'px-4 py-3'"
+    data-bubble-name="text"
+  >
     <div class="gap-3 flex flex-col">
+      <AttachmentChips
+        v-if="hasMedia"
+        :attachments="attachments"
+        only="media"
+        grid
+        class="-mx-2.5 -mt-1.5"
+      />
       <span v-if="isEmpty" class="text-n-slate-11">
         {{ $t('CONVERSATION.NO_CONTENT') }}
       </span>
@@ -139,7 +159,12 @@ const morphHeight = () => {
       >
         {{ $t('CONVERSATION.REQUEST_CONTACT_INFO.STATES.IDENTITY_CONFLICT') }}
       </span>
-      <AttachmentChips :attachments="attachments" class="gap-2" />
+      <AttachmentChips
+        :attachments="attachments"
+        :only="hasMedia ? 'other' : ''"
+        class="gap-2"
+      />
+      <TemplateButtons />
       <template v-if="isTemplate">
         <div
           v-if="contentAttributes.submittedEmail"

@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { getFileInfo } from '@chatwoot/utils';
+import { formatBytes } from 'shared/helpers/FileHelper';
 
 import FileIcon from 'next/icon/FileIcon.vue';
 import Icon from 'next/icon/Icon.vue';
@@ -21,15 +22,17 @@ const fileDetails = computed(() => {
 
 const displayFileName = computed(() => {
   const { base, type } = fileDetails.value;
-  const truncatedName = (str, maxLength, hasExt) =>
-    str.length > maxLength
-      ? `${str.substring(0, maxLength).trimEnd()}${hasExt ? '..' : '...'}`
-      : str;
-
-  return type
-    ? `${truncatedName(base, 12, true)}.${type}`
-    : truncatedName(base, 14, false);
+  return type ? `${base}.${type}` : base;
 });
+
+const fileMeta = computed(() =>
+  [
+    fileDetails.value.type?.toUpperCase(),
+    attachment?.fileSize ? formatBytes(attachment.fileSize) : '',
+  ]
+    .filter(Boolean)
+    .join(' · ')
+);
 
 const textColorClass = computed(() => {
   const colorMap = {
@@ -57,19 +60,28 @@ const textColorClass = computed(() => {
 
 <template>
   <div
-    class="h-9 bg-n-alpha-white gap-2 overflow-hidden items-center flex px-2 rounded-lg border border-n-container"
+    class="flex items-center w-64 max-w-full gap-3 px-3 py-2 overflow-hidden border rounded-xl bg-n-alpha-white border-n-container"
   >
-    <FileIcon class="flex-shrink-0" :file-type="fileDetails.type" />
     <span
-      class="flex-1 min-w-0 text-sm max-w-36"
-      :title="fileDetails.name"
-      :class="textColorClass"
+      class="grid flex-shrink-0 rounded-lg size-9 place-content-center bg-n-alpha-2"
     >
-      {{ displayFileName }}
+      <FileIcon class="size-5" :file-type="fileDetails.type" />
+    </span>
+    <span class="flex flex-col flex-1 min-w-0">
+      <span
+        class="text-sm font-medium truncate"
+        :title="fileDetails.name"
+        :class="textColorClass"
+      >
+        {{ displayFileName }}
+      </span>
+      <span v-if="fileMeta" class="text-xs truncate text-n-slate-11">
+        {{ fileMeta }}
+      </span>
     </span>
     <a
       v-tooltip="t('CONVERSATION.DOWNLOAD')"
-      class="flex-shrink-0 size-9 grid place-content-center cursor-pointer text-n-slate-11 hover:text-n-slate-12 transition-colors"
+      class="grid flex-shrink-0 transition-colors rounded-full cursor-pointer size-8 place-content-center text-n-slate-11 hover:text-n-slate-12 hover:bg-n-alpha-2"
       :href="attachment.dataUrl"
       rel="noreferrer noopener nofollow"
       target="_blank"

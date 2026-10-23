@@ -51,10 +51,10 @@ const rowTitle = computed(() =>
   >
     {{ label }}
     <template v-if="channelIdentifier">
-      <span aria-hidden="true" class="text-n-slate-9 mx-0.5">
+      <span aria-hidden="true" class="text-n-slate-11 mx-0.5">
         {{ IDENTIFIER_SEPARATOR }}
       </span>
-      <bdi dir="auto" class="text-n-slate-9" data-test-id="channel-identifier">
+      <bdi dir="auto" class="text-n-slate-11" data-test-id="channel-identifier">
         {{ channelIdentifier }}
       </bdi>
     </template>

@@ -11,6 +11,11 @@ defineProps({
     type: Object,
     required: true,
   },
+  // Fill the parent tile (album layout) instead of the small fixed thumbnail.
+  fill: {
+    type: Boolean,
+    default: false,
+  },
 });
 const hasError = ref(false);
 const showGallery = ref(false);
@@ -24,7 +29,8 @@ const handleError = () => {
 
 <template>
   <div
-    class="size-[72px] overflow-hidden contain-content rounded-xl cursor-pointer"
+    class="overflow-hidden cursor-pointer contain-content rounded-xl"
+    :class="fill ? 'size-full' : 'size-[72px]'"
     @click="showGallery = true"
   >
     <div

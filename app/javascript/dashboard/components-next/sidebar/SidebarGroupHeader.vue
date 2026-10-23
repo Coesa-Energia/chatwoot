@@ -38,13 +38,13 @@ const onClick = event => {
 <template>
   <component
     :is="to ? 'a' : 'div'"
-    class="flex items-center gap-2 px-1.5 py-1 rounded-lg h-8 min-w-0"
+    class="flex items-center gap-2 px-1.5 py-1 rounded-lg h-8 min-w-0 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-n-brand"
     role="button"
     draggable="false"
     :href="href"
     :title="label"
     :class="{
-      'text-n-slate-12 bg-n-alpha-2 font-medium': isActive && !hasActiveChild,
+      'text-n-slate-12 bg-n-brand/10 font-medium': isActive && !hasActiveChild,
       'text-n-slate-12 font-medium': hasActiveChild,
       'text-n-slate-11 hover:bg-n-alpha-2': !isActive && !hasActiveChild,
     }"
@@ -71,7 +71,7 @@ const onClick = event => {
       </span>
       <span
         v-if="dynamicCount && !expandable"
-        class="inline-grid h-5 min-w-5 place-items-center rounded-full bg-n-slate-4 px-1 text-xxs font-medium leading-3 text-n-slate-12 dark:bg-n-slate-5 flex-shrink-0"
+        class="inline-grid h-5 min-w-5 place-items-center rounded-full bg-n-brand px-1.5 text-xs font-semibold leading-3 text-white dark:text-n-slate-1 tabular-nums flex-shrink-0"
       >
         {{ count }}
       </span>

@@ -10,6 +10,11 @@ defineProps({
     type: Object,
     required: true,
   },
+  // Fill the parent tile (album layout) instead of the small fixed thumbnail.
+  fill: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const showGallery = ref(false);
@@ -19,14 +24,16 @@ const { filteredCurrentChatAttachments } = useMessageContext();
 
 <template>
   <div
-    class="size-[72px] overflow-hidden contain-content rounded-xl cursor-pointer relative group"
+    class="relative overflow-hidden cursor-pointer contain-content rounded-xl group"
+    :class="fill ? 'size-full' : 'size-[72px]'"
     @click="showGallery = true"
   >
     <video
       :src="attachment.dataUrl"
       class="w-full h-full object-cover"
       muted
-      playsInline
+      playsinline
+      preload="metadata"
     />
     <div
       class="absolute w-full h-full inset-0 p-1 flex items-center justify-center"
@@ -46,7 +53,6 @@ const { filteredCurrentChatAttachments } = useMessageContext();
     v-model:show="showGallery"
     :attachment="useSnakeCase(attachment)"
     :all-attachments="filteredCurrentChatAttachments"
-    @error="onError"
     @close="() => (showGallery = false)"
   />
 </template>

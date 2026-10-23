@@ -185,6 +185,7 @@ watch(items, () => {
       v-model:selected-index="selectedIndex"
       v-model:search="search"
       v-on-click-outside="() => emit('close')"
+      data-escape-owner
       :items="items"
       :search-placeholder="searchPlaceholder"
       :empty-label="emptyLabel"

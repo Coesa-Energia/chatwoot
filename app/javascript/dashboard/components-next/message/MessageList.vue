@@ -1,7 +1,14 @@
 <script setup>
 import { computed, reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Message from './Message.vue';
 import CampaignMessage from './CampaignMessage.vue';
+import DateDivider from './DateDivider.vue';
+import {
+  dayKey,
+  daySeparatorLabel,
+  withDaySeparators,
+} from './helpers/daySeparator.js';
 import { MESSAGE_TYPES } from './constants.js';
 import { useCamelCase } from 'dashboard/composables/useTransformKeys';
 import { useMapGetter } from 'dashboard/composables/store.js';
@@ -57,8 +64,16 @@ const allMessages = computed(() => {
 });
 
 const currentChat = useMapGetter('getSelectedChat');
+const { t, locale } = useI18n();
 
-const timeline = computed(() => {
+const dateLabel = timestamp =>
+  daySeparatorLabel(timestamp, {
+    locale: locale.value,
+    todayLabel: t('CONVERSATION.DAY_TODAY'),
+    yesterdayLabel: t('CONVERSATION.DAY_YESTERDAY'),
+  });
+
+const entries = computed(() => {
   const messages = allMessages.value.map(message => ({
     key: `message-${message.id}`,
     createdAt: message.createdAt,
@@ -75,6 +90,9 @@ const timeline = computed(() => {
     })),
   ].sort((a, b) => a.createdAt - b.createdAt);
 });
+
+// Messages and campaign entries in order, with a small divider before the first one of each day.
+const timeline = computed(() => withDaySeparators(entries.value));
 
 // Cache for fetched reply messages to avoid duplicate API calls
 const fetchedReplyMessages = reactive(new Map());
@@ -116,6 +134,13 @@ const fetchReplyMessage = async (messageId, conversationId) => {
   }
 };
 
+// Template messages are shown like outgoing ones.
+const messageSide = messageType =>
+  messageType === MESSAGE_TYPES.TEMPLATE ? MESSAGE_TYPES.OUTGOING : messageType;
+
+// Messages from the same sender further apart than this start a new group.
+const MAX_GROUP_GAP_SECONDS = 10 * 60;
+
 /**
  * Determines if a message should be grouped with the next message
  * @param {Object} current - Current message
@@ -127,21 +152,18 @@ const shouldGroupWithNext = (current, next) => {
 
   const nextSenderId = next.senderId ?? next.sender?.id;
   const currentSenderId = current.senderId ?? current.sender?.id;
-  const hasSameSender = nextSenderId === currentSenderId;
+  if (nextSenderId !== currentSenderId) return false;
 
-  const nextMessageType = next.messageType;
-  const currentMessageType = current.messageType;
+  // Automated messages (bot replies, forms, cards...) come as outgoing or template messages and are drawn on
+  // the same side with the same colour, so they group together; a person's messages never mix with them
+  // because the sender differs.
+  if (messageSide(current.messageType) !== messageSide(next.messageType)) {
+    return false;
+  }
 
-  const areBothTemplates =
-    nextMessageType === MESSAGE_TYPES.TEMPLATE &&
-    currentMessageType === MESSAGE_TYPES.TEMPLATE;
-
-  if (!hasSameSender || areBothTemplates) return false;
-
-  if (currentMessageType !== nextMessageType) return false;
-
-  // Check if messages are in the same minute by rounding down to nearest minute
-  return Math.floor(next.createdAt / 60) === Math.floor(current.createdAt / 60);
+  // Same sender, same day and no long pause in between: they read as one block.
+  if (dayKey(next.createdAt) !== dayKey(current.createdAt)) return false;
+  return next.createdAt - current.createdAt <= MAX_GROUP_GAP_SECONDS;
 };
 
 /**
@@ -191,7 +213,11 @@ const getInReplyToMessage = parentMessage => {
         v-if="firstUnreadId && entry.message?.id === firstUnreadId"
         name="unreadBadge"
       />
-      <CampaignMessage v-if="entry.recipient" :recipient="entry.recipient" />
+      <DateDivider v-if="entry.date" :label="dateLabel(entry.date)" />
+      <CampaignMessage
+        v-else-if="entry.recipient"
+        :recipient="entry.recipient"
+      />
       <Message
         v-else
         v-bind="entry.message"
