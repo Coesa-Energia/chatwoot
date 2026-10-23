@@ -78,10 +78,10 @@ const onCaptchaError = () => {
     class="flex flex-col w-full min-h-screen py-20 bg-n-brand/5 dark:bg-n-background sm:px-6 lg:px-8"
   >
     <section
-      class="bg-white shadow sm:mx-auto mt-11 sm:w-full sm:max-w-lg dark:bg-n-solid-2 p-11 sm:shadow-lg sm:rounded-lg"
+      class="px-4 py-8 border-y sm:border border-n-weak bg-n-solid-1 sm:mx-auto mt-8 sm:w-full sm:max-w-md sm:p-10 sm:rounded-xl"
     >
       <div class="mb-6">
-        <h2 class="text-2xl font-semibold text-n-slate-12">
+        <h2 class="text-xl font-medium text-n-slate-12">
           {{ $t('REGISTER.VERIFY_EMAIL.TITLE') }}
         </h2>
         <p class="mt-2 text-sm text-n-slate-11">

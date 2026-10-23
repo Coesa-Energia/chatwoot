@@ -1,6 +1,6 @@
 import { frontendURL } from 'dashboard/helper/URLHelper';
 import { clearBrowserSessionCookies } from 'dashboard/store/utils/api';
-import { getShopifyBillingRedirect, hasAuthCookie } from './AuthHelper';
+import { hasAuthCookie } from './AuthHelper';
 import { DEFAULT_REDIRECT_URL } from 'dashboard/constants/globals';
 import { replaceRouteWithReload } from './CommonHelper';
 
@@ -45,8 +45,7 @@ export const validateRouteAccess = (to, next, chatwootConfig = {}) => {
       return;
     }
 
-    const redirectUrl =
-      requestedRedirectUrl || getShopifyBillingRedirect(to.query);
+    const redirectUrl = requestedRedirectUrl;
     const redirectTarget = redirectUrl
       ? `${DEFAULT_REDIRECT_URL}?redirect_url=${encodeURIComponent(redirectUrl)}`
       : DEFAULT_REDIRECT_URL;

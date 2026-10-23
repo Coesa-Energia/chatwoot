@@ -102,6 +102,16 @@ export default {
   },
   computed: {
     ...mapGetters({ globalConfig: 'globalConfig/get' }),
+    // COESA: account brand (set by the server when there is no Super Admin branding) follows the sidebar layout.
+    brandDisplay() {
+      return this.globalConfig.brandDisplay;
+    },
+    showBrandLogo() {
+      return this.brandDisplay !== 'name';
+    },
+    showBrandName() {
+      return !!this.brandDisplay && this.brandDisplay !== 'logo';
+    },
     allowedLoginMethods() {
       return window.chatwootConfig.allowedLoginMethods || ['email'];
     },
@@ -401,20 +411,35 @@ export default {
     class="flex flex-col w-full min-h-screen py-20 bg-n-brand/5 dark:bg-n-background sm:px-6 lg:px-8"
   >
     <section class="max-w-5xl mx-auto">
-      <img
-        :src="globalConfig.logo"
-        :alt="globalConfig.installationName"
-        class="block w-auto h-8 mx-auto dark:hidden"
-      />
-      <img
-        v-if="globalConfig.logoDark"
-        :src="globalConfig.logoDark"
-        :alt="globalConfig.installationName"
-        class="hidden w-auto h-8 mx-auto dark:block"
-      />
-      <h2 class="mt-6 text-3xl font-medium text-center text-n-slate-12">
+      <div
+        class="flex items-center justify-center gap-3"
+        :class="brandDisplay === 'logo_name_inline' ? 'flex-row' : 'flex-col'"
+      >
+        <template v-if="showBrandLogo">
+          <img
+            :src="globalConfig.logo"
+            :alt="globalConfig.installationName"
+            class="block w-auto max-w-xs dark:hidden"
+            :class="brandDisplay ? 'h-14' : 'h-8'"
+          />
+          <img
+            v-if="globalConfig.logoDark"
+            :src="globalConfig.logoDark"
+            :alt="globalConfig.installationName"
+            class="hidden w-auto max-w-xs dark:block"
+            :class="brandDisplay ? 'h-14' : 'h-8'"
+          />
+        </template>
+        <span
+          v-if="showBrandName"
+          class="text-lg font-semibold text-n-slate-12"
+        >
+          {{ globalConfig.installationName }}
+        </span>
+      </div>
+      <h1 class="mt-6 text-xl font-medium text-center text-n-slate-12">
         {{ replaceInstallationName($t('LOGIN.TITLE')) }}
-      </h2>
+      </h1>
       <p v-if="showSignupLink" class="mt-3 text-sm text-center text-n-slate-11">
         {{ $t('COMMON.OR') }}
         <router-link :to="signupRoute" class="lowercase text-link text-n-brand">
@@ -458,9 +483,9 @@ export default {
     <!-- Regular Login Section -->
     <section
       v-else
-      class="bg-white shadow sm:mx-auto mt-11 sm:w-full sm:max-w-lg dark:bg-n-solid-2 p-11 sm:shadow-lg sm:rounded-lg"
+      class="px-4 py-8 border-y sm:border border-n-weak bg-n-solid-1 sm:mx-auto mt-8 sm:w-full sm:max-w-md sm:p-10 sm:rounded-xl"
       :class="{
-        'mb-8 mt-15': !showGoogleOAuth,
+        'mb-8': !showGoogleOAuth,
         'animate-wiggle': loginApi.hasErrored,
       }"
     >
@@ -474,13 +499,13 @@ export default {
           <div v-if="showSamlLogin" class="text-center">
             <router-link
               :to="samlLoginRoute"
-              class="inline-flex justify-center w-full px-4 py-3 items-center bg-n-background dark:bg-n-solid-3 rounded-md shadow-sm ring-1 ring-inset ring-n-container dark:ring-n-container focus:outline-offset-0 hover:bg-n-alpha-2 dark:hover:bg-n-alpha-2"
+              class="inline-flex justify-center w-full px-4 py-3 items-center bg-n-background dark:bg-n-solid-3 rounded-lg ring-1 ring-inset ring-n-container dark:ring-n-container focus:outline-offset-0 hover:bg-n-alpha-2 dark:hover:bg-n-alpha-2"
             >
               <Icon
                 icon="i-lucide-lock-keyhole"
                 class="size-5 text-n-slate-11"
               />
-              <span class="ml-2 text-base font-medium text-n-slate-12">
+              <span class="ms-2 text-sm font-medium text-n-slate-12">
                 {{ $t('LOGIN.SAML.LABEL') }}
               </span>
             </router-link>

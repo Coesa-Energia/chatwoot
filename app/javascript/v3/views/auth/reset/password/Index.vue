@@ -91,12 +91,10 @@ export default {
     class="flex flex-col justify-center w-full min-h-screen py-12 bg-n-brand/5 dark:bg-n-background sm:px-6 lg:px-8"
   >
     <form
-      class="bg-white shadow sm:mx-auto sm:w-full sm:max-w-lg dark:bg-n-solid-2 p-11 sm:shadow-lg sm:rounded-lg"
+      class="px-4 py-8 border-y sm:border border-n-weak bg-n-solid-1 sm:mx-auto sm:w-full sm:max-w-md sm:p-10 sm:rounded-xl"
       @submit.prevent="submit"
     >
-      <h1
-        class="mb-1 text-2xl font-medium tracking-tight text-left text-n-slate-12"
-      >
+      <h1 class="mb-1 text-xl font-medium text-start text-n-slate-12">
         {{ $t('RESET_PASSWORD.TITLE') }}
       </h1>
       <p
