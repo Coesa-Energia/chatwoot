@@ -22,21 +22,26 @@ const PortalsLocalesIndexPage = () =>
 const PortalsSettingsIndexPage = () =>
   import('./pages/PortalsSettingsIndexPage.vue');
 
-const meta = {
+// Agents (sellers) can read articles; everything else is for knowledge base managers.
+const readerMeta = {
   featureFlag: FEATURE_FLAGS.HELP_CENTER,
   permissions: ['administrator', 'agent', 'knowledge_base_manage'],
+};
+const managerMeta = {
+  featureFlag: FEATURE_FLAGS.HELP_CENTER,
+  permissions: ['administrator', 'knowledge_base_manage'],
 };
 const portalRoutes = [
   {
     path: getPortalRoute(':portalSlug/:locale/:categorySlug?/articles/:tab?'),
     name: 'portals_articles_index',
-    meta,
+    meta: readerMeta,
     component: PortalsArticlesIndexPage,
   },
   {
     path: getPortalRoute(':portalSlug/:locale/:categorySlug?/articles/new'),
     name: 'portals_articles_new',
-    meta,
+    meta: managerMeta,
     component: PortalsArticlesNewPage,
   },
   {
@@ -44,14 +49,14 @@ const portalRoutes = [
       ':portalSlug/:locale/:categorySlug?/articles/:tab?/edit/:articleSlug'
     ),
     name: 'portals_articles_edit',
-    meta,
+    meta: readerMeta,
     component: PortalsArticlesEditPage,
   },
 
   {
     path: getPortalRoute(':portalSlug/:locale/categories'),
     name: 'portals_categories_index',
-    meta,
+    meta: managerMeta,
     component: PortalsCategoriesIndexPage,
   },
   {
@@ -59,7 +64,7 @@ const portalRoutes = [
       ':portalSlug/:locale/categories/:categorySlug/articles'
     ),
     name: 'portals_categories_articles_index',
-    meta,
+    meta: managerMeta,
     component: PortalsArticlesIndexPage,
   },
   {
@@ -67,7 +72,7 @@ const portalRoutes = [
       ':portalSlug/:locale/categories/:categorySlug/articles/new'
     ),
     name: 'portals_categories_articles_new',
-    meta,
+    meta: managerMeta,
     component: PortalsArticlesNewPage,
   },
   {
@@ -75,37 +80,31 @@ const portalRoutes = [
       ':portalSlug/:locale/categories/:categorySlug/articles/:articleSlug'
     ),
     name: 'portals_categories_articles_edit',
-    meta,
+    meta: managerMeta,
     component: PortalsArticlesEditPage,
   },
   {
     path: getPortalRoute(':portalSlug/locales'),
     name: 'portals_locales_index',
-    meta,
+    meta: managerMeta,
     component: PortalsLocalesIndexPage,
   },
   {
     path: getPortalRoute(':portalSlug/settings'),
     name: 'portals_settings_index',
-    meta,
+    meta: managerMeta,
     component: PortalsSettingsIndexPage,
   },
   {
     path: getPortalRoute('new'),
     name: 'portals_new',
-    meta: {
-      featureFlag: FEATURE_FLAGS.HELP_CENTER,
-      permissions: ['administrator', 'knowledge_base_manage'],
-    },
+    meta: managerMeta,
     component: PortalsNew,
   },
   {
     path: getPortalRoute(':navigationPath'),
     name: 'portals_index',
-    meta: {
-      featureFlag: FEATURE_FLAGS.HELP_CENTER,
-      permissions: ['administrator', 'knowledge_base_manage'],
-    },
+    meta: readerMeta,
     component: PortalsIndex,
   },
 ];

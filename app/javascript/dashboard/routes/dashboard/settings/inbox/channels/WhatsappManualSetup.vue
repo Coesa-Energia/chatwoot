@@ -325,7 +325,7 @@ const continueToAgents = async () => {
       </div>
     </div>
 
-    <div class="rounded-2xl border border-n-weak bg-n-surface-2 p-5">
+    <div class="rounded-xl border border-n-weak bg-n-surface-2 p-5">
       <div class="flex justify-end">
         <div class="grid w-40 grid-cols-5 gap-1.5">
           <div

@@ -8,6 +8,9 @@ import NextButton from 'dashboard/components-next/button/Button.vue';
 import TagInput from 'dashboard/components-next/taginput/TagInput.vue';
 import router from '../../../index';
 import PageHeader from '../SettingsSubPageHeader.vue';
+import InboxAgentAccess from './InboxAgentAccess.vue';
+import InboxAgentRotation from './InboxAgentRotation.vue';
+import InboxDefaultTeam from './InboxDefaultTeam.vue';
 import { useVuelidate } from '@vuelidate/core';
 
 export default {
@@ -15,6 +18,9 @@ export default {
     PageHeader,
     NextButton,
     TagInput,
+    InboxAgentAccess,
+    InboxAgentRotation,
+    InboxDefaultTeam,
   },
   validations: {
     selectedAgentIds: {
@@ -29,6 +35,9 @@ export default {
   data() {
     return {
       selectedAgentIds: [],
+      seeAllAgentIds: [],
+      rotationAgentIds: [],
+      defaultTeamId: null,
       isCreating: false,
     };
   },
@@ -40,6 +49,11 @@ export default {
       return this.selectedAgentIds.map(
         id => this.agentList.find(a => a.id === id)?.name ?? ''
       );
+    },
+    selectedAgents() {
+      return this.selectedAgentIds
+        .map(id => this.agentList.find(a => a.id === id))
+        .filter(Boolean);
     },
     agentMenuItems() {
       return this.agentList
@@ -59,10 +73,15 @@ export default {
     handleAgentAdd({ value }) {
       if (!this.selectedAgentIds.includes(value)) {
         this.selectedAgentIds.push(value);
+        this.rotationAgentIds.push(value);
       }
     },
     handleAgentRemove(index) {
-      this.selectedAgentIds.splice(index, 1);
+      const [removedId] = this.selectedAgentIds.splice(index, 1);
+      this.seeAllAgentIds = this.seeAllAgentIds.filter(id => id !== removedId);
+      this.rotationAgentIds = this.rotationAgentIds.filter(
+        id => id !== removedId
+      );
     },
     async addAgents() {
       this.isCreating = true;
@@ -72,7 +91,16 @@ export default {
         await InboxMembersAPI.update({
           inboxId,
           agentList: this.selectedAgentIds,
+          seeAllIds: this.seeAllAgentIds,
+          rotationIds: this.rotationAgentIds,
         });
+        if (this.defaultTeamId) {
+          await this.$store.dispatch('inboxes/updateInbox', {
+            id: inboxId,
+            formData: false,
+            default_team_id: this.defaultTeamId,
+          });
+        }
         router.replace({
           name: 'settings_inbox_finish',
           params: {
@@ -121,6 +149,17 @@ export default {
             </span>
           </label>
         </div>
+        <InboxAgentAccess
+          v-model="seeAllAgentIds"
+          :agents="selectedAgents"
+          class="mb-4"
+        />
+        <InboxAgentRotation
+          v-model="rotationAgentIds"
+          :agents="selectedAgents"
+          class="mb-4"
+        />
+        <InboxDefaultTeam v-model="defaultTeamId" class="mb-4" />
         <div class="w-full">
           <NextButton
             type="submit"

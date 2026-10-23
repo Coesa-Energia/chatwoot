@@ -40,7 +40,7 @@ const agentAssignments = computed(() => {
   ];
 
   // Only show Agent Capacity if BOTH assignment_v2 AND advanced_assignment are enabled
-  // advanced_assignment identifies premium users
+  // COESA FORK: all features are free, flags are always on
   const hasAssignmentV2 = isFeatureEnabledonAccount.value(
     accountId.value,
     'assignment_v2'

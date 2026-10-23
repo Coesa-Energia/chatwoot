@@ -3,7 +3,12 @@ import { computed, ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useMapGetter, useStore } from 'dashboard/composables/store.js';
 import allLocales from 'shared/constants/locales.js';
-import { getArticleStatus } from 'dashboard/helper/portalHelper.js';
+import {
+  getArticleStatus,
+  ARTICLE_STATUSES,
+} from 'dashboard/helper/portalHelper.js';
+import { usePolicy } from 'dashboard/composables/usePolicy';
+import { PORTAL_PERMISSIONS } from 'dashboard/constants/permissions';
 import ArticlesPage from 'dashboard/components-next/HelpCenter/Pages/ArticlePage/ArticlesPage.vue';
 
 const route = useRoute();
@@ -25,7 +30,16 @@ const getPortalBySlug = useMapGetter('portals/portalBySlug');
 
 const selectedPortalSlug = computed(() => route.params.portalSlug);
 const selectedCategorySlug = computed(() => route.params.categorySlug);
-const status = computed(() => getArticleStatus(route.params.tab));
+const { checkPermissions } = usePolicy();
+const canManageKnowledgeBase = computed(() =>
+  checkPermissions(['administrator', PORTAL_PERMISSIONS])
+);
+// Agents only read the help center, so they see published articles (no drafts or archived ones).
+const status = computed(() =>
+  getArticleStatus(
+    canManageKnowledgeBase.value ? route.params.tab : ARTICLE_STATUSES.PUBLISHED
+  )
+);
 
 const author = computed(() =>
   route.params.tab === 'mine' ? currentUserId.value : null

@@ -271,7 +271,7 @@ watch(
           <p class="mt-2 text-sm text-n-slate-9">
             {{ $t('INBOX_MGMT.FINISH.SMS_QR_INSTRUCTION') }}
           </p>
-          <div class="rounded-lg shadow outline-1 outline-n-strong outline">
+          <div class="rounded-lg outline-1 outline-n-weak outline">
             <img
               :src="qrCodes.sms"
               :alt="$t('INBOX_MGMT.FINISH.SMS_QR_ALT')"
@@ -291,7 +291,7 @@ watch(
           <p class="mt-2 text-sm text-n-slate-9">
             {{ $t('INBOX_MGMT.FINISH.WHATSAPP_QR_INSTRUCTION') }}
           </p>
-          <div class="rounded-lg shadow outline-1 outline-n-strong outline">
+          <div class="rounded-lg outline-1 outline-n-weak outline">
             <img
               :src="qrCodes.whatsapp"
               alt="WhatsApp QR Code"
@@ -306,7 +306,7 @@ watch(
           <p class="mt-2 text-sm text-n-slate-9">
             {{ $t('INBOX_MGMT.FINISH.MESSENGER_QR_INSTRUCTION') }}
           </p>
-          <div class="rounded-lg shadow outline-1 outline-n-strong outline">
+          <div class="rounded-lg outline-1 outline-n-weak outline">
             <img
               :src="qrCodes.messenger"
               alt="Messenger QR Code"
@@ -322,7 +322,7 @@ watch(
             {{ $t('INBOX_MGMT.FINISH.TELEGRAM_QR_INSTRUCTION') }}
           </p>
 
-          <div class="rounded-lg shadow outline-1 outline-n-strong outline">
+          <div class="rounded-lg outline-1 outline-n-weak outline">
             <img
               :src="qrCodes.telegram"
               alt="Telegram QR Code"

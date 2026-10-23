@@ -60,19 +60,14 @@ export default {
       city: '',
       socialProfileUserNames: {
         facebook: '',
-        twitter: '',
         linkedin: '',
-        github: '',
         telegram: '',
       },
       socialProfileKeys: [
         { key: 'facebook', prefixURL: 'https://facebook.com/' },
-        { key: 'twitter', prefixURL: 'https://twitter.com/' },
         { key: 'linkedin', prefixURL: 'https://linkedin.com/' },
-        { key: 'github', prefixURL: 'https://github.com/' },
         { key: 'telegram', prefixURL: 'https://t.me/' },
         { key: 'whatsapp', prefixURL: '@' },
-        { key: 'tiktok', prefixURL: 'https://tiktok.com/@' },
       ],
     };
   },
@@ -199,19 +194,14 @@ export default {
       this.avatarUrl = this.contact.thumbnail || '';
       const {
         social_profiles: socialProfiles = {},
-        screen_name: twitterScreenName,
         social_telegram_user_name: telegramUserName,
         social_whatsapp_user_name: whatsappUserName,
       } = additionalAttributes;
       this.socialProfileUserNames = {
         ...socialProfiles,
-        twitter: socialProfiles.twitter || twitterScreenName || '',
         facebook: socialProfiles.facebook || '',
         linkedin: socialProfiles.linkedin || '',
-        github: socialProfiles.github || '',
         telegram: socialProfiles.telegram || telegramUserName || '',
-        instagram: socialProfiles.instagram || '',
-        tiktok: socialProfiles.tiktok || '',
         whatsapp: this.normalizeWhatsAppUsername(
           socialProfiles.whatsapp || whatsappUserName || ''
         ),

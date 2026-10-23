@@ -107,7 +107,8 @@ export default {
           query,
           sort,
         });
-        this.searchResults = data.payload;
+        // AI-only articles have no public page, so they can't be sent to customers
+        this.searchResults = data.payload.filter(article => !article.ai_only);
         this.isLoading = true;
       } catch (error) {
         // Show something wrong message

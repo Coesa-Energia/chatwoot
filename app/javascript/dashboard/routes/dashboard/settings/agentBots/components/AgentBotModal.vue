@@ -57,11 +57,8 @@ const v$ = useVuelidate(
         required
       ),
     },
+    // Optional: a bot without a webhook URL is an automation profile that only acts through its API token.
     botUrl: {
-      required: helpers.withMessage(
-        () => t('AGENT_BOTS.FORM.ERRORS.URL'),
-        required
-      ),
       url: helpers.withMessage(
         () => t('AGENT_BOTS.FORM.ERRORS.VALID_URL'),
         url
@@ -340,7 +337,7 @@ defineExpose({ dialogRef });
           v-model="formState.botUrl"
           :label="$t('AGENT_BOTS.FORM.WEBHOOK_URL.LABEL')"
           :placeholder="$t('AGENT_BOTS.FORM.WEBHOOK_URL.PLACEHOLDER')"
-          :message="botUrlError"
+          :message="botUrlError || $t('AGENT_BOTS.FORM.WEBHOOK_URL.HELP')"
           :message-type="botUrlError ? 'error' : 'info'"
           @blur="v$.botUrl.$touch()"
         />

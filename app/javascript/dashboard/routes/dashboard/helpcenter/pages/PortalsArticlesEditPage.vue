@@ -10,8 +10,12 @@ import {
 } from 'dashboard/helper/portalHelper';
 import { useStore, useMapGetter } from 'dashboard/composables/store';
 import { rendersIdentically } from 'dashboard/helper/articleDiffHelper';
+import { usePolicy } from 'dashboard/composables/usePolicy';
+import { PORTAL_PERMISSIONS } from 'dashboard/constants/permissions';
 
 import ArticleEditor from 'dashboard/components-next/HelpCenter/Pages/ArticleEditorPage/ArticleEditor.vue';
+import Button from 'dashboard/components-next/button/Button.vue';
+import Spinner from 'dashboard/components-next/spinner/Spinner.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -28,6 +32,13 @@ const portalBySlug = useMapGetter('portals/portalBySlug');
 
 const portal = computed(() => portalBySlug.value(portalSlug));
 
+const { checkPermissions } = usePolicy();
+const canManageKnowledgeBase = computed(() =>
+  checkPermissions(['administrator', PORTAL_PERMISSIONS])
+);
+
+// Set when the article can't be loaded (deleted, or AI-only for this agent).
+const isNotFound = ref(false);
 const isUpdating = ref(false);
 const isSaved = ref(false);
 
@@ -135,11 +146,13 @@ const goBackToArticles = () => {
   }
 };
 
-const fetchArticleDetails = () => {
-  store.dispatch('articles/show', {
+const fetchArticleDetails = async () => {
+  // The show action swallows API errors, so a missing article only shows up as an empty store.
+  await store.dispatch('articles/show', {
     id: articleSlug,
     portalSlug,
   });
+  isNotFound.value = !article.value;
 };
 
 const previewArticle = () => {
@@ -154,11 +167,39 @@ onMounted(fetchArticleDetails);
 
 <template>
   <ArticleEditor
+    v-if="article"
     :article="article"
     :is-updating="isUpdating"
     :is-saved="isSaved"
+    :read-only="!canManageKnowledgeBase"
     @save-article="saveArticle"
     @preview-article="previewArticle"
     @go-back="goBackToArticles"
   />
+  <div
+    v-else-if="isNotFound"
+    class="flex flex-col items-center justify-center w-full h-full gap-3 px-4 text-center bg-n-surface-1"
+  >
+    <span
+      class="i-lucide-file-question size-8 text-n-slate-10"
+      aria-hidden="true"
+    />
+    <h1 class="text-lg font-medium text-n-slate-12">
+      {{ t('HELP_CENTER.EDIT_ARTICLE_PAGE.NOT_FOUND.TITLE') }}
+    </h1>
+    <p class="max-w-sm text-sm text-n-slate-11">
+      {{ t('HELP_CENTER.EDIT_ARTICLE_PAGE.NOT_FOUND.DESCRIPTION') }}
+    </p>
+    <Button
+      :label="t('HELP_CENTER.EDIT_ARTICLE_PAGE.NOT_FOUND.BACK')"
+      icon="i-lucide-arrow-left"
+      variant="faded"
+      color="slate"
+      size="sm"
+      @click="goBackToArticles"
+    />
+  </div>
+  <div v-else class="flex items-center justify-center w-full h-full">
+    <Spinner />
+  </div>
 </template>

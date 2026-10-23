@@ -227,7 +227,7 @@ const requestEmbeddedSignupAccess = () => {
     </div>
 
     <div v-else-if="showConfiguration">
-      <div class="px-6 py-5 rounded-2xl border border-n-weak">
+      <div class="px-6 py-5 rounded-xl border border-n-weak">
         <div v-if="shouldShowWhatsappEmbeddedSignup">
           <WhatsappEmbeddedSignup
             :is-disabled="isWhatsappEmbeddedSignupDisabled"

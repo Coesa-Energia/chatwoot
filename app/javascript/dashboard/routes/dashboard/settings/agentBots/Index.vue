@@ -161,7 +161,11 @@ onMounted(() => {
 
               <BaseTableCell class="max-w-0">
                 <span class="text-body-main text-n-slate-11 truncate block">
-                  {{ bot.outgoing_url || bot.bot_config?.webhook_url }}
+                  {{
+                    bot.outgoing_url ||
+                    bot.bot_config?.webhook_url ||
+                    t('AGENT_BOTS.LIST.AUTOMATION_PROFILE')
+                  }}
                 </span>
               </BaseTableCell>
 

@@ -241,7 +241,8 @@ onMounted(() => {
           :key="notificationItem.id"
           :inbox-item="notificationItem"
           :state-inbox="stateInbox(notificationItem.primaryActor?.inboxId)"
-          class="inbox-card rounded-none hover:rounded-lg hover:bg-n-alpha-1 dark:hover:bg-n-alpha-3"
+          tabindex="0"
+          class="inbox-card rounded-none hover:rounded-lg hover:bg-n-alpha-1 dark:hover:bg-n-alpha-3 focus-visible:rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-n-brand"
           :class="
             currentConversationId === notificationItem.primaryActor?.id
               ? 'bg-n-alpha-1 dark:bg-n-alpha-3 !rounded-lg active'
@@ -253,13 +254,14 @@ onMounted(() => {
           @context-menu-open="isInboxContextMenuOpen = true"
           @context-menu-close="isInboxContextMenuOpen = false"
           @click="openConversation(notificationItem)"
+          @keydown.enter.self="openConversation(notificationItem)"
         />
         <div v-if="uiFlags.isFetching" class="flex justify-center my-4">
           <Spinner class="text-n-brand" />
         </div>
         <p
           v-if="showEmptyState"
-          class="p-4 text-sm font-medium text-center text-n-slate-10"
+          class="px-6 py-10 text-sm text-center text-n-slate-11"
         >
           {{ $t('INBOX.LIST.NO_NOTIFICATIONS') }}
         </p>

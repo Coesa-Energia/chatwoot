@@ -60,10 +60,10 @@ const requestAuthorization = async () => {
       </div>
       <div
         v-else
-        class="flex flex-col items-center justify-center w-full px-8 py-10 text-center rounded-2xl outline outline-1 outline-n-weak"
+        class="flex flex-col items-center justify-center w-full px-8 py-10 text-center rounded-xl outline outline-1 outline-n-weak"
       >
         <div class="flex flex-col items-center w-full max-w-2xl">
-          <h6 class="text-2xl font-medium">
+          <h6 class="text-lg font-medium text-n-slate-12">
             {{ $t('INBOX_MGMT.ADD.TIKTOK.CONNECT_YOUR_TIKTOK_PROFILE') }}
           </h6>
           <p class="max-w-xl py-6 text-sm text-n-slate-11">

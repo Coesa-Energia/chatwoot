@@ -126,6 +126,7 @@ export default {
         slate
         class="ltr:-ml-1 rtl:-mr-1"
         icon="i-lucide-clipboard"
+        :aria-label="$t('CONVERSATION.CONTEXT_MENU.COPY')"
         @click="onCopy"
       />
       <NextButton
@@ -133,8 +134,9 @@ export default {
         ghost
         xs
         slate
-        class="ltr:-ml-1 rtl:-mr-1 opacity-0 group-hover/row:opacity-100 transition-opacity"
+        class="ltr:-ml-1 rtl:-mr-1 opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100 transition-opacity"
         icon="i-lucide-pencil"
+        :aria-label="title"
         @click.prevent="startEditing"
       />
     </a>
@@ -147,8 +149,19 @@ export default {
         icon-size="14"
         class="flex-shrink-0 ltr:ml-1 rtl:mr-1"
       />
+      <!-- Copyable values (phone, WhatsApp) copy on click: sellers paste them into other apps. -->
+      <button
+        v-if="value && showCopy"
+        type="button"
+        class="min-w-0 overflow-hidden text-sm whitespace-nowrap text-ellipsis rounded text-n-slate-12 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-n-brand"
+        :title="$t('CONVERSATION.CONTEXT_MENU.COPY')"
+        data-testid="contact-info-copy-value"
+        @click="onCopy"
+      >
+        {{ value }}
+      </button>
       <span
-        v-if="value"
+        v-else-if="value"
         v-dompurify-html="value"
         class="overflow-hidden text-sm whitespace-nowrap text-ellipsis"
       />
@@ -156,12 +169,13 @@ export default {
         {{ $t('CONTACT_PANEL.NOT_AVAILABLE') }}
       </span>
       <NextButton
-        v-if="showCopy"
+        v-if="showCopy && value"
         ghost
         xs
         slate
         class="ltr:-ml-1 rtl:-mr-1"
         icon="i-lucide-clipboard"
+        :aria-label="$t('CONVERSATION.CONTEXT_MENU.COPY')"
         @click="onCopy"
       />
       <NextButton
@@ -169,8 +183,9 @@ export default {
         ghost
         xs
         slate
-        class="ltr:-ml-1 rtl:-mr-1 opacity-0 group-hover/row:opacity-100 transition-opacity"
+        class="ltr:-ml-1 rtl:-mr-1 opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100 transition-opacity"
         icon="i-lucide-pencil"
+        :aria-label="title"
         @click="startEditing"
       />
     </div>

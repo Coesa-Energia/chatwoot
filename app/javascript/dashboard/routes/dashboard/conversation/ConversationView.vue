@@ -1,5 +1,6 @@
 <script>
 import { provide } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { mapGetters } from 'vuex';
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import {
@@ -7,6 +8,11 @@ import {
   useContactConversationNavigation,
 } from 'dashboard/composables/useContactConversationNavigation';
 import { useAccount } from 'dashboard/composables/useAccount';
+import { useKeyboardEvents } from 'dashboard/composables/useKeyboardEvents';
+import {
+  shouldCloseConversationOnEscape,
+  conversationListUrlForRoute,
+} from 'dashboard/helper/conversationEscape';
 import ChatList from '../../../components/ChatList.vue';
 import ConversationBox from '../../../components/widgets/conversation/ConversationBox.vue';
 import wootConstants from 'dashboard/constants/globals';
@@ -58,10 +64,24 @@ export default {
       default: 0,
     },
   },
-  setup() {
+  setup(props) {
     const { uiSettings, updateUISettings, isOnExpandedLayout } =
       useUISettings();
     const { accountId } = useAccount();
+    const route = useRoute();
+    const router = useRouter();
+
+    // Esc closes the open conversation, like WhatsApp Web.
+    useKeyboardEvents({
+      Escape: {
+        action: event => {
+          if (!props.conversationId) return;
+          if (!shouldCloseConversationOnEscape(event)) return;
+          router.push(conversationListUrlForRoute(route, accountId.value));
+        },
+        allowOnFocusedInput: true,
+      },
+    });
     provide(
       CONTACT_CONVERSATION_NAVIGATION,
       useContactConversationNavigation()

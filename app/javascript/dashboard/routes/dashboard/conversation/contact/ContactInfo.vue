@@ -15,7 +15,7 @@ import SocialProfileLinks from 'dashboard/components-next/social-profiles/Social
 import EditContact from './EditContact.vue';
 import ContactMergeModal from 'dashboard/modules/contact/ContactMergeModal.vue';
 import ContactDeleteModal from 'dashboard/modules/contact/ContactDeleteModal.vue';
-import ComposeConversation from 'dashboard/components-next/NewConversation/ComposeConversation.vue';
+import OpenConversationMenu from 'dashboard/components-next/Contacts/OpenConversationMenu.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import VoiceCallButton from 'dashboard/components-next/Contacts/VoiceCallButton.vue';
 import InlineInput from 'dashboard/components-next/inline-input/InlineInput.vue';
@@ -27,7 +27,7 @@ export default {
     ViewAllConversations,
     EditContact,
     Avatar,
-    ComposeConversation,
+    OpenConversationMenu,
     SocialProfileLinks,
     ContactMergeModal,
     ContactDeleteModal,
@@ -98,18 +98,15 @@ export default {
     socialProfiles() {
       const {
         social_profiles: socialProfiles,
-        screen_name: twitterScreenName,
         social_telegram_user_name: telegramUsername,
       } = this.additionalAttributes;
 
       const telegram = socialProfiles?.telegram || telegramUsername || '';
-      const twitter = socialProfiles?.twitter || twitterScreenName || '';
+      // COESA FORK: these networks are not used, so they are never shown even if data exists.
+      const { instagram, tiktok, twitter, x, github, ...shownProfiles } =
+        socialProfiles || {};
 
-      return {
-        ...(socialProfiles || {}),
-        twitter,
-        telegram,
-      };
+      return { ...shownProfiles, telegram };
     },
     whatsappUsername() {
       const username =
@@ -232,7 +229,7 @@ export default {
             />
             <h3
               v-else
-              class="flex-shrink max-w-full min-w-0 my-0 text-base capitalize break-words text-n-slate-12 cursor-pointer hover:text-n-slate-12/80"
+              class="flex-shrink max-w-full min-w-0 my-0 text-base font-medium capitalize break-words text-n-slate-12 cursor-pointer hover:text-n-slate-12/80"
               :title="$t('CONTACT_PANEL.CLICK_TO_EDIT')"
               @click="startEditingName"
             >
@@ -261,15 +258,15 @@ export default {
                   contact.created_at
                 )}`
               "
-              class="i-lucide-info text-sm text-n-slate-10"
+              class="i-lucide-info size-4 text-n-slate-10"
             />
             <a
               :href="contactProfileLink"
               target="_blank"
               rel="noopener nofollow noreferrer"
-              class="leading-3"
+              class="flex rounded text-n-slate-10 hover:text-n-slate-12 focus-visible:outline focus-visible:outline-2 focus-visible:outline-n-brand"
             >
-              <span class="i-lucide-external-link text-sm text-n-slate-10" />
+              <span class="i-lucide-external-link size-4" />
             </a>
           </div>
         </div>
@@ -289,7 +286,6 @@ export default {
             @update="value => onFieldUpdate('email', value)"
           />
           <ContactInfoRow
-            :href="contact.phone_number ? `tel:${contact.phone_number}` : ''"
             :value="contact.phone_number"
             icon="call"
             emoji="📞"
@@ -341,17 +337,18 @@ export default {
         </div>
       </div>
       <div class="flex items-center w-full mt-0.5 gap-2">
-        <ComposeConversation :contact-id="String(contact.id)">
+        <OpenConversationMenu :contact-id="contact.id">
           <template #trigger>
             <NextButton
-              v-tooltip.top-end="$t('CONTACT_PANEL.NEW_MESSAGE')"
+              v-tooltip.top-end="$t('CONTACTS_LAYOUT.OPEN_CONVERSATION.BUTTON')"
+              :aria-label="$t('CONTACTS_LAYOUT.OPEN_CONVERSATION.BUTTON')"
               icon="i-ph-chat-circle-dots"
               slate
               faded
               sm
             />
           </template>
-        </ComposeConversation>
+        </OpenConversationMenu>
         <ViewAllConversations />
         <VoiceCallButton
           :phone="contact.phone_number"
@@ -365,16 +362,18 @@ export default {
         />
         <NextButton
           v-tooltip.top-end="$t('EDIT_CONTACT.BUTTON_LABEL')"
+          :aria-label="$t('EDIT_CONTACT.BUTTON_LABEL')"
           icon="i-ph-pencil-simple"
           slate
           faded
           sm
           @click="toggleEditModal"
         />
-        <ContactMergeModal :primary-contact="contact">
+        <ContactMergeModal v-if="isAdmin" :primary-contact="contact">
           <template #trigger>
             <NextButton
               v-tooltip.top-end="$t('CONTACT_PANEL.MERGE_CONTACT')"
+              :aria-label="$t('CONTACT_PANEL.MERGE_CONTACT')"
               icon="i-ph-arrows-merge"
               slate
               faded
@@ -391,6 +390,7 @@ export default {
           <template #trigger>
             <NextButton
               v-tooltip.top-end="$t('DELETE_CONTACT.BUTTON_LABEL')"
+              :aria-label="$t('DELETE_CONTACT.BUTTON_LABEL')"
               icon="i-ph-trash"
               slate
               faded
