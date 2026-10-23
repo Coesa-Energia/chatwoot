@@ -7,6 +7,7 @@ import { useMapGetter, useStore } from 'dashboard/composables/store';
 import { useAgentsList } from 'dashboard/composables/useAgentsList';
 import { useConversationLabels } from 'dashboard/composables/useConversationLabels';
 import { useConversationSuggestions } from 'dashboard/composables/useConversationSuggestions';
+import { useSellerMode } from 'dashboard/composables/useSellerMode';
 import { CONVERSATION_PRIORITY } from 'shared/constants/messages';
 import {
   CAPTAIN_EVENTS,
@@ -31,6 +32,8 @@ const EMPTY_NOTE_DURATION = 2500;
 
 const store = useStore();
 const { t } = useI18n();
+// Team and priority are support-queue tools, hidden for sellers (docs/FUNCOES_ESCONDIDAS.md).
+const { isSellerMode } = useSellerMode();
 
 const currentChat = useMapGetter('getSelectedChat');
 const currentUser = useMapGetter('getCurrentUser');
@@ -331,7 +334,7 @@ const rejectSuggestedLabel = ({ title }) => {
         @select="onClickAssignAgent"
       />
     </div>
-    <div>
+    <div v-if="!isSellerMode">
       <ContactDetailsItem
         compact
         :title="$t('CONVERSATION_SIDEBAR.TEAM_LABEL')"
@@ -351,7 +354,7 @@ const rejectSuggestedLabel = ({ title }) => {
         @select="onClickAssignTeam"
       />
     </div>
-    <div>
+    <div v-if="!isSellerMode">
       <ContactDetailsItem compact :title="$t('CONVERSATION.PRIORITY.TITLE')">
         <template #button>
           <SuggestButton

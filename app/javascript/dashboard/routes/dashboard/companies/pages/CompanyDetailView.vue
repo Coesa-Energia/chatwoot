@@ -5,11 +5,10 @@ import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { useDebounceFn } from '@vueuse/core';
 import { useAlert } from 'dashboard/composables';
-import { useCompaniesPaywall } from 'dashboard/composables/useCompaniesPaywall';
+import { useAccount } from 'dashboard/composables/useAccount';
 
 import Button from 'dashboard/components-next/button/Button.vue';
 import DetailsPageLayout from 'dashboard/components-next/DetailsPageLayout.vue';
-import Paywall from 'dashboard/components-next/captain/pageComponents/Paywall.vue';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import CompanyConversationFilters from 'dashboard/components-next/Companies/CompanyDetail/CompanyConversationFilters.vue';
 import CompanyConversationList from 'dashboard/components-next/Companies/CompanyDetail/CompanyConversationList.vue';
@@ -39,7 +38,8 @@ const activeTab = computed(() =>
 );
 
 const companyId = computed(() => Number(route.params.companyId));
-const { isReady, showPaywall } = useCompaniesPaywall();
+const { currentAccount } = useAccount();
+const isReady = computed(() => Boolean(currentAccount.value?.id));
 const company = computed(() => companiesStore.getRecord(companyId.value));
 const {
   companyConversations,
@@ -225,11 +225,11 @@ const handleDeleteCompany = async () => {
 };
 
 watch(
-  [companyId, isReady, showPaywall],
-  async ([id, ready, paywalled]) => {
+  [companyId, isReady],
+  async ([id, ready]) => {
     companiesStore.resetCompanyDetailState();
     clearSelectedCandidate();
-    if (!id || !ready || paywalled) return;
+    if (!id || !ready) return;
     await Promise.allSettled([
       companiesStore.show(id),
       companiesStore.getCompanyConversations(id, 1, conversationFilters.value),
@@ -254,10 +254,7 @@ onBeforeUnmount(() => {
     @update:active-tab="setActiveTab"
     @back="goToCompaniesList"
   >
-    <template v-if="showPaywall" #state>
-      <Paywall feature-prefix="COMPANIES" />
-    </template>
-    <template v-else-if="!hasCompany" #state>
+    <template v-if="!hasCompany" #state>
       <div class="flex flex-col gap-2 py-24">
         <span class="text-lg font-medium text-n-slate-12">
           {{ t('COMPANIES.DETAIL.EMPTY_STATE.TITLE') }}

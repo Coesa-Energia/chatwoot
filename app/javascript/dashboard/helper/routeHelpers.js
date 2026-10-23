@@ -3,7 +3,6 @@ import {
   getUserPermissions,
   getCurrentAccount,
 } from './permissionsHelper';
-import { requiresShopifyBilling } from 'v3/helpers/AuthHelper';
 
 import {
   ROLES,
@@ -63,16 +62,6 @@ export const validateLoggedInRoutes = (to, user) => {
   }
 
   const userPermissions = getUserPermissions(user, to.params.accountId);
-  if (requiresShopifyBilling(currentAccount)) {
-    if (userPermissions.includes('administrator')) {
-      return to.name === 'billing_settings_index'
-        ? null
-        : `accounts/${to.params.accountId}/settings/billing`;
-    }
-    return to.name === 'account_suspended'
-      ? null
-      : `accounts/${to.params.accountId}/suspended`;
-  }
 
   const isCurrentAccountActive = currentAccount.status === 'active';
 
@@ -159,12 +148,3 @@ export const isAInboxViewRoute = (routeName, includeBase = false) => {
     : extendedRoutes;
   return routeNames.includes(routeName);
 };
-
-export const isUpgradePageBypassRoute = routeName =>
-  [
-    'billing_settings_index',
-    'settings_inbox_list',
-    'general_settings_index',
-    'security_settings_index',
-    'agent_list',
-  ].includes(routeName);

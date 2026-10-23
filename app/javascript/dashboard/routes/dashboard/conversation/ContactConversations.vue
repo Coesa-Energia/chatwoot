@@ -23,11 +23,8 @@ const uiFlags = useMapGetter('contactConversations/getUIFlags');
 const contactGetter = useMapGetter('contacts/getContact');
 const inboxGetter = useMapGetter('inboxes/getInbox');
 
-const activeInbox = useMapGetter('getSelectedInbox');
 const inboxesList = useMapGetter('inboxes/getInboxes');
-const showInboxName = computed(
-  () => !activeInbox.value && inboxesList.value.length > 1
-);
+const showInboxName = computed(() => inboxesList.value.length > 1);
 
 const contactConversationGetter = useMapGetter(
   'contactConversations/getContactConversation'

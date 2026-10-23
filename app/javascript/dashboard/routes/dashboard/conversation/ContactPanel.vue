@@ -8,6 +8,7 @@ import {
 import { useAccount } from 'dashboard/composables/useAccount';
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
+import { useSellerMode } from 'dashboard/composables/useSellerMode';
 
 import AccordionItem from 'dashboard/components/Accordion/AccordionItem.vue';
 import ContactConversations from './ContactConversations.vue';
@@ -38,12 +39,27 @@ const props = defineProps({
 });
 
 const {
+  uiSettings,
   updateUISettings,
   isContactSidebarItemOpen,
   conversationSidebarItemsOrder,
   toggleSidebarUIState,
   isOnExpandedLayout,
 } = useUISettings();
+
+// Seller mode keeps contact, actions, previous conversations, attributes, notes and files
+// (participants, conversation info, macros and integrations are listed in docs/FUNCOES_ESCONDIDAS.md).
+const { isSellerMode } = useSellerMode();
+
+const isPreviousConversationsOpen = computed(
+  () => uiSettings.value.is_previous_conv_open !== false
+);
+
+const togglePreviousConversations = () => {
+  updateUISettings({
+    is_previous_conv_open: !isPreviousConversationsOpen.value,
+  });
+};
 
 const dragging = ref(false);
 const conversationSidebarItems = ref([]);
@@ -181,7 +197,9 @@ onMounted(() => {
             </AccordionItem>
           </div>
           <div
-            v-else-if="element.name === 'conversation_participants'"
+            v-else-if="
+              element.name === 'conversation_participants' && !isSellerMode
+            "
             class="conversation--actions"
           >
             <AccordionItem
@@ -198,7 +216,9 @@ onMounted(() => {
               />
             </AccordionItem>
           </div>
-          <div v-else-if="element.name === 'conversation_info'">
+          <div
+            v-else-if="element.name === 'conversation_info' && !isSellerMode"
+          >
             <AccordionItem
               :title="$t('CONVERSATION_SIDEBAR.ACCORDION.CONVERSATION_INFO')"
               :is-open="isContactSidebarItemOpen('is_conv_details_open')"
@@ -240,11 +260,9 @@ onMounted(() => {
               :title="
                 $t('CONVERSATION_SIDEBAR.ACCORDION.PREVIOUS_CONVERSATION')
               "
-              :is-open="isContactSidebarItemOpen('is_previous_conv_open')"
+              :is-open="isPreviousConversationsOpen"
               compact
-              @toggle="
-                value => toggleSidebarUIState('is_previous_conv_open', value)
-              "
+              @toggle="togglePreviousConversations"
             >
               <ContactConversations
                 :contact-id="contact.id"
@@ -253,7 +271,7 @@ onMounted(() => {
             </AccordionItem>
           </div>
           <woot-feature-toggle
-            v-else-if="element.name === 'macros'"
+            v-else-if="element.name === 'macros' && !isSellerMode"
             feature-key="macros"
           >
             <AccordionItem
@@ -268,6 +286,7 @@ onMounted(() => {
           <div
             v-else-if="
               element.name === 'linear_issues' &&
+              !isSellerMode &&
               isLinearFeatureEnabled &&
               isLinearClientIdConfigured
             "
@@ -286,7 +305,9 @@ onMounted(() => {
           </div>
           <div
             v-else-if="
-              element.name === 'shopify_orders' && isShopifyFeatureEnabled
+              element.name === 'shopify_orders' &&
+              isShopifyFeatureEnabled &&
+              !isSellerMode
             "
           >
             <AccordionItem
@@ -303,6 +324,7 @@ onMounted(() => {
           <div
             v-else-if="
               element.name === 'stripe_customer' &&
+              !isSellerMode &&
               isCloudFeatureEnabled(FEATURE_FLAGS.STRIPE) &&
               stripeIntegration.enabled
             "

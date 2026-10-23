@@ -16,6 +16,9 @@ import MenuItem from '../../../components/widgets/conversation/contextMenu/menuI
 import { useTrack } from 'dashboard/composables';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import ReportCaptainMessageDialog from './ReportCaptainMessageDialog.vue';
+import MessageApi from 'dashboard/api/inbox/message';
+
+const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
 export default {
   components: {
@@ -42,6 +45,10 @@ export default {
       type: Object,
       default: () => ({}),
     },
+    currentReaction: {
+      type: String,
+      default: '',
+    },
     hideButton: {
       type: Boolean,
       default: false,
@@ -59,6 +66,7 @@ export default {
     return {
       isCannedResponseModalOpen: false,
       showDeleteModal: false,
+      quickReactions: QUICK_REACTIONS,
     };
   },
   computed: {
@@ -140,6 +148,22 @@ export default {
       this.$emit('replyTo', this.message);
       this.handleClose();
     },
+    // Picking the emoji already shown removes the reaction, like in WhatsApp.
+    async handleReact(emoji) {
+      this.handleClose();
+      try {
+        await MessageApi.react({
+          conversationId: this.conversationId,
+          messageId: this.messageId,
+          emoji: emoji === this.currentReaction ? '' : emoji,
+        });
+      } catch (error) {
+        useAlert(
+          parseAPIErrorResponse(error) ||
+            this.$t('CONVERSATION.CONTEXT_MENU.REACTION_FAILED')
+        );
+      }
+    },
     handleForwardEmail() {
       this.$emit('forwardEmail');
       this.handleClose();
@@ -212,6 +236,23 @@ export default {
       @close="handleClose"
     >
       <div class="menu-container">
+        <div
+          v-if="enabledOptions['react']"
+          class="flex items-center gap-0.5 px-1 py-1"
+          :aria-label="$t('CONVERSATION.CONTEXT_MENU.REACT')"
+        >
+          <button
+            v-for="emoji in quickReactions"
+            :key="emoji"
+            type="button"
+            class="size-8 rounded-full text-lg leading-none hover:bg-n-alpha-2"
+            :class="{ 'bg-n-brand/15': emoji === currentReaction }"
+            @click.stop="handleReact(emoji)"
+          >
+            {{ emoji }}
+          </button>
+        </div>
+        <hr v-if="enabledOptions['react']" class="!block" />
         <MenuItem
           v-if="enabledOptions['forwardEmail']"
           :option="{

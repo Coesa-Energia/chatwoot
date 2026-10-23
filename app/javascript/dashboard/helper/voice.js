@@ -111,7 +111,9 @@ function extractCallData(message) {
     status: call.status,
     callDirection: call.direction === 'outgoing' ? 'outbound' : 'inbound',
     conversationId: message?.conversation_id,
-    inboxId: message?.inbox_id ?? message?.conversation?.inbox_id,
+    // The call's own inbox first: a Twilio call logged in a WhatsApp thread joins through the voice inbox
+    inboxId:
+      call.inbox_id ?? message?.inbox_id ?? message?.conversation?.inbox_id,
     assigneeId: extractAssigneeId(message?.conversation),
     senderId: message?.sender?.id,
     caller: extractCallerSnapshot(message),

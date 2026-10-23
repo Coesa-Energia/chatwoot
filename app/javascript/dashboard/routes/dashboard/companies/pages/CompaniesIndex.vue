@@ -6,8 +6,7 @@ import { useUISettings } from 'dashboard/composables/useUISettings';
 import { useAlert } from 'dashboard/composables';
 import { debounce } from '@chatwoot/utils';
 import { useCompaniesStore } from 'dashboard/stores/companies';
-import { useCompaniesPaywall } from 'dashboard/composables/useCompaniesPaywall';
-import Paywall from 'dashboard/components-next/captain/pageComponents/Paywall.vue';
+import { useAccount } from 'dashboard/composables/useAccount';
 
 import CompaniesListLayout from 'dashboard/components-next/Companies/CompaniesListLayout.vue';
 import CompaniesCard from 'dashboard/components-next/Companies/CompaniesCard/CompaniesCard.vue';
@@ -152,7 +151,8 @@ const handleSort = async ({ sort, order }) => {
   fetchCompanies(1, searchValue.value, buildSortAttr());
 };
 
-const { isReady, showPaywall } = useCompaniesPaywall();
+const { currentAccount } = useAccount();
+const isReady = computed(() => Boolean(currentAccount.value?.id));
 
 const loadCompanies = () => {
   searchValue.value = searchQuery.value;
@@ -165,28 +165,16 @@ const loadCompanies = () => {
 };
 
 watch(
-  [isReady, showPaywall],
-  ([ready, paywalled]) => {
-    if (ready && !paywalled) loadCompanies();
+  isReady,
+  ready => {
+    if (ready) loadCompanies();
   },
   { immediate: true }
 );
 </script>
 
 <template>
-  <section
-    v-if="showPaywall"
-    class="flex flex-col w-full h-full px-6 overflow-y-auto bg-n-surface-1"
-  >
-    <h1
-      class="w-full max-w-5xl py-6 mx-auto text-xl font-medium text-n-slate-12"
-    >
-      {{ t('COMPANIES.HEADER') }}
-    </h1>
-    <Paywall feature-prefix="COMPANIES" />
-  </section>
   <CompaniesListLayout
-    v-else
     :search-value="searchValue"
     :header-title="t('COMPANIES.HEADER')"
     :current-page="pageNumber"

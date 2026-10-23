@@ -132,7 +132,7 @@ const tabs = computed(() => {
     .filter(config => {
       // why the double check, glad you asked.
       // Some features are marked as premium features, that means
-      // the feature will be visible, but a Paywall will be shown instead
+      // COESA FORK: all features are free, no paywall exists
       // this works for pages and routes, but fails for UI elements like search here
       // so we explicitly check if the feature is enabled
       return (
@@ -163,7 +163,7 @@ const totalSearchResultsCount = computed(() => {
     .filter(config => {
       // why the double check, glad you asked.
       // Some features are marked as premium features, that means
-      // the feature will be visible, but a Paywall will be shown instead
+      // COESA FORK: all features are free, no paywall exists
       // this works for pages and routes, but fails for UI elements like search here
       // so we explicitly check if the feature is enabled
       return (

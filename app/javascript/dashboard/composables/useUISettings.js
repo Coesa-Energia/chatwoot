@@ -4,12 +4,12 @@ import wootConstants from 'dashboard/constants/globals';
 
 export const DEFAULT_CONVERSATION_SIDEBAR_ITEMS_ORDER = Object.freeze([
   { name: 'conversation_actions' },
+  { name: 'previous_conversation' },
   { name: 'macros' },
   { name: 'conversation_info' },
   { name: 'contact_attributes' },
   { name: 'contact_notes' },
   { name: 'shared_files' },
-  { name: 'previous_conversation' },
   { name: 'conversation_participants' },
   { name: 'linear_issues' },
   { name: 'stripe_customer' },
@@ -51,6 +51,20 @@ const useConversationSidebarItemsOrder = uiSettings => {
         itemsOrderCopy.push(item);
       }
     });
+    const previousIndex = itemsOrderCopy.findIndex(
+      item => item.name === 'previous_conversation'
+    );
+    if (previousIndex > 1) {
+      const [previous] = itemsOrderCopy.splice(previousIndex, 1);
+      const actionsIndex = itemsOrderCopy.findIndex(
+        item => item.name === 'conversation_actions'
+      );
+      itemsOrderCopy.splice(
+        actionsIndex === -1 ? 0 : actionsIndex + 1,
+        0,
+        previous
+      );
+    }
     return itemsOrderCopy;
   });
 };

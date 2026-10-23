@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
 import { useStore, useMapGetter } from 'dashboard/composables/store';
 import { useRoute, useRouter } from 'vue-router';
+import { useAdmin } from 'dashboard/composables/useAdmin';
 
 import ContactsDetailsLayout from 'dashboard/components-next/Contacts/ContactsDetailsLayout.vue';
 import Spinner from 'dashboard/components-next/spinner/Spinner.vue';
@@ -45,15 +46,21 @@ const CONTACT_TABS_OPTIONS = [
   { key: 'MERGE', value: 'merge' },
 ];
 
+const { isAdmin } = useAdmin();
+// only administrators may merge contacts (enforced by the API too)
+const visibleTabOptions = computed(() =>
+  CONTACT_TABS_OPTIONS.filter(tab => isAdmin.value || tab.value !== 'merge')
+);
+
 const tabs = computed(() => {
-  return CONTACT_TABS_OPTIONS.map(tab => ({
+  return visibleTabOptions.value.map(tab => ({
     label: t(`CONTACTS_LAYOUT.SIDEBAR.TABS.${tab.key}`),
     value: tab.value,
   }));
 });
 
 const activeTabIndex = computed(() => {
-  return CONTACT_TABS_OPTIONS.findIndex(v => v.value === activeTab.value);
+  return visibleTabOptions.value.findIndex(v => v.value === activeTab.value);
 });
 
 const goToContactsList = () => {

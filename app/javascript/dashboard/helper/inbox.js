@@ -57,6 +57,13 @@ export const getVoiceCallProvider = inbox => {
 
 export const isVoiceCallEnabled = inbox => getVoiceCallProvider(inbox) !== null;
 
+// A WhatsApp call needs an open conversation (the permission request and the call itself live in it),
+// so a call started from the contact page without a conversation can only use providers that dial a
+// bare phone number, like Twilio.
+export const canCallWithoutConversation = inbox =>
+  isVoiceCallEnabled(inbox) &&
+  getVoiceCallProvider(inbox) !== VOICE_CALL_PROVIDERS.WHATSAPP;
+
 // Combined channel + voice-wave badge glyph per voice-call provider.
 export const VOICE_CALL_ICONS = {
   [VOICE_CALL_PROVIDERS.WHATSAPP]: 'i-woot-whatsapp-voice',

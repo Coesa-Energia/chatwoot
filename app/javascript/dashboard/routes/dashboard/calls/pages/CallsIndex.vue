@@ -16,6 +16,7 @@ import CallsFilterBar from 'dashboard/components-next/Calls/CallsFilterBar.vue';
 import { CALL_ACTIVITY_PARAMS } from 'dashboard/components-next/Calls/constants';
 import PaginationFooter from 'dashboard/components-next/pagination/PaginationFooter.vue';
 import Spinner from 'dashboard/components-next/spinner/Spinner.vue';
+import VoiceInboxDialer from 'dashboard/components/widgets/conversation/VoiceInboxDialer.vue';
 
 const RESULTS_PER_PAGE = 25;
 
@@ -130,10 +131,15 @@ onMounted(async () => {
     class="flex flex-col w-full h-full overflow-hidden bg-n-surface-1"
   >
     <header class="shrink-0">
-      <div class="w-full px-6 pt-6">
-        <h1 class="text-xl font-medium text-n-slate-12">
+      <div class="flex items-center justify-between w-full gap-4 px-6 pt-6">
+        <h1 class="text-lg font-medium text-n-slate-12">
           {{ t('CALLS_PAGE.HEADER') }}
         </h1>
+        <VoiceInboxDialer
+          :inboxes="voiceInboxes"
+          :label="t('CHAT_LIST.VOICE_DIAL.NEW_CALL')"
+          solid
+        />
       </div>
       <CallsFilterBar
         v-model:activity="activity"
@@ -155,7 +161,7 @@ onMounted(async () => {
           v-else-if="!calls.length"
           class="flex items-center justify-center py-16"
         >
-          <span class="text-base text-n-slate-11">
+          <span class="text-sm text-n-slate-11">
             {{ t('CALLS_PAGE.EMPTY_STATE') }}
           </span>
         </div>
