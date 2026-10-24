@@ -349,3 +349,12 @@ ALTER TABLE articles ADD COLUMN ai_only boolean DEFAULT false NOT NULL;
 -- SELECT name, serialized_value #>> '{}' AS valor FROM installation_configs WHERE name LIKE 'AUDIO_TRANSCRIPTION_%' AND name <> 'AUDIO_TRANSCRIPTION_API_KEY';
 -- Ultimas transcricoes:
 -- SELECT a.id, a.message_id, left(a.meta->>'transcribed_text', 80) FROM attachments a WHERE a.file_type = 1 AND a.meta ? 'transcribed_text' ORDER BY a.id DESC LIMIT 20;
+
+
+-- =====================================================================================
+-- 23/10/2026 - MIGRATIONS APLICADAS NA PRODUCAO (com o Chatwoot antigo no ar)
+-- =====================================================================================
+-- Backup antes: coesa-backups/prod-20261023-1540-pre-migrate.dump (158 migrations, ate 20260718000000).
+-- Aplicadas 51 migrations (upstream ate 20261019143116 + as do fork), todas aditivas para o app antigo.
+-- Estado depois: 209 migrations, ultima 20261020204252 (add_ai_only_to_articles). Nenhum erro.
+-- Conferir: SELECT count(*), max(version) FROM schema_migrations;
