@@ -358,3 +358,44 @@ ALTER TABLE articles ADD COLUMN ai_only boolean DEFAULT false NOT NULL;
 -- Aplicadas 51 migrations (upstream ate 20261019143116 + as do fork), todas aditivas para o app antigo.
 -- Estado depois: 209 migrations, ultima 20261020204252 (add_ai_only_to_articles). Nenhum erro.
 -- Conferir: SELECT count(*), max(version) FROM schema_migrations;
+
+
+-- =====================================================================================
+-- 24/10/2026 - DADOS COPIADOS DO CHATWOOT DE TESTE PARA A PRODUCAO (sem historico)
+-- =====================================================================================
+-- Feito por rails runner no chatwoot-coesa-web, valores copiados de servidor para servidor (nada impresso).
+-- 1) installation_configs: WHATSAPP_APP_SECRET (app "API Coesa Energia") e WHATSAPP_APP_ID = 1311898160558134.
+--    O app antigo (4.16.2) ignora o secret global em caixas manuais; o fork exige para aceitar webhooks.
+-- 2) accounts.id = 1: recurso channel_voice ligado (feature_flags).
+-- 3) Caixa 18 (WhatsApp 5197): provider_config recebeu calling_enabled, inbound_calls_enabled, recording_enabled,
+--    transcription_enabled e call_permission_template (pedido_permissao_ligacao, APPROVED). Nenhuma chamada a Meta.
+-- 4) Caixa 24 "Voice (+553125950719)" + channel_twilio_sms novo, reaproveitando o TwiML app APe0273...1081
+--    (por isso a Twilio nao foi reapontada). Membro: danielfilipe@coesaenergia.com.br.
+-- Na troca: reapontar Twilio com Channel::TwilioSms.find_by(phone_number: '+553125950719').reprovision_voice_webhooks!
+--    (rodar com FRONTEND_URL ja no dominio final) e tirar o override do 5197 que aponta para o teste.
+-- Conferir:
+-- SELECT name FROM installation_configs WHERE name IN ('WHATSAPP_APP_SECRET', 'WHATSAPP_APP_ID');
+-- SELECT id, name, channel_type FROM inboxes WHERE id IN (18, 24);
+-- SELECT provider_config->'calling_enabled', provider_config->'call_permission_template'->>'name'
+--   FROM channel_whatsapp WHERE phone_number = '+5531936185197';
+
+
+-- =====================================================================================
+-- 24/10/2026 (noite) - TROCA PARA O CHATWOOT DO FORK NA PRODUCAO
+-- =====================================================================================
+-- Backup antes: coesa-backups/prod-20261024-2125-pre-troca.dump (209 migrations).
+-- Servicos no Railway (projeto chatwoot): chatwoot-coesa-web + chatwoot-coesa-worker, imagem
+--   ghcr.io/coesa-energia/chatwoot:<sha do commit> gerada pelo GitHub Actions; antigos parados.
+-- Dados alterados na troca (sem migration):
+-- 1) channel_whatsapp 5197: override do webhook passou do teste para a producao (lado da Meta, nao do banco).
+-- 2) channel_twilio_sms +553125950719: TwiML app e numero reapontados para a producao (lado da Twilio).
+-- 3) accounts.id = 1: ligados os recursos advanced_assignment, advanced_search, advanced_search_indexing,
+--    api_and_webhooks, audit_log_ip_address, audit_logs, campaign_analytics, companies, company_enrichment,
+--    conversation_monitors, conversation_required_attributes, csat_review_notes, custom_roles,
+--    disable_branding, saml (SLA ficou desligado por decisao do Daniel).
+-- 4) Transcricao: installation_configs AUDIO_TRANSCRIPTION_API_URL = http://whisper.railway.internal:8000/v1,
+--    AUDIO_TRANSCRIPTION_MODEL = Systran/faster-whisper-small, AUDIO_TRANSCRIPTION_LANGUAGE = pt;
+--    accounts.settings.audio_transcriptions = true na conta 1. Servico whisper (speaches 0.8.3-cpu) no mesmo projeto.
+-- Conferir:
+-- SELECT name, serialized_value #>> '{}' FROM installation_configs WHERE name LIKE 'AUDIO_TRANSCRIPTION_%' AND name <> 'AUDIO_TRANSCRIPTION_API_KEY';
+-- SELECT settings->'audio_transcriptions' FROM accounts WHERE id = 1;
