@@ -5,21 +5,32 @@ import {
   onMounted,
   useTemplateRef,
   ref,
+  watch,
   getCurrentInstance,
 } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Icon from 'next/icon/Icon.vue';
 import { timeStampAppendedURL } from 'dashboard/helper/URLHelper';
 import { downloadFile } from '@chatwoot/utils';
 import { useEmitter } from 'dashboard/composables/emitter';
 import { emitter } from 'shared/helpers/mitt';
 import { useAudioWaveform } from 'dashboard/composables/useAudioWaveform';
+import { useAccount } from 'dashboard/composables/useAccount';
+import { useAlert } from 'dashboard/composables';
+import AudioTranscriptionUsagesAPI from 'dashboard/api/audioTranscriptionUsages';
+import { useOptionalMessageContext } from '../provider.js';
 
-const { attachment } = defineProps({
+const { attachment, allowTranscribe } = defineProps({
   attachment: {
     type: Object,
     required: true,
   },
   showTranscribedText: {
+    type: Boolean,
+    default: true,
+  },
+  // Call recordings are transcribed automatically, so their bubble hides the button.
+  allowTranscribe: {
     type: Boolean,
     default: true,
   },
@@ -33,16 +44,53 @@ const timeStampURL = computed(() => {
   return timeStampAppendedURL(attachment.dataUrl);
 });
 
-const TRANSCRIPT_PREVIEW_LENGTH = 200;
+// COESA: the transcript starts collapsed behind a chevron; voice notes are transcribed on request.
+const { t } = useI18n();
+const { currentAccount } = useAccount();
+const messageContext = useOptionalMessageContext();
+const TRANSCRIBE_WAIT_MS = 3 * 60 * 1000;
+
+const transcript = computed(() => attachment.transcribedText || '');
 const isTranscriptExpanded = ref(false);
-const isTranscriptLong = computed(
-  () => (attachment.transcribedText?.length || 0) > TRANSCRIPT_PREVIEW_LENGTH
+const isTranscribing = ref(false);
+let transcribeTimer;
+
+const canTranscribe = computed(
+  () =>
+    allowTranscribe &&
+    !transcript.value &&
+    !!attachment.id &&
+    !!messageContext?.conversationId?.value &&
+    !!currentAccount.value?.settings?.audio_transcriptions
 );
-const displayedTranscript = computed(() => {
-  const text = attachment.transcribedText || '';
-  if (!isTranscriptLong.value || isTranscriptExpanded.value) return text;
-  return `${text.slice(0, TRANSCRIPT_PREVIEW_LENGTH).trimEnd()}…`;
+
+watch(transcript, text => {
+  if (!text || !isTranscribing.value) return;
+  isTranscribing.value = false;
+  isTranscriptExpanded.value = true;
+  clearTimeout(transcribeTimer);
 });
+
+const transcribe = async () => {
+  if (isTranscribing.value) return;
+  isTranscribing.value = true;
+  try {
+    await AudioTranscriptionUsagesAPI.transcribeMessage({
+      conversationId: messageContext.conversationId.value,
+      messageId: attachment.messageId || messageContext.id.value,
+    });
+    // The transcript arrives with the message.updated event; give up waiting after a while.
+    transcribeTimer = setTimeout(() => {
+      isTranscribing.value = false;
+    }, TRANSCRIBE_WAIT_MS);
+  } catch (error) {
+    isTranscribing.value = false;
+    useAlert(
+      error?.response?.data?.error ||
+        t('CONVERSATION.VOICE_CALL.TRANSCRIBE_ERROR')
+    );
+  }
+};
 
 const audioPlayer = useTemplateRef('audioPlayer');
 
@@ -92,7 +140,10 @@ const playbackSpeedLabel = computed(() => {
 // value when the component is mounted
 const { peaks, load: loadWaveform } = useAudioWaveform();
 let observer;
-onBeforeUnmount(() => observer?.disconnect());
+onBeforeUnmount(() => {
+  observer?.disconnect();
+  clearTimeout(transcribeTimer);
+});
 const waveform = useTemplateRef('waveform');
 const playedRatio = computed(() =>
   duration.value ? Math.min(1, currentTime.value / duration.value) : 0
@@ -270,21 +321,52 @@ const downloadAudio = async () => {
     </div>
 
     <div
-      v-if="attachment.transcribedText && showTranscribedText"
-      class="text-n-slate-12 p-3 text-sm bg-n-alpha-1 rounded-lg w-full break-words"
+      v-if="showTranscribedText && (transcript || canTranscribe)"
+      class="flex flex-col w-full gap-1"
     >
-      {{ displayedTranscript }}
       <button
-        v-if="isTranscriptLong"
-        class="block mt-1 p-0 border-0 bg-transparent text-n-slate-11 hover:text-n-slate-12 font-medium"
+        v-if="transcript"
+        type="button"
+        class="flex items-center gap-1 self-start px-1.5 py-0.5 border-0 bg-transparent text-xs font-medium text-n-slate-11 hover:text-n-slate-12"
+        :aria-expanded="isTranscriptExpanded"
+        data-testid="audio-transcript-toggle"
         @click="isTranscriptExpanded = !isTranscriptExpanded"
       >
+        <Icon
+          icon="i-lucide-chevron-right"
+          class="size-3.5 transition-transform duration-150"
+          :class="{ 'rotate-90': isTranscriptExpanded }"
+        />
+        {{ $t('CONVERSATION.VOICE_CALL.TRANSCRIPT') }}
+      </button>
+      <button
+        v-else
+        type="button"
+        class="flex items-center gap-1 self-start px-1.5 py-0.5 border-0 bg-transparent text-xs font-medium text-n-slate-11 hover:text-n-slate-12 disabled:opacity-70"
+        :disabled="isTranscribing"
+        data-testid="audio-transcribe"
+        @click="transcribe"
+      >
+        <Icon
+          :icon="
+            isTranscribing ? 'i-lucide-loader-circle' : 'i-lucide-audio-lines'
+          "
+          class="size-3.5"
+          :class="{ 'animate-spin': isTranscribing }"
+        />
         {{
-          isTranscriptExpanded
-            ? $t('CONVERSATION.VOICE_CALL.TRANSCRIPT_SHOW_LESS')
-            : $t('CONVERSATION.VOICE_CALL.TRANSCRIPT_SHOW_MORE')
+          isTranscribing
+            ? $t('CONVERSATION.VOICE_CALL.TRANSCRIBING')
+            : $t('CONVERSATION.VOICE_CALL.TRANSCRIBE')
         }}
       </button>
+      <div
+        v-if="transcript && isTranscriptExpanded"
+        class="text-n-slate-12 p-3 text-sm bg-n-alpha-1 rounded-lg w-full break-words whitespace-pre-wrap"
+        data-testid="audio-transcript"
+      >
+        {{ transcript }}
+      </div>
     </div>
   </div>
 </template>

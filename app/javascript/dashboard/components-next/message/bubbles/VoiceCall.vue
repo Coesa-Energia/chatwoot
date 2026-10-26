@@ -351,6 +351,7 @@ const handleCallBack = async () => {
         v-if="recordingAttachment"
         :attachment="recordingAttachment"
         show-transcribed-text
+        :allow-transcribe="false"
       />
 
       <!-- Call back button (missed inbound) -->

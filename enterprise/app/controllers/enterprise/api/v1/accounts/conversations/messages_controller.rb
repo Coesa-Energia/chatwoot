@@ -24,7 +24,22 @@ module Enterprise::Api::V1::Accounts::Conversations::MessagesController
     head :accepted
   end
 
+  # COESA: voice notes are not transcribed automatically; an agent asks here and the transcript arrives with
+  # the message.updated event.
+  def transcribe
+    return render_could_not_create_error(I18n.t('errors.audio_transcription.unavailable')) unless transcription_available?
+
+    message.attachments.where(file_type: :audio).each do |attachment|
+      Messages::AudioTranscriptionJob.perform_later(attachment.id) if attachment.meta&.[]('transcribed_text').blank?
+    end
+    head :accepted
+  end
+
   private
+
+  def transcription_available?
+    Llm::SpeechToTextService.available_for?(Current.account)
+  end
 
   def translation_provider
     Current.account.translation_service

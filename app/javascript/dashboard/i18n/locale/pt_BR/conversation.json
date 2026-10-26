@@ -172,8 +172,10 @@
       "AGENT_ANSWERED": "{agentName} respondeu",
       "JOIN_CALL": "Entrar na chamada",
       "CALL_BACK": "Retornar chamada",
-      "TRANSCRIPT_SHOW_MORE": "Ver mais",
-      "TRANSCRIPT_SHOW_LESS": "Mostrar menos"
+      "TRANSCRIPT": "Transcrição",
+      "TRANSCRIBE": "Transcrever",
+      "TRANSCRIBING": "Transcrevendo…",
+      "TRANSCRIBE_ERROR": "Não foi possível transcrever este áudio"
     },
     "QUICK_ACTIONS": {
       "TAKE_OVER": "Assumir",

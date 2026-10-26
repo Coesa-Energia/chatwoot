@@ -94,6 +94,33 @@ RSpec.describe Messages::AudioTranscriptionService, type: :service do
       end
     end
 
+    context 'when the same attachment is transcribed twice' do
+      let(:speech_to_text) { instance_double(Llm::SpeechToTextService, perform: 'Bom dia') }
+
+      before do
+        attachment.file.attach(io: File.open(Rails.public_path.join('audio/widget/ding.mp3')), filename: 'note.mp3', content_type: 'audio/mpeg')
+        attachment.update!(meta: { 'duration' => 3 })
+        allow(Llm::SpeechToTextService).to receive_messages(available_for?: true, new: speech_to_text)
+      end
+
+      it 'skips while another job holds the lock' do
+        Redis::LockManager.new.lock("AUDIO_TRANSCRIPTION_LOCK::#{attachment.id}", 60)
+
+        expect(service.perform).to eq({ success: true, transcriptions: '' })
+        expect(Llm::SpeechToTextService).not_to have_received(:new)
+      ensure
+        Redis::LockManager.new.unlock("AUDIO_TRANSCRIPTION_LOCK::#{attachment.id}")
+      end
+
+      it 'reuses the first transcript and keeps the other meta keys' do
+        described_class.new(attachment).perform
+        expect(described_class.new(Attachment.find(attachment.id)).perform).to eq({ success: true, transcriptions: 'Bom dia' })
+
+        expect(Llm::SpeechToTextService).to have_received(:new).once.with(hash_including(source: 'voice_note', message_id: message.id))
+        expect(attachment.reload.meta).to eq('duration' => 3, 'transcribed_text' => 'Bom dia')
+      end
+    end
+
     context 'when the audio exceeds the transcription byte limit' do
       before do
         attachment.file.attach(

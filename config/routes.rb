@@ -74,6 +74,7 @@ Rails.application.routes.draw do
             resource :contact_merge, only: [:create]
           end
           resource :bulk_actions, only: [:create]
+          resources :audio_transcription_usages, only: [:index]
           resource :onboarding, only: [:update] do
             get :help_center_generation
           end
@@ -195,6 +196,7 @@ Rails.application.routes.draw do
               resources :campaign_history, only: [:index] if ChatwootApp.enterprise?
               resources :messages, only: [:index, :create, :destroy, :update] do
                 post :auto_translate, on: :collection if ChatwootApp.enterprise?
+                post :transcribe, on: :member if ChatwootApp.enterprise?
                 collection do
                   get :search
                 end

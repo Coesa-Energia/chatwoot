@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_10_20_204252) do
+ActiveRecord::Schema[7.1].define(version: 2026_10_26_120000) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -263,6 +263,21 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_20_204252) do
     t.jsonb "meta", default: {}
     t.index ["account_id"], name: "index_attachments_on_account_id"
     t.index ["message_id"], name: "index_attachments_on_message_id"
+  end
+
+  create_table "audio_transcription_usages", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.string "source", null: false
+    t.bigint "message_id"
+    t.bigint "call_id"
+    t.string "model"
+    t.decimal "audio_seconds", precision: 10, scale: 2
+    t.integer "processing_ms"
+    t.integer "characters", default: 0, null: false
+    t.boolean "success", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "created_at"], name: "index_audio_transcription_usages_on_account_id_and_created_at"
   end
 
   create_table "audits", force: :cascade do |t|

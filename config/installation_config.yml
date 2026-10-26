@@ -719,3 +719,21 @@
   display_title: 'Idioma dos áudios (opcional)'
   description: 'Código do idioma, ex.: pt. Informar deixa a transcrição mais rápida e precisa.'
   locked: false
+- name: AUDIO_TRANSCRIPTION_PROMPT
+  display_title: 'Vocabulário / contexto (opcional)'
+  description: 'Uma frase curta no idioma dos áudios com nomes e termos do negócio, para o Whisper escrevê-los certo. Ex.: Conversa de vendas da Coesa Energia sobre energia solar por assinatura, fazendas solares, Cemig, kWh.'
+  locked: false
+- name: AUDIO_TRANSCRIPTION_AUTO_VOICE_NOTES
+  display_title: 'Transcrever áudios do WhatsApp automaticamente'
+  description: 'Desligado: só as gravações de ligações são transcritas sozinhas; nos áudios o atendente clica em Transcrever.'
+  value: false
+  locked: false
+  type: boolean
+- name: AUDIO_TRANSCRIPTION_COST_PER_MINUTE
+  display_title: 'Custo por minuto de áudio (US$, opcional)'
+  description: 'Para APIs cobradas por minuto. Ex.: 0.006 (OpenAI whisper-1), 0.000667 (Groq whisper-large-v3-turbo). Whisper próprio: deixe vazio.'
+  locked: false
+- name: AUDIO_TRANSCRIPTION_MONTHLY_COST
+  display_title: 'Custo fixo mensal do servidor (US$, opcional)'
+  description: 'Para Whisper próprio: quanto o serviço custa por mês no Railway (aba Usage do serviço whisper).'
+  locked: false

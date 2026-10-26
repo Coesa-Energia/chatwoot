@@ -161,10 +161,22 @@
       },
       "AUDIO_TRANSCRIPTION": {
         "TITLE": "Transcribe Audio Messages",
-        "NOTE": "Automatically transcribe audio messages in conversations. Generate a text transcript whenever an audio message is sent or received, and display it alongside the message.",
+        "NOTE": "Call recordings are transcribed automatically. Voice notes are transcribed when an agent clicks Transcribe. The transcript stays collapsed under the audio.",
         "API": {
           "SUCCESS": "Audio transcription setting updated successfully",
           "ERROR": "Failed to update audio transcription setting"
+        },
+        "USAGE": {
+          "TITLE": "Usage by month",
+          "EMPTY": "No transcriptions yet.",
+          "MONTH": "Month",
+          "CALLS": "Calls",
+          "VOICE_NOTES": "Voice notes",
+          "AUDIO": "Audio",
+          "PROCESSING": "Processing",
+          "COST": "Estimated cost",
+          "MINUTES": "{minutes} min",
+          "COST_NOTE": "Estimated cost = audio minutes × cost per minute + fixed monthly server cost, both set in Super Admin › Audio transcription."
         }
       },
       "ENFORCE_MFA": {

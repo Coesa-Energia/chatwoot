@@ -16,6 +16,9 @@ module Enterprise::Concerns::Attachment
 
   def enqueue_audio_transcription
     return unless file_type.to_sym == :audio
+    # COESA: call recordings are transcribed automatically; voice notes only when an agent asks, unless
+    # Super Admin turns automatic voice-note transcription on.
+    return unless message&.voice_call? || Llm::SpeechToTextService.auto_voice_notes?
 
     # No file.attached? guard: the social-media ingest path saves the
     # Attachment before attaching the blob. AudioTranscriptionJob retries

@@ -147,6 +147,11 @@ export function useMessageContext() {
   return { ...context, filteredCurrentChatAttachments };
 }
 
+// For chips that also render outside a message (e.g. search results): null there instead of throwing.
+export function useOptionalMessageContext() {
+  return inject(MessageControl, null);
+}
+
 export function provideMessageContext(context) {
   provide(MessageControl, context);
 }

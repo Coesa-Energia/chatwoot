@@ -161,10 +161,22 @@
       },
       "AUDIO_TRANSCRIPTION": {
         "TITLE": "Transcrever mensagens de áudio",
-        "NOTE": "Transcreve automaticamente mensagens de áudio nas conversas. Gera uma transcrição de texto sempre que uma mensagem de áudio é enviada ou recebida, e a exibe junto da mensagem.",
+        "NOTE": "As gravações de ligações são transcritas automaticamente. Os áudios do WhatsApp são transcritos quando o atendente clica em Transcrever. A transcrição fica recolhida embaixo do áudio.",
         "API": {
           "SUCCESS": "Configuração de transcrição de áudio atualizada com sucesso",
           "ERROR": "Falha ao atualizar configuração de transcrição de áudio"
+        },
+        "USAGE": {
+          "TITLE": "Uso por mês",
+          "EMPTY": "Nenhuma transcrição ainda.",
+          "MONTH": "Mês",
+          "CALLS": "Ligações",
+          "VOICE_NOTES": "Áudios",
+          "AUDIO": "Áudio",
+          "PROCESSING": "Processamento",
+          "COST": "Custo estimado",
+          "MINUTES": "{minutes} min",
+          "COST_NOTE": "Custo estimado = minutos de áudio × custo por minuto + custo fixo mensal do servidor, os dois definidos no Super Admin › Transcrição de áudio."
         }
       },
       "ENFORCE_MFA": {

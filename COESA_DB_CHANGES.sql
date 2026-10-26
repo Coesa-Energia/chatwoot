@@ -399,3 +399,29 @@ ALTER TABLE articles ADD COLUMN ai_only boolean DEFAULT false NOT NULL;
 -- Conferir:
 -- SELECT name, serialized_value #>> '{}' FROM installation_configs WHERE name LIKE 'AUDIO_TRANSCRIPTION_%' AND name <> 'AUDIO_TRANSCRIPTION_API_KEY';
 -- SELECT settings->'audio_transcriptions' FROM accounts WHERE id = 1;
+
+
+-- =====================================================================================
+-- 26/10/2026 - TRANSCRICAO: GASTOS, VOCABULARIO E SO LIGACOES AUTOMATICAS (ainda NAO aplicado na producao)
+-- =====================================================================================
+-- 1) Migration 20261026120000_create_audio_transcription_usages (so adicao, roda no pre-deploy db:migrate):
+--    tabela audio_transcription_usages = uma linha por pedido ao servidor de transcricao
+--    (account_id, source 'call'|'voice_note', message_id, call_id, model, audio_seconds, processing_ms,
+--    characters, success). Alimenta Configuracoes > Conta > Transcrever mensagens de audio > Uso por mes.
+-- 2) installation_configs novos (criados sozinhos no boot a partir de config/installation_config.yml,
+--    editaveis no Super Admin > Transcricao de audio):
+--    AUDIO_TRANSCRIPTION_PROMPT            vocabulario para o Whisper (nomes que ele errava: "Coisa Energia", "KWH").
+--    AUDIO_TRANSCRIPTION_AUTO_VOICE_NOTES  false = audio do WhatsApp so transcreve quando o atendente clica em
+--                                          Transcrever; gravacao de ligacao continua automatica.
+--    AUDIO_TRANSCRIPTION_COST_PER_MINUTE   vazio no Whisper proprio (para APIs pagas por minuto).
+--    AUDIO_TRANSCRIPTION_MONTHLY_COST      custo fixo do servico whisper no Railway (US$/mes).
+-- Valores para a producao depois do deploy (Super Admin ou rails runner):
+--    AUDIO_TRANSCRIPTION_PROMPT = 'Conversa de vendas da Coesa Energia sobre energia solar por assinatura, fazendas
+--      solares, desconto na conta de luz, Cemig, kWh, fatura, contrato e WhatsApp.'
+--    AUDIO_TRANSCRIPTION_MONTHLY_COST = 8.3   (whisper 24-26/10: ~0,81 GB de RAM em media = ~US$ 8,1 + CPU ~US$ 0,06
+--      + volume do modelo ~US$ 0,15; conferir na aba Usage do servico whisper)
+-- Conferir:
+-- SELECT version FROM schema_migrations WHERE version = '20261026120000';
+-- SELECT date_trunc('month', created_at) AS mes, source, count(*), round(sum(audio_seconds) / 60, 1) AS minutos_audio,
+--        round(sum(processing_ms) / 60000.0, 1) AS minutos_processando, count(*) FILTER (WHERE NOT success) AS falhas
+--   FROM audio_transcription_usages GROUP BY 1, 2 ORDER BY 1 DESC, 2;

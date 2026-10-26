@@ -28,19 +28,41 @@ class Messages::AudioTranscriptionService
     message.voice_call? && !message.inbox.channel.transcription_enabled?
   end
 
+  # COESA: the same attachment can be queued twice (seen in prod: two jobs a few seconds apart);
+  # the lock makes the second one skip instead of paying for the same audio again.
+  LOCK_TIMEOUT = 10.minutes
+
   def transcribe_audio
-    transcribed_text = attachment.meta&.[]('transcribed_text') || ''
+    transcribed_text = existing_transcription
     return transcribed_text if transcribed_text.present?
 
-    transcribed_text = Llm::SpeechToTextService.new(blob: attachment.file.blob, account: account).perform
-    update_transcription(transcribed_text)
-    transcribed_text
+    lock_key = format('AUDIO_TRANSCRIPTION_LOCK::%<id>d', id: attachment.id)
+    lock_manager = Redis::LockManager.new
+    return '' unless lock_manager.lock(lock_key, LOCK_TIMEOUT)
+
+    begin
+      transcribed_text = existing_transcription(reload: true)
+      return transcribed_text if transcribed_text.present?
+
+      transcribed_text = Llm::SpeechToTextService.new(blob: attachment.file.blob, account: account,
+                                                      source: message.voice_call? ? 'call' : 'voice_note',
+                                                      message_id: message.id).perform
+      update_transcription(transcribed_text)
+      transcribed_text
+    ensure
+      lock_manager.unlock(lock_key)
+    end
+  end
+
+  def existing_transcription(reload: false)
+    attachment.reload if reload
+    attachment.meta&.[]('transcribed_text') || ''
   end
 
   def update_transcription(transcribed_text)
     return if transcribed_text.blank?
 
-    attachment.update!(meta: { transcribed_text: transcribed_text })
+    attachment.update!(meta: (attachment.meta || {}).merge('transcribed_text' => transcribed_text))
     message.reload.send_update_event
 
     return unless ChatwootApp.advanced_search_allowed?

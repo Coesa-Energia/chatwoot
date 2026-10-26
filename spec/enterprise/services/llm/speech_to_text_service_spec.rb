@@ -164,5 +164,52 @@ RSpec.describe Llm::SpeechToTextService, type: :service do
     ensure
       FileUtils.rm_f(audio_file_path)
     end
+
+    context 'when recording usage' do
+      let(:service) do
+        described_class.new(blob: attachment.file.blob, account: account, source: 'call', message_id: message.id, call_id: 42)
+      end
+
+      before do
+        InstallationConfig.find_or_create_by!(name: 'AUDIO_TRANSCRIPTION_PROMPT') { |c| c.value = 'Coesa Energia, Cemig' }
+        File.binwrite(audio_file_path, 'audio')
+        allow(service).to receive(:fetch_audio_file).and_return(audio_file_path)
+        allow(service.client).to receive(:audio).and_return(audio_api)
+      end
+
+      after { FileUtils.rm_f(audio_file_path) }
+
+      it 'sends the vocabulary prompt, asks Whisper for verbose_json and logs the audio duration' do
+        expect(audio_api).to receive(:transcribe).with(
+          parameters: hash_including(prompt: 'Coesa Energia, Cemig', response_format: 'verbose_json')
+        ).and_return({ 'text' => ' Bom dia ', 'duration' => 12.5 })
+
+        expect(service.perform).to eq('Bom dia')
+
+        usage = AudioTranscriptionUsage.last
+        expect(usage).to have_attributes(account_id: account.id, source: 'call', message_id: message.id, call_id: 42,
+                                         model: 'Systran/faster-whisper-small', audio_seconds: 12.5, characters: 9, success: true)
+        expect(usage.processing_ms).to be >= 0
+      end
+
+      it 'logs a failed request and re-raises the error' do
+        allow(audio_api).to receive(:transcribe).and_raise(Faraday::TimeoutError)
+
+        expect { service.perform }.to raise_error(Faraday::TimeoutError)
+        expect(AudioTranscriptionUsage.last).to have_attributes(success: false, audio_seconds: nil)
+      end
+
+      it 'does not ask for verbose_json from models that do not support it' do
+        InstallationConfig.find_by(name: 'AUDIO_TRANSCRIPTION_MODEL').update!(value: 'gpt-4o-mini-transcribe')
+        expect(audio_api).to receive(:transcribe).with(
+          parameters: hash_excluding(:response_format)
+        ).and_return({ 'text' => 'Bom dia' })
+
+        described_class.new(blob: attachment.file.blob, account: account).tap do |other|
+          allow(other).to receive(:fetch_audio_file).and_return(audio_file_path)
+          allow(other.client).to receive(:audio).and_return(audio_api)
+        end.perform
+      end
+    end
   end
 end

@@ -251,6 +251,8 @@ pt_BR:
       enrollment_required: Esta conta exige autenticação de dois fatores. Configure-a nas configurações do seu perfil para restaurar o acesso à API.
       interactive_session_required: As configurações de autenticação de dois fatores não podem ser gerenciadas com um token de acesso à API. Entre pelo painel.
       enforced_cannot_disable: A autenticação de dois fatores é obrigatória para sua conta e não pode ser desativada.
+    audio_transcription:
+      unavailable: A transcrição de áudio não está ativada nesta conta
     auto_translate:
       invalid_messages: Mensagens inválidas
     device_verification:

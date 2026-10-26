@@ -174,8 +174,10 @@
       "AGENT_ANSWERED": "{agentName} answered",
       "JOIN_CALL": "Join call",
       "CALL_BACK": "Call back",
-      "TRANSCRIPT_SHOW_MORE": "Show more",
-      "TRANSCRIPT_SHOW_LESS": "Show less"
+      "TRANSCRIPT": "Transcript",
+      "TRANSCRIBE": "Transcribe",
+      "TRANSCRIBING": "Transcribing…",
+      "TRANSCRIBE_ERROR": "Could not transcribe this audio"
     },
     "QUICK_ACTIONS": {
       "TAKE_OVER": "Take over",
