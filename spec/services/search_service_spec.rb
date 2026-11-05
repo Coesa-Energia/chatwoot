@@ -469,13 +469,14 @@ describe SearchService do
     context 'with the search time window' do
       let!(:old_message) { create(:message, account: account, inbox: inbox, content: 'old test message', created_at: 120.days.ago) }
 
-      it 'excludes messages older than the default window' do
-        expect(search.send(:message_base_query)).not_to include(old_message)
+      # COESA: no fork a janela vem de MESSAGE_SEARCH_WINDOW_DAYS e, sem ela, não há limite.
+      it 'includes old messages when no window is set' do
+        expect(search.send(:message_base_query)).to include(old_message)
       end
 
-      it 'includes older messages when SEARCH_TIME_RANGE_LIMIT_DAYS is raised' do
-        with_modified_env SEARCH_TIME_RANGE_LIMIT_DAYS: '180' do
-          expect(search.send(:message_base_query)).to include(old_message)
+      it 'excludes messages older than MESSAGE_SEARCH_WINDOW_DAYS' do
+        with_modified_env MESSAGE_SEARCH_WINDOW_DAYS: '90' do
+          expect(search.send(:message_base_query)).not_to include(old_message)
         end
       end
     end
