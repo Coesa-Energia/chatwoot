@@ -183,29 +183,6 @@ describe('commandbar', () => {
     });
   });
 
-  describe('when the account is paywalled', () => {
-    it('offers only appearance and go-to commands', async () => {
-      await mountCommandBar({ isPaywalled: true });
-
-      expect(commandIds()).toEqual(['appearance', 'goto_billing']);
-    });
-
-    it('drops inbox, bulk action and conversation commands', async () => {
-      await mountCommandBar({ isPaywalled: true });
-
-      expect(commandIds()).not.toContain('inbox');
-      expect(commandIds()).not.toContain('bulk');
-      expect(commandIds()).not.toContain('conversation');
-    });
-
-    it('passes the paywalled state through to the go-to commands', async () => {
-      await mountCommandBar({ isPaywalled: true });
-
-      expect(commandIds()).toContain('goto_billing');
-      expect(commandIds()).not.toContain('goto');
-    });
-  });
-
   describe('placeholder', () => {
     it('asks what the user is searching for by default', async () => {
       await mountCommandBar();

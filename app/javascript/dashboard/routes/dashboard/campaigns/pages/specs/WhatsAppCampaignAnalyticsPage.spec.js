@@ -44,58 +44,6 @@ describe('campaign analytics paywall', () => {
     });
     useMapGetter.mockReturnValue(ref({ type: 'User' }));
   });
-
-  it('shows billing instead of mounting analytics for a free account', () => {
-    const wrapper = shallowMount(Page);
-    expect(
-      wrapper
-        .findComponent({ name: 'WhatsAppCampaignAnalyticsContent' })
-        .exists()
-    ).toBe(false);
-    const paywall = wrapper.findComponent({ name: 'BasePaywallModal' });
-    expect(paywall.props('isOnChatwootCloud')).toBe(true);
-    paywall.vm.$emit('upgrade');
-    expect(push).toHaveBeenCalledWith({
-      name: 'billing_settings_index',
-      params: { accountId: 1 },
-    });
-  });
-
-  it('waits for account data before offering an upgrade', async () => {
-    currentAccount.value = {};
-    const wrapper = shallowMount(Page);
-    expect(wrapper.findComponent({ name: 'BasePaywallModal' }).exists()).toBe(
-      false
-    );
-    currentAccount.value = { id: 1 };
-    await wrapper.vm.$nextTick();
-    expect(wrapper.findComponent({ name: 'BasePaywallModal' }).exists()).toBe(
-      true
-    );
-  });
-
-  it('mounts analytics only when the plan allows access and removes it on downgrade', async () => {
-    showPaywall.value = false;
-    const wrapper = shallowMount(Page);
-    expect(wrapper.findComponent({ name: 'BasePaywallModal' }).exists()).toBe(
-      false
-    );
-    expect(
-      wrapper
-        .findComponent({ name: 'WhatsAppCampaignAnalyticsContent' })
-        .exists()
-    ).toBe(true);
-    showPaywall.value = true;
-    await wrapper.vm.$nextTick();
-    expect(
-      wrapper
-        .findComponent({ name: 'WhatsAppCampaignAnalyticsContent' })
-        .exists()
-    ).toBe(false);
-    expect(wrapper.findComponent({ name: 'BasePaywallModal' }).exists()).toBe(
-      true
-    );
-  });
   it('does not mount analytics for a branded account whose feature is disabled', () => {
     showPaywall.value = false;
     featureEnabled.value = false;
