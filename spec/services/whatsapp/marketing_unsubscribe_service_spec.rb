@@ -66,7 +66,7 @@ describe Whatsapp::MarketingUnsubscribeService do
         'components' => [{ 'type' => 'BODY', 'text' => 'Oferta' }] }
     end
     let!(:contact_inbox) { create(:contact_inbox, inbox: whatsapp_channel.inbox, source_id: '123456789') }
-    let!(:conversation) { create(:conversation, contact_inbox: contact_inbox, inbox: whatsapp_channel.inbox) }
+    let!(:conversation) { create(:conversation, contact_inbox: contact_inbox, contact: contact_inbox.contact, inbox: whatsapp_channel.inbox) }
 
     before do
       whatsapp_channel.update!(message_templates: whatsapp_channel.message_templates + [marketing_template])
