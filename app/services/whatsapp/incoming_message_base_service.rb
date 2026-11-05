@@ -56,9 +56,17 @@ class Whatsapp::IncomingMessageBaseService
       set_conversation
       create_messages
     end
+    handle_marketing_unsubscribe
   rescue StandardError
     release_message_source_id_lock!
     raise
+  end
+
+  def handle_marketing_unsubscribe
+    return if outgoing_echo || @conversation.blank?
+    return unless Whatsapp::MarketingUnsubscribeService.unsubscribe_click?(messages_data.first)
+
+    Whatsapp::MarketingUnsubscribeService.new(conversation: @conversation).perform
   end
 
   def process_statuses

@@ -161,6 +161,7 @@ pt_BR:
       phone_info_fetch_failed: 'Falha ao obter a informação do número de telefone. Por favor, tente novamente.'
       phone_number_already_exists: 'Já existe um canal para este número de telefone: %{phone_number}. Entre em contato com o suporte se o erro persistir'
       message_outside_messaging_window: 'A mensagem não foi enviada porque a janela de atendimento de 24 horas do WhatsApp foi encerrada e nenhum parâmetro de modelo foi fornecido. Envie uma mensagem de modelo aprovada.'
+      marketing_unsubscribed: 'Cliente pediu descadastro. Templates de marketing não são enviados para contatos com a etiqueta descadastrado. Para enviar de novo, tire a etiqueta do contato.'
       authentication_template_requires_phone: 'Os modelos de autenticação exigem um número de telefone do WhatsApp e não podem ser enviados a um contato que tenha apenas BSUID.'
       template_category_required_for_bsuid: 'Não foi possível verificar a categoria do modelo para este contato que tem apenas BSUID.'
       contact_info_request:

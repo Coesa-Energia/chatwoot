@@ -28,6 +28,11 @@ class Whatsapp::SendOnWhatsappService < Base::SendOnChannelService
   end
 
   def send_template_message
+    if marketing_blocked?
+      message.update!(status: :failed, external_error: I18n.t('errors.whatsapp.marketing_unsubscribed'))
+      return
+    end
+
     processor = Whatsapp::TemplateProcessorService.new(
       channel: channel,
       template_params: template_params,
@@ -57,6 +62,11 @@ class Whatsapp::SendOnWhatsappService < Base::SendOnChannelService
 
   def template_params
     message.additional_attributes && message.additional_attributes['template_params']
+  end
+
+  def marketing_blocked?
+    Whatsapp::MarketingUnsubscribeService.unsubscribed?(message.conversation.contact) &&
+      Whatsapp::MarketingUnsubscribeService.marketing_template?(channel, template_params['name'])
   end
 
   def contact_info_request?

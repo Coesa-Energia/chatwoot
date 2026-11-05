@@ -20,7 +20,12 @@ class CsatSurveyService
   delegate :inbox, :contact, to: :conversation
 
   def should_send_csat_survey?
-    conversation_allows_csat? && csat_enabled? && !csat_already_sent? && csat_allowed_by_survey_rules?
+    conversation_allows_csat? && csat_enabled? && !csat_already_sent? && csat_allowed_by_survey_rules? && !marketing_unsubscribe?
+  end
+
+  # Conversa finalizada pelo botão de descadastro (Whatsapp::MarketingUnsubscribeService).
+  def marketing_unsubscribe?
+    conversation.label_list.include?(Whatsapp::MarketingUnsubscribeService::LABEL)
   end
 
   def conversation_allows_csat?
