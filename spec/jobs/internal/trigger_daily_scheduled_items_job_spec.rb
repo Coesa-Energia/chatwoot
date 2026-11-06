@@ -18,15 +18,13 @@ RSpec.describe Internal::TriggerDailyScheduledItemsJob do
       .on_queue('scheduled_jobs')
   end
 
-  it 'schedules the version check at a stable minute in production' do
+  # COESA: a verificação diária de versão foi desligada no fork.
+  it 'does not schedule the version check, even in production' do
     allow(Rails.env).to receive(:production?).and_return(true)
 
-    travel_to Time.zone.parse('2026-03-17 08:00:00 UTC') do
-      perform_job
+    perform_job
 
-      expect(Internal::CheckNewVersionsJob).to have_received(:set).with(wait_until: scheduled_time)
-      expect(configured_job).to have_received(:perform_later)
-    end
+    expect(Internal::CheckNewVersionsJob).not_to have_received(:set)
   end
 
   it 'does not schedule the version check outside production' do

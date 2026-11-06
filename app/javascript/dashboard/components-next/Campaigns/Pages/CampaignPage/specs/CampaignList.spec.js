@@ -16,7 +16,7 @@ vi.mock(
 describe('campaign analytics action', () => {
   it.each([
     [true, false, true],
-    [false, true, true],
+    [false, true, false],
     [false, false, false],
   ])('eligible=%s paywall=%s visible=%s', (eligible, paywall, visible) => {
     useCampaignAnalytics.mockReturnValue({

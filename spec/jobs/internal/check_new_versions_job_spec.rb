@@ -1,14 +1,17 @@
 require 'rails_helper'
 
+# COESA: o fork desligou a atualização via Hub. O job não chama o Hub nem grava a versão.
 RSpec.describe Internal::CheckNewVersionsJob do
   subject(:job) { described_class.perform_now }
 
-  it 'updates the latest chatwoot version in redis' do
-    data = { 'version' => '1.2.3' }
+  it 'does not call the hub nor update the latest version in redis' do
     allow(Rails.env).to receive(:production?).and_return(true)
-    allow(ChatwootHub).to receive(:sync_with_hub).and_return(data)
+    allow(ChatwootHub).to receive(:sync_with_hub)
+    Redis::Alfred.delete(Redis::Alfred::LATEST_CHATWOOT_VERSION)
+
     job
-    expect(ChatwootHub).to have_received(:sync_with_hub)
-    expect(Redis::Alfred.get(Redis::Alfred::LATEST_CHATWOOT_VERSION)).to eq data['version']
+
+    expect(ChatwootHub).not_to have_received(:sync_with_hub)
+    expect(Redis::Alfred.get(Redis::Alfred::LATEST_CHATWOOT_VERSION)).to be_nil
   end
 end

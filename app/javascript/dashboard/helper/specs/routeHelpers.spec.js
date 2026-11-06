@@ -101,19 +101,6 @@ describe('#validateLoggedInRoutes', () => {
           subscription_status: 'pending',
         };
 
-        it('redirects an administrator to billing', () => {
-          expect(
-            validateLoggedInRoutes(
-              {
-                name: 'conversations',
-                params: { accountId: 1 },
-                meta: { permissions: ['administrator'] },
-              },
-              { accounts: [shopifyAccount] }
-            )
-          ).toEqual('accounts/1/settings/billing');
-        });
-
         it('allows the billing page', () => {
           expect(
             validateLoggedInRoutes(

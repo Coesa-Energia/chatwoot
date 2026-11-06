@@ -11,7 +11,7 @@ RSpec.describe 'Conversation message reactions API', type: :request do
   let!(:message) do
     create(:message, conversation: conversation, inbox: inbox, account: account, source_id: 'wamid.TARGET', message_type: :incoming)
   end
-  let(:meta_url) { %r{graph\.facebook\.com/v13\.0/.+/messages} }
+  let(:meta_url) { %r{graph\.facebook\.com/v\d+\.\d+/.+/messages} }
   let(:meta_ok) { { status: 200, body: { messages: [{ id: 'wamid.REACTION' }] }.to_json, headers: { 'Content-Type' => 'application/json' } } }
 
   before { create(:inbox_member, inbox: inbox, user: agent) }

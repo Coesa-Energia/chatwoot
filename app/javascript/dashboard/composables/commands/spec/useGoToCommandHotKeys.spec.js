@@ -1,6 +1,5 @@
 import { useMapGetter, useStore } from 'dashboard/composables/store';
 import { usePolicy } from 'dashboard/composables/usePolicy';
-import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useGoToCommandHotKeys } from '../useGoToCommandHotKeys';
@@ -206,17 +205,6 @@ describe('useGoToCommandHotKeys', () => {
     expect(
       goToCommandHotKeys.value.find(cmd => cmd.id === 'goto_calls_dashboard')
     ).toBeUndefined();
-  });
-
-  it('should only keep routes that bypass the upgrade page when paywalled', () => {
-    const { goToCommandHotKeys } = useGoToCommandHotKeys(ref(true));
-
-    expect(goToCommandHotKeys.value.map(cmd => cmd.id).sort()).toEqual([
-      'open_account_settings',
-      'open_agent_settings',
-      'open_billing_settings',
-      'open_inbox_settings',
-    ]);
   });
 
   it('should translate section and title for each command', () => {

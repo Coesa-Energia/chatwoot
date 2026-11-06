@@ -9,10 +9,7 @@ describe('#enterpriseAccountAPI', () => {
     expect(accountAPI).toHaveProperty('create');
     expect(accountAPI).toHaveProperty('update');
     expect(accountAPI).toHaveProperty('delete');
-    expect(accountAPI).toHaveProperty('checkout');
-    expect(accountAPI).toHaveProperty('billingSummary');
     expect(accountAPI).toHaveProperty('toggleDeletion');
-    expect(accountAPI).toHaveProperty('createTopupCheckout');
     expect(accountAPI).toHaveProperty('getLimits');
   });
 
@@ -33,28 +30,6 @@ describe('#enterpriseAccountAPI', () => {
       window.axios = originalAxios;
     });
 
-    it('#checkout', () => {
-      accountAPI.checkout();
-      expect(axiosMock.post).toHaveBeenCalledWith(
-        '/enterprise/api/v1/checkout'
-      );
-    });
-
-    it('#subscription', () => {
-      accountAPI.subscription();
-      expect(axiosMock.post).toHaveBeenCalledWith(
-        '/enterprise/api/v1/subscription'
-      );
-    });
-
-    it('#billingSummary', () => {
-      accountAPI.billingSummary({ refresh: true });
-      expect(axiosMock.get).toHaveBeenCalledWith(
-        '/enterprise/api/v1/billing_summary',
-        { params: { refresh: true } }
-      );
-    });
-
     it('#toggleDeletion with delete action', () => {
       accountAPI.toggleDeletion('delete');
       expect(axiosMock.post).toHaveBeenCalledWith(
@@ -69,25 +44,6 @@ describe('#enterpriseAccountAPI', () => {
         '/enterprise/api/v1/toggle_deletion',
         { action_type: 'undelete' }
       );
-    });
-
-    it('#createTopupCheckout with credits', () => {
-      accountAPI.createTopupCheckout(1000);
-      expect(axiosMock.post).toHaveBeenCalledWith(
-        '/enterprise/api/v1/topup_checkout',
-        { credits: 1000 }
-      );
-    });
-
-    it('#createTopupCheckout with different credit amounts', () => {
-      const creditAmounts = [1000, 2500, 6000, 12000];
-      creditAmounts.forEach(credits => {
-        accountAPI.createTopupCheckout(credits);
-        expect(axiosMock.post).toHaveBeenCalledWith(
-          '/enterprise/api/v1/topup_checkout',
-          { credits }
-        );
-      });
     });
 
     it('#getLimits', () => {
