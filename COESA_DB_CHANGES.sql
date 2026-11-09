@@ -402,7 +402,8 @@ ALTER TABLE articles ADD COLUMN ai_only boolean DEFAULT false NOT NULL;
 
 
 -- =====================================================================================
--- 26/10/2026 - TRANSCRICAO: GASTOS, VOCABULARIO E SO LIGACOES AUTOMATICAS (ainda NAO aplicado na producao)
+-- 26/10/2026 - TRANSCRICAO: GASTOS, VOCABULARIO E SO LIGACOES AUTOMATICAS
+--              APLICADO NA PRODUCAO em 26/10 ~15:30 UTC (imagem aa3457a52; PROMPT e MONTHLY_COST = 8.3 gravados)
 -- =====================================================================================
 -- 1) Migration 20261026120000_create_audio_transcription_usages (so adicao, roda no pre-deploy db:migrate):
 --    tabela audio_transcription_usages = uma linha por pedido ao servidor de transcricao
@@ -425,3 +426,28 @@ ALTER TABLE articles ADD COLUMN ai_only boolean DEFAULT false NOT NULL;
 -- SELECT date_trunc('month', created_at) AS mes, source, count(*), round(sum(audio_seconds) / 60, 1) AS minutos_audio,
 --        round(sum(processing_ms) / 60000.0, 1) AS minutos_processando, count(*) FILTER (WHERE NOT success) AS falhas
 --   FROM audio_transcription_usages GROUP BY 1, 2 ORDER BY 1 DESC, 2;
+
+
+-- =====================================================================================
+-- 09/11/2026 - SYNC COM O CHATWOOT OFICIAL (develop 2ecbeb218) + TRANSCRICAO POR FALANTE
+--              Commits 80f8db578 (merge) e 383d41034 (transcricao)
+-- =====================================================================================
+-- Migrations do upstream (todas so adicionam; rodam no pre-deploy db:migrate do chatwoot-coesa-web):
+--   20261006212107_add_slack_channel_id_to_conversation_monitors   coluna nova
+--   20261009170254_create_copilot_action_items                     tabela nova
+--   20261019130258_create_shopify_custom_apps                      tabela nova
+--   20261021105045_add_work_preferences_to_account_users           coluna nova
+--   20261026062035_create_captain_mcp_servers                      tabela nova
+--   20261027115208_create_captain_mcp_tools                        tabela nova
+--   20261103142055_enable_data_import_for_all_accounts             DADOS: liga feature_data_import em todas as
+--      contas, grava data_import ligado em installation_configs ACCOUNT_LEVEL_FEATURE_DEFAULTS e tira data_import
+--      de CHATWOOT_SHOPIFY_PLANS / internal_attributes (shopify_managed_features, manually_managed_features).
+--      Sem down (rollback da imagem nao desliga a importacao de dados).
+-- Transcricao por falante: sem migration. calls.transcript e attachments.meta.transcribed_text passam a ter
+--   linhas "Nome: fala" separadas por \n nas ligacoes novas (WhatsApp gravado em estereo; Twilio pela gravacao
+--   da perna do vendedor, que a Twilio guarda a mais por ligacao). Ligacoes antigas ficam como estao.
+--   audio_transcription_usages ganha 2 linhas por ligacao (uma por canal).
+-- Conferir depois do deploy:
+-- SELECT version FROM schema_migrations WHERE version IN ('20261006212107','20261009170254','20261019130258',
+--   '20261021105045','20261026062035','20261027115208','20261103142055') ORDER BY 1;
+-- SELECT id, provider, left(transcript, 200) FROM calls WHERE transcript IS NOT NULL ORDER BY id DESC LIMIT 5;
