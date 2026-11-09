@@ -31,6 +31,10 @@ import {
   useSnakeCase,
 } from 'dashboard/composables/useTransformKeys';
 import { useEmitter } from 'dashboard/composables/emitter';
+import {
+  CMD_MARK_UNREAD,
+  CMD_SWITCH_TAB,
+} from 'dashboard/helper/commandbar/events';
 import { useConversationRequiredAttributes } from 'dashboard/composables/useConversationRequiredAttributes';
 import ConversationApi from 'dashboard/api/inbox/conversation';
 
@@ -1018,6 +1022,8 @@ useEmitter('fetch_conversation_stats', () => {
   if (hasAppliedFiltersOrActiveFolders.value) return;
   store.dispatch('conversationStats/get', conversationFilters.value);
 });
+useEmitter(CMD_SWITCH_TAB, updateAssigneeTab);
+useEmitter(CMD_MARK_UNREAD, markAsUnread);
 
 // Nothing left to show on the archived screen: go back to the normal list.
 watch(

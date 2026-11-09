@@ -7,6 +7,7 @@ import AddAccountModal from 'dashboard/components/app/AddAccountModal.vue';
 
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import { useAccount } from 'dashboard/composables/useAccount';
+import { useRingingCallsOnLoad } from 'dashboard/composables/useRingingCallsOnLoad';
 import { useWindowSize } from '@vueuse/core';
 
 import wootConstants from 'dashboard/constants/globals';
@@ -42,6 +43,7 @@ export default {
     const { accountId } = useAccount();
     const { width: windowWidth } = useWindowSize();
     const callsStore = useCallsStore();
+    useRingingCallsOnLoad();
 
     return {
       uiSettings,

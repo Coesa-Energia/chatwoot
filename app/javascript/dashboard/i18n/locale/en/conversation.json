@@ -177,7 +177,10 @@
       "TRANSCRIPT": "Transcript",
       "TRANSCRIBE": "Transcribe",
       "TRANSCRIBING": "Transcribing…",
-      "TRANSCRIBE_ERROR": "Could not transcribe this audio"
+      "TRANSCRIBE_ERROR": "Could not transcribe this audio",
+      "TRANSCRIPT_SHOW_MORE": "Show more",
+      "TRANSCRIPT_SHOW_LESS": "Show less",
+      "DISMISS_FAILED": "Couldn't dismiss the call. It may keep ringing in your other tabs."
     },
     "QUICK_ACTIONS": {
       "TAKE_OVER": "Take over",
@@ -206,6 +209,13 @@
       "VOICE_CALL_FAILED": "Could not start the call.",
       "WHATSAPP_CALL_PERMISSION_REQUESTED": "Permission request sent to the customer. As soon as they accept it in WhatsApp you will be notified and can call. WhatsApp allows only 1 request per day (2 per week) for each customer.",
       "WHATSAPP_CALL_PERMISSION_PENDING": "We already asked this customer for permission a moment ago. Wait for them to accept in WhatsApp. WhatsApp limits requests to 1 per day for each customer.",
+      "AUTO_TRANSLATE": {
+        "TURN_OFF": "Turn off auto-translate",
+        "TURN_ON": "Turn on auto-translate",
+        "TURNED_OFF": "Auto-translate is off for this conversation",
+        "TURNED_ON": "Auto-translate is on for this conversation",
+        "UPDATE_FAILED": "Could not change auto-translate for this conversation. Please try again."
+      },
       "SLA_STATUS": {
         "FRT": "FRT {status}",
         "NRT": "NRT {status}",
@@ -490,6 +500,8 @@
       "END_CALL": "End call",
       "MUTE": "Mute mic",
       "UNMUTE": "Unmute mic",
+      "ON_HOLD": "On hold",
+      "HOLD_FAILED": "Couldn't update the hold. Please try again.",
       "VIEW_CHAT_HISTORY": "View chat history",
       "GO_TO_CONVERSATION": "Go to conversation thread"
     }

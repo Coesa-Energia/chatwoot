@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAlert, useTrack } from 'dashboard/composables';
@@ -22,15 +22,16 @@ const router = useRouter();
 const store = useStore();
 const { t } = useI18n();
 
-const { articleSlug, portalSlug } = route.params;
+const articleSlug = computed(() => route.params.articleSlug);
+const portalSlug = computed(() => route.params.portalSlug);
 
 const articleById = useMapGetter('articles/articleById');
 
-const article = computed(() => articleById.value(articleSlug));
+const article = computed(() => articleById.value(articleSlug.value));
 
 const portalBySlug = useMapGetter('portals/portalBySlug');
 
-const portal = computed(() => portalBySlug.value(portalSlug));
+const portal = computed(() => portalBySlug.value(portalSlug.value));
 
 const { checkPermissions } = usePolicy();
 const canManageKnowledgeBase = computed(() =>
@@ -47,7 +48,7 @@ const articleLink = computed(() => {
   const { slug: articleSlugValue } = article.value;
   const portalCustomDomain = portal.value?.custom_domain;
   return buildPortalArticleURL(
-    portalSlug,
+    portalSlug.value,
     categorySlug,
     categoryLocale,
     articleSlugValue,
@@ -106,8 +107,8 @@ const saveArticle = async ({ ...values }) => {
   isUpdating.value = true;
   try {
     await store.dispatch('articles/update', {
-      portalSlug,
-      articleId: articleSlug,
+      portalSlug: portalSlug.value,
+      articleId: articleSlug.value,
       ...stageDraftFields(values),
     });
     isSaved.value = true;
@@ -137,11 +138,13 @@ const goBackToArticles = () => {
     router.push({
       name: 'portals_categories_articles_index',
       params: { categorySlug, locale },
+      query: route.query,
     });
   } else {
     router.push({
       name: 'portals_articles_index',
       params: { tab, categorySlug, locale },
+      query: route.query,
     });
   }
 };
@@ -149,8 +152,8 @@ const goBackToArticles = () => {
 const fetchArticleDetails = async () => {
   // The show action swallows API errors, so a missing article only shows up as an empty store.
   await store.dispatch('articles/show', {
-    id: articleSlug,
-    portalSlug,
+    id: articleSlug.value,
+    portalSlug: portalSlug.value,
   });
   isNotFound.value = !article.value;
 };
@@ -162,7 +165,7 @@ const previewArticle = () => {
   });
 };
 
-onMounted(fetchArticleDetails);
+watch(articleSlug, fetchArticleDetails, { immediate: true });
 </script>
 
 <template>

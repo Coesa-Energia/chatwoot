@@ -15,10 +15,6 @@ models:
     provider: openai
     display_name: 'GPT-5 Mini'
     credit_multiplier: 1
-  gpt-5-nano:
-    provider: openai
-    display_name: 'GPT-5 Nano'
-    credit_multiplier: 1
   gpt-5.2:
     provider: openai
     display_name: 'GPT-5.2'
@@ -58,9 +54,9 @@ models:
     provider: openai
     display_name: 'GPT Transcribe'
     credit_multiplier: 1
-  gpt-4o-mini-tts-2025-12-15:
+  gpt-audio-1.5:
     provider: openai
-    display_name: 'GPT-4o Mini TTS'
+    display_name: 'GPT-Audio 1.5'
     credit_multiplier: 1
   text-embedding-3-small:
     provider: openai
@@ -202,14 +198,14 @@ features:
     models: [gpt-6-luna, gpt-6.1-sol, gpt-5.2, gpt-5-mini]
     default: gpt-6-luna
   language_detection:
-    models: [gpt-5-mini, gpt-5-nano]
-    default: gpt-5-mini
+    models: [gpt-6-luna]
+    default: gpt-6-luna
   audio_transcription:
     models: [gpt-transcribe]
     default: gpt-transcribe
   call_announcement:
-    models: [gpt-4o-mini-tts-2025-12-15]
-    default: gpt-4o-mini-tts-2025-12-15
+    models: [gpt-audio-1.5]
+    default: gpt-audio-1.5
   help_center_search:
     models: [text-embedding-3-small]
     default: text-embedding-3-small

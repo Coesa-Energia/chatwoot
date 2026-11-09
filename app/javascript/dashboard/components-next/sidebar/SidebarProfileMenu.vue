@@ -7,6 +7,7 @@ import Avatar from 'next/avatar/Avatar.vue';
 import SidebarProfileMenuStatus from './SidebarProfileMenuStatus.vue';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
 import { useSellerMode } from 'dashboard/composables/useSellerMode';
+import { isVoiceCallEnabled } from 'dashboard/helper/inbox';
 
 import {
   DropdownContainer,
@@ -15,6 +16,7 @@ import {
   DropdownItem,
 } from 'next/dropdown-menu/base';
 import CustomBrandPolicyWrapper from '../../components/CustomBrandPolicyWrapper.vue';
+import { openCommandBar } from 'dashboard/modules/command-bar/openCommandBar';
 
 defineProps({
   isCollapsed: { type: Boolean, default: false },
@@ -31,11 +33,14 @@ const { isSellerMode } = useSellerMode();
 
 const currentUser = useMapGetter('getCurrentUser');
 const currentUserAvailability = useMapGetter('getCurrentUserAvailability');
+const inboxes = useMapGetter('inboxes/getInboxes');
 const accountId = useMapGetter('getCurrentAccountId');
 const globalConfig = useMapGetter('globalConfig/get');
 const isFeatureEnabledonAccount = useMapGetter(
   'accounts/isFeatureEnabledonAccount'
 );
+
+const hasVoiceInbox = computed(() => inboxes.value.some(isVoiceCallEnabled));
 
 const showChatSupport = computed(() => {
   return (
@@ -82,10 +87,7 @@ const menuItems = computed(() => {
       showOnCustomBrandedInstance: true,
       label: t('SIDEBAR_ITEMS.APPEARANCE'),
       icon: 'i-lucide-palette',
-      click: () => {
-        const ninja = document.querySelector('ninja-keys');
-        ninja.open({ parent: 'appearance_settings' });
-      },
+      click: () => openCommandBar({ page: 'appearance_settings' }),
     },
     {
       show: !isSellerMode.value,
@@ -163,7 +165,7 @@ const allowedMenuItems = computed(() => {
       </button>
     </template>
     <DropdownBody class="bottom-12 z-50 mb-2 w-80 ltr:left-0 rtl:right-0">
-      <SidebarProfileMenuStatus />
+      <SidebarProfileMenuStatus :has-voice-inbox="hasVoiceInbox" />
       <DropdownSeparator />
       <template v-for="item in allowedMenuItems" :key="item.label">
         <CustomBrandPolicyWrapper

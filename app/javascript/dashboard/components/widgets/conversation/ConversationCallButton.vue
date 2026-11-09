@@ -21,6 +21,7 @@ import { useAccount } from 'dashboard/composables/useAccount';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
 import { useAlert } from 'dashboard/composables';
 import WhatsappCallsAPI from 'dashboard/api/channel/whatsapp/whatsappCallsAPI';
+import { ExceptionWithMessage } from 'shared/helpers/CustomErrors';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 
 const props = defineProps({
@@ -71,8 +72,11 @@ const phoneInbox = computed(() => {
 const contactPhone = computed(() => props.chat?.meta?.sender?.phone_number);
 const canPhoneCall = computed(() => !!phoneInbox.value && !!contactPhone.value);
 
+// Withheld (anonymous) callers have no number to call back.
+const isAnonymousCaller = computed(() => !!props.chat.anonymous_caller);
 const shouldRender = computed(
-  () => canWhatsappCall.value || !!phoneInbox.value
+  () =>
+    !isAnonymousCaller.value && (canWhatsappCall.value || !!phoneInbox.value)
 );
 const hasChoice = computed(() => canWhatsappCall.value && !!phoneInbox.value);
 
@@ -216,7 +220,11 @@ const startPhoneCall = async () => {
       callDirection: VOICE_CALL_DIRECTION.OUTBOUND,
     });
   } catch (error) {
-    useAlert(error?.message || t('CONVERSATION.HEADER.VOICE_CALL_FAILED'));
+    useAlert(
+      error instanceof ExceptionWithMessage
+        ? error.data
+        : t('CONVERSATION.HEADER.VOICE_CALL_FAILED')
+    );
   }
 };
 

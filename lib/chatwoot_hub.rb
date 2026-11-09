@@ -81,7 +81,7 @@ class ChatwootHub
     model.last&.id || 0
   end
 
-  def self.sync_with_hub
+  def self.sync_with_hub(**)
     # COESA FORK: sem chamada externa. Retorno fixo com a versão local.
     { 'version' => Chatwoot.config[:version], 'plan' => 'enterprise', 'plan_quantity' => 9999 }
   end
