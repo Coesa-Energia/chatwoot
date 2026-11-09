@@ -106,8 +106,12 @@ const setupRecorder = () => {
   audioContext.resume().catch(() => {});
 
   const destination = audioContext.createMediaStreamDestination();
-  audioContext.createMediaStreamSource(localStream).connect(destination);
-  audioContext.createMediaStreamSource(remoteStream).connect(destination);
+  // COESA: agent on the left channel, contact on the right, so the transcript can say who spoke
+  // (Voice::SpeakerTranscriptService splits them).
+  const merger = audioContext.createChannelMerger(2);
+  audioContext.createMediaStreamSource(localStream).connect(merger, 0, 0);
+  audioContext.createMediaStreamSource(remoteStream).connect(merger, 0, 1);
+  merger.connect(destination);
 
   const mimeType = RECORDER_MIME_CANDIDATES.find(t =>
     MediaRecorder.isTypeSupported(t)

@@ -375,7 +375,8 @@ RSpec.describe 'Twilio::VoiceController', type: :request do
         'Direction' => 'inbound', 'call_sid' => call_sid
       }
 
-      expect(response.body).to include('<Dial>')
+      # COESA: the agent's leg is recorded in two channels so the transcript can say who spoke.
+      expect(response.body).to include('<Dial record="record-from-answer-dual">')
       expect(call.reload.agent_legs.dig('CA_agent_leg', 'state')).to eq('joining')
     end
 

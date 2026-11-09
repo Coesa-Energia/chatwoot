@@ -26,7 +26,7 @@ class Voice::Provider::Twilio::TwimlBuilder
     conference_sid = Voice::Provider::Twilio::ConferenceService.new(call: call).ensure_conference_sid
 
     Twilio::TwiML::VoiceResponse.new.tap do |response|
-      response.dial do |dial|
+      response.dial(**agent_leg_recording(call)) do |dial|
         dial.conference(
           conference_sid,
           start_conference_on_enter: agent_leg?,
@@ -62,6 +62,14 @@ class Voice::Provider::Twilio::TwimlBuilder
 
   def participant_label
     agent_leg? ? from.delete_prefix('client:') : 'contact'
+  end
+
+  # COESA: the agent's own leg is also recorded in two channels (the agent, then what the agent
+  # hears) so the transcript can say who spoke; Twilio cannot split the conference recording on
+  # this account (error 16113). No callback: Voice::CallTranscriptionService looks the leg up,
+  # and the conference recording stays the one people play.
+  def agent_leg_recording(call)
+    agent_leg? && call.recording_enabled? ? { record: 'record-from-answer-dual' } : {}
   end
 
   # An inbound caller hears the inbox's greeting first when one is on; otherwise Twilio's

@@ -377,6 +377,8 @@ pt_BR:
       voice_call:
         twilio: 'Chamada de Voz'
         whatsapp: 'Chamada do WhatsApp'
+        transcript_agent: 'Vendedor'
+        transcript_contact: 'Cliente'
       delivery_status:
         error_code: 'Código de erro: %{error_code}'
     activity:
