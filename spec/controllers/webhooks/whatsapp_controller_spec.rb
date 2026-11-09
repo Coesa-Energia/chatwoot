@@ -256,7 +256,10 @@ RSpec.describe 'Webhooks::WhatsappController', type: :request do
       end
 
       before do
-        channel.update!(provider_config: channel.provider_config.except('app_secret', 'app_secret_key', 'api_secret', 'client_secret', 'source'))
+        # Upstream now validates app_secret on manual channels; production channels created before
+        # that rule still have none, so build that state without the validation.
+        channel.provider_config = channel.provider_config.except('app_secret', 'app_secret_key', 'api_secret', 'client_secret', 'source')
+        channel.save!(validate: false)
         allow(Webhooks::WhatsappEventsJob).to receive(:perform_later)
       end
 

@@ -44,7 +44,8 @@ class Messages::AudioTranscriptionService
       transcribed_text = existing_transcription(reload: true)
       return transcribed_text if transcribed_text.present?
 
-      transcribed_text = Llm::SpeechToTextService.new(blob: attachment.file.blob, account: account,
+      transcribed_text = speaker_transcript ||
+                         Llm::SpeechToTextService.new(blob: attachment.file.blob, account: account,
                                                       source: message.voice_call? ? 'call' : 'voice_note',
                                                       message_id: message.id).perform
       update_transcription(transcribed_text)
@@ -52,6 +53,21 @@ class Messages::AudioTranscriptionService
     ensure
       lock_manager.unlock(lock_key)
     end
+  end
+
+  # COESA: WhatsApp call recordings made by the dashboard put the agent on the left channel and the
+  # contact on the right, so the transcript can say who spoke. Older (mono) recordings return nil here.
+  def speaker_transcript
+    call = message.call if message.voice_call?
+    return if call.blank?
+
+    attachment.file.blob.open do |file|
+      Voice::SpeakerTranscriptService.new(path: file.path, labels: Voice::SpeakerTranscriptService.labels(call, agent_first: true),
+                                          account: account, usage: { message_id: message.id, call_id: call.id }).perform
+    end
+  rescue StandardError => e
+    Rails.logger.warn("[SpeakerTranscript] message #{message.id}: plain transcript (#{e.class}: #{e.message})")
+    nil
   end
 
   def existing_transcription(reload: false)

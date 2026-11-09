@@ -98,8 +98,8 @@ GEM
       jbuilder (~> 2)
       rails (>= 4.2, < 8.0)
       selectize-rails (~> 0.6)
-    ai-agents (0.13.0)
-      ruby_llm (~> 2.0.0)
+    ai-agents (0.14.0)
+      ruby_llm (>= 2.0, < 2.2)
     annotaterb (4.20.0)
       activerecord (>= 6.0.0)
       activesupport (>= 6.0.0)
@@ -197,14 +197,14 @@ GEM
       activerecord (>= 5.a)
       database_cleaner-core (~> 2.0.0)
     database_cleaner-core (2.0.1)
-    datadog (2.45.0)
+    datadog (2.47.0)
       cgi
-      datadog-ruby_core_source (~> 3.5, >= 3.5.5)
-      libdatadog (~> 45.0.0.1.0)
-      libddwaf (~> 1.30.0.0.0)
+      datadog-ruby_core_source (~> 3.5, >= 3.5.6)
+      libdatadog (~> 46.1.0.1.1)
+      libddwaf (~> 1.30.0.1.0)
       logger
       msgpack
-    datadog-ruby_core_source (3.5.5)
+    datadog-ruby_core_source (3.5.6)
     date (3.5.1)
     debug (1.11.1)
       irb (~> 1.10)
@@ -512,23 +512,20 @@ GEM
       logger (~> 1.6)
     letter_opener (1.10.0)
       launchy (>= 2.2, < 4)
-    libdatadog (45.0.0.1.0)
-    libdatadog (45.0.0.1.0-arm64-darwin)
-    libdatadog (45.0.0.1.0-x86_64-linux)
-    libddwaf (1.30.0.0.2)
+    libdatadog (46.1.0.1.1)
+    libdatadog (46.1.0.1.1-arm64-darwin)
+    libdatadog (46.1.0.1.1-x86_64-linux)
+    libddwaf (1.30.0.1.0)
       ffi (~> 1.0)
-    libddwaf (1.30.0.0.2-arm64-darwin)
+    libddwaf (1.30.0.1.0-arm64-darwin)
       ffi (~> 1.0)
-    libddwaf (1.30.0.0.2-x86_64-darwin)
+    libddwaf (1.30.0.1.0-x86_64-darwin)
       ffi (~> 1.0)
-    libddwaf (1.30.0.0.2-x86_64-linux)
+    libddwaf (1.30.0.1.0-x86_64-linux)
       ffi (~> 1.0)
     line-bot-api (1.28.0)
     lint_roller (1.1.0)
     liquid (5.4.0)
-    listen (3.8.0)
-      rb-fsevent (~> 0.10, >= 0.10.3)
-      rb-inotify (~> 0.9, >= 0.9.10)
     llhttp-ffi (0.4.0)
       ffi-compiler (~> 1.0)
       rake (~> 13.0)
@@ -856,14 +853,13 @@ GEM
     ruby2ruby (2.5.0)
       ruby_parser (~> 3.1)
       sexp_processor (~> 4.6)
-    ruby_llm (2.0.0)
+    ruby_llm (2.1.1)
       base64
-      event_stream_parser (~> 1)
-      faraday (>= 1.10.0)
+      faraday (>= 1.10.0, != 2.0.0)
       faraday-multipart (>= 1)
       faraday-net_http (>= 1)
       faraday-retry (>= 1)
-      json (< 3)
+      json (< 4)
       marcel (>= 1.0, < 3)
       schematist (~> 1.1)
       zeitwerk (~> 2)
@@ -1064,7 +1060,7 @@ DEPENDENCIES
   administrate (>= 0.20.1)
   administrate-field-active_storage (>= 1.0.3)
   administrate-field-belongs_to_search (>= 0.10.0)
-  ai-agents (~> 0.13.0)
+  ai-agents (~> 0.14.0)
   annotaterb
   apnotic (~> 1.8)
   attr_extras
@@ -1129,7 +1125,6 @@ DEPENDENCIES
   letter_opener
   line-bot-api
   liquid
-  listen
   lograge (~> 0.14.0)
   maxminddb
   meta_request (>= 0.8.3)
@@ -1172,7 +1167,7 @@ DEPENDENCIES
   rubocop-rails
   rubocop-rspec
   ruby-openai
-  ruby_llm (~> 2.0.0)
+  ruby_llm (~> 2.1.1)
   scout_apm
   scss_lint
   searchkick

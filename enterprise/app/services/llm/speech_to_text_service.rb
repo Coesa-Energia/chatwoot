@@ -75,9 +75,49 @@ class Llm::SpeechToTextService < Llm::LegacyBaseOpenAiService
     FileUtils.rm_f(temp_file_path) if temp_file_path.present?
   end
 
+  # COESA: the speech of one audio file as [{ 'start' => seconds, 'text' => ... }] pieces
+  # (Voice::SpeakerTranscriptService), or nil when the model gives no timestamps. Segments Whisper
+  # itself marks as probable silence are dropped: a channel is silent while the other person talks,
+  # and Whisper invents text on silence.
+  NO_SPEECH_PROBABILITY = 0.6
+  # Whisper segments can run across a long pause (two replies in one segment), so speech is cut
+  # again at pauses between words.
+  PAUSE_SECONDS = 1.0
+
+  def segments_for(path)
+    return unless verbose_json?
+
+    response = File.open(path, 'rb') do |file|
+      transcription_response(file, vad: @custom_server, timestamp_granularities: %w[word segment])
+    end
+    return unless response.is_a?(Hash) && response['segments'].is_a?(Array)
+
+    account.increment_response_usage unless @custom_server
+    speech_pieces(response)
+  end
+
   private
 
+  def speech_pieces(response)
+    speech = response['segments'].reject { |segment| segment['no_speech_prob'].to_f > NO_SPEECH_PROBABILITY }
+    words = Array(response['words']).select do |word|
+      speech.any? { |segment| word['start'].to_f.between?(segment['start'].to_f, segment['end'].to_f) }
+    end
+    words.any? ? split_at_pauses(words) : speech
+  end
+
+  def split_at_pauses(words)
+    words.slice_when { |previous, word| word['start'].to_f - previous['end'].to_f > PAUSE_SECONDS }
+         .map { |group| { 'start' => group.first['start'], 'text' => group.pluck('word').join } }
+  end
+
   def request_transcription(file)
+    response = transcription_response(file)
+    response['text'].to_s.strip.presence if response.is_a?(Hash)
+  end
+
+  # vad: speaches' voice activity filter, a self-hosted Whisper option the OpenAI API does not take.
+  def transcription_response(file, vad: false, timestamp_granularities: nil)
     started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     # temperature: 0.0 minimises hallucinations on silence / near-silent
     # audio; non-zero values trigger spiraling repeats — well-documented
@@ -89,10 +129,11 @@ class Llm::SpeechToTextService < Llm::LegacyBaseOpenAiService
         temperature: 0.0,
         language: @language,
         prompt: @prompt,
-        response_format: verbose_json? ? 'verbose_json' : nil
+        response_format: verbose_json? ? 'verbose_json' : nil,
+        vad_filter: vad || nil,
+        timestamp_granularities: timestamp_granularities
       }.compact
     )
-    response['text'].to_s.strip.presence
   ensure
     record_usage(response, started_at)
   end

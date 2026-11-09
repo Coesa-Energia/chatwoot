@@ -14,4 +14,8 @@ RSpec.describe Internal::CheckNewVersionsJob do
     expect(ChatwootHub).not_to have_received(:sync_with_hub)
     expect(Redis::Alfred.get(Redis::Alfred::LATEST_CHATWOOT_VERSION)).to be_nil
   end
+
+  it 'accepts the refresh_billing option used by Super Admin > Settings and reports success' do
+    expect(described_class.perform_now(refresh_billing: true)).to be_present
+  end
 end

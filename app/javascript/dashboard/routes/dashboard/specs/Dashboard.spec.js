@@ -3,11 +3,13 @@ import { createMemoryHistory, createRouter } from 'vue-router';
 import { flushPromises, mount } from '@vue/test-utils';
 import Dashboard from '../Dashboard.vue';
 
+const uiSettingsState = vi.hoisted(() => ({ current: {} }));
+
 vi.mock('dashboard/composables/useUISettings', async () => {
-  const { ref: createRef } = await import('vue');
+  const { computed: createComputed } = await import('vue');
   return {
     useUISettings: () => ({
-      uiSettings: createRef({}),
+      uiSettings: createComputed(() => uiSettingsState.current),
       updateUISettings: vi.fn(),
     }),
   };
@@ -17,6 +19,10 @@ vi.mock('dashboard/composables/useAccount', async () => {
   const { ref: createRef } = await import('vue');
   return { useAccount: () => ({ accountId: createRef(1) }) };
 });
+
+vi.mock('dashboard/composables/useRingingCallsOnLoad', () => ({
+  useRingingCallsOnLoad: vi.fn(),
+}));
 
 vi.mock('dashboard/stores/calls', () => ({
   useCallsStore: () => ({ hasActiveCall: false, hasIncomingCall: false }),
@@ -69,6 +75,7 @@ describe('Dashboard', () => {
         plugins: [router],
         stubs: {
           CommandBar: createCommandBarStub(commandBar),
+          CommandBarV2: createCommandBarStub(commandBar, 'CommandBarV2'),
           NextSidebar: true,
           DashboardTopBar: true,
           MobileSidebarLauncher: true,

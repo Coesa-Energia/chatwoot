@@ -31,9 +31,11 @@ if article.author.present?
   end
 end
 
+# COESA: AI-only (ai_only) translations stay hidden from people.
+published_translations = article.associated_articles.visible_to_people.select(&:published?)
 json.associated_articles do
-  if article.associated_articles.visible_to_people.any?
-    json.array! article.associated_articles.visible_to_people.each do |associated_article|
+  if published_translations.any?
+    json.array! published_translations do |associated_article|
       json.partial! 'public/api/v1/models/hc/associated_article', formats: [:json], article: associated_article
     end
   end

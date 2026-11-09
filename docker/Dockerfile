@@ -1,8 +1,8 @@
 # pre-build stage
-FROM node:24-alpine as node
+FROM node:24.22.1-alpine as node
 FROM ruby:3.4.4-alpine3.21 AS pre-builder
 
-ARG NODE_VERSION="24.13.0"
+ARG NODE_VERSION="24.22.1"
 ARG PNPM_VERSION="10.2.0"
 ENV NODE_VERSION=${NODE_VERSION}
 ENV PNPM_VERSION=${PNPM_VERSION}
@@ -99,7 +99,7 @@ RUN rm -rf /gems/ruby/3.4.0/cache/*.gem \
 # final build stage
 FROM ruby:3.4.4-alpine3.21
 
-ARG NODE_VERSION="24.13.0"
+ARG NODE_VERSION="24.22.1"
 ARG PNPM_VERSION="10.2.0"
 ENV NODE_VERSION=${NODE_VERSION}
 ENV PNPM_VERSION=${PNPM_VERSION}
@@ -121,6 +121,7 @@ ARG RAILS_ENV=production
 ENV RAILS_ENV ${RAILS_ENV}
 ENV BUNDLE_PATH="/gems"
 
+# COESA: ffmpeg splits two-channel call recordings so transcripts say who spoke
 RUN apk update && apk add --no-cache \
   build-base \
   openssl \
@@ -129,6 +130,7 @@ RUN apk update && apk add --no-cache \
   imagemagick \
   git \
   vips \
+  ffmpeg \
   && gem install bundler -v "$BUNDLER_VERSION"
 
 # Restrict libvips to its trusted image loaders when generating variants

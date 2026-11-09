@@ -162,12 +162,15 @@ export default {
       </button>
       <span
         v-else-if="value"
-        v-dompurify-html="value"
         class="overflow-hidden text-sm whitespace-nowrap text-ellipsis"
-      />
+        :title="value"
+      >
+        {{ value }}
+      </span>
       <span v-else class="text-sm text-n-slate-11">
         {{ $t('CONTACT_PANEL.NOT_AVAILABLE') }}
       </span>
+      <slot v-if="value" />
       <NextButton
         v-if="showCopy && value"
         ghost
