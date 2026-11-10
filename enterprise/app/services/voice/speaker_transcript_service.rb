@@ -21,12 +21,26 @@ class Voice::SpeakerTranscriptService
     end
   end
 
+  # A contact saved only as a phone number reads better as "Cliente".
+  PHONE_LIKE = /\A[\d\s+().-]+\z/
+
   # [first channel, second channel] names: the agent who took the call and the contact.
   def self.labels(call, agent_first:)
-    agent = call.accepted_by_agent&.available_name.presence || I18n.t('conversations.messages.voice_call.transcript_agent')
-    contact = I18n.t('conversations.messages.voice_call.transcript_contact')
+    agent = agent_name(call) || I18n.t('conversations.messages.voice_call.transcript_agent')
+    contact = contact_name(call) || I18n.t('conversations.messages.voice_call.transcript_contact')
     agent_first ? [agent, contact] : [contact, agent]
   end
+
+  def self.agent_name(call)
+    [call.accepted_by_agent, call.message&.sender, call.conversation&.assignee]
+      .find { |user| user.is_a?(User) }&.available_name.presence
+  end
+
+  def self.contact_name(call)
+    name = (call.contact || call.conversation&.contact)&.name.to_s.strip
+    name unless name.blank? || name.match?(PHONE_LIKE)
+  end
+  private_class_method :agent_name, :contact_name
 
   # Consecutive segments of the same speaker become one line.
   def self.format(segments)

@@ -728,6 +728,10 @@
   display_title: 'Modelo de transcrição'
   description: 'Nome do modelo no servidor. Ex.: Systran/faster-whisper-small (Whisper próprio), whisper-1 (OpenAI), whisper-large-v3-turbo (Groq).'
   locked: false
+- name: AUDIO_TRANSCRIPTION_CALL_MODEL
+  display_title: 'Modelo para ligações (opcional)'
+  description: 'Modelo maior só para gravações de ligação (áudio de telefone é mais difícil). Ex.: deepdml/faster-whisper-large-v3-turbo-ct2 (Whisper próprio; baixe antes no servidor). Vazio = mesmo modelo dos áudios.'
+  locked: false
 - name: AUDIO_TRANSCRIPTION_LANGUAGE
   display_title: 'Idioma dos áudios (opcional)'
   description: 'Código do idioma, ex.: pt. Informar deixa a transcrição mais rápida e precisa.'

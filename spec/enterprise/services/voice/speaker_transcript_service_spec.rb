@@ -22,20 +22,34 @@ RSpec.describe Voice::SpeakerTranscriptService do
   end
 
   describe '.labels' do
-    let(:agent) { create(:user) }
+    let(:agent) { create(:user, name: 'Lucas Vendedor', display_name: 'Lucas') }
+    let(:contact) { create(:contact, name: 'Luan Costa') }
 
-    it 'names the agent who took the call and the contact, in channel order' do
-      call = instance_double(Call, accepted_by_agent: agent)
-
-      contact = I18n.t('conversations.messages.voice_call.transcript_contact')
-      expect(described_class.labels(call, agent_first: true)).to eq([agent.available_name, contact])
-      expect(described_class.labels(call, agent_first: false)).to eq([contact, agent.available_name])
+    def call_double(accepted_by_agent: nil, contact: nil, message: nil, conversation: nil)
+      instance_double(Call, accepted_by_agent: accepted_by_agent, contact: contact, message: message, conversation: conversation)
     end
 
-    it 'falls back to a generic agent label' do
-      call = instance_double(Call, accepted_by_agent: nil)
+    it 'names the agent who took the call and the contact, in channel order' do
+      call = call_double(accepted_by_agent: agent, contact: contact)
 
-      expect(described_class.labels(call, agent_first: true).first).to eq(I18n.t('conversations.messages.voice_call.transcript_agent'))
+      expect(described_class.labels(call, agent_first: true)).to eq(['Lucas', 'Luan Costa'])
+      expect(described_class.labels(call, agent_first: false)).to eq(['Luan Costa', 'Lucas'])
+    end
+
+    it "uses the conversation's contact and the agent who sent the call message when the call lacks them" do
+      conversation = instance_double(Conversation, contact: contact, assignee: nil)
+      message = instance_double(Message, sender: agent)
+
+      expect(described_class.labels(call_double(message: message, conversation: conversation), agent_first: true))
+        .to eq(['Lucas', 'Luan Costa'])
+    end
+
+    it 'falls back to generic labels when there is no agent and the contact is only a phone number' do
+      call = call_double(contact: create(:contact, name: '+55 (31) 99999-0000'))
+
+      expect(described_class.labels(call, agent_first: true)).to eq(
+        [I18n.t('conversations.messages.voice_call.transcript_agent'), I18n.t('conversations.messages.voice_call.transcript_contact')]
+      )
     end
   end
 end

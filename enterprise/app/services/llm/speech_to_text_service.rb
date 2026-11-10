@@ -76,13 +76,21 @@ class Llm::SpeechToTextService < Llm::LegacyBaseOpenAiService
   end
 
   # COESA: the speech of one audio file as [{ 'start' => seconds, 'text' => ... }] pieces
-  # (Voice::SpeakerTranscriptService), or nil when the model gives no timestamps. Segments Whisper
-  # itself marks as probable silence are dropped: a channel is silent while the other person talks,
-  # and Whisper invents text on silence.
+  # (Voice::SpeakerTranscriptService), or nil when the model gives no timestamps. A segment is dropped
+  # as silence only when Whisper both thinks it is silence and is unsure of the words (Whisper's own
+  # rule): the probability alone hit real phone speech (0.67 on a seller's "Ah, não, tá bom").
   NO_SPEECH_PROBABILITY = 0.6
+  LOW_CONFIDENCE_LOGPROB = -1.0
+  # Whisper loops on short noisy phone audio ("um teste, um teste, um teste..."); a phrase of up to
+  # six words said three or more times in a row is kept once.
+  REPEATED_PHRASE = /\b((?:[[:alnum:]]+[[:punct:]]*\s+){1,6}?)\1{2,}/i
   # Whisper segments can run across a long pause (two replies in one segment), so speech is cut
   # again at pauses between words.
   PAUSE_SECONDS = 1.0
+
+  def self.without_loops(text)
+    "#{text} ".gsub(REPEATED_PHRASE, '\1').rstrip
+  end
 
   def segments_for(path)
     return unless verbose_json?
@@ -99,11 +107,16 @@ class Llm::SpeechToTextService < Llm::LegacyBaseOpenAiService
   private
 
   def speech_pieces(response)
-    speech = response['segments'].reject { |segment| segment['no_speech_prob'].to_f > NO_SPEECH_PROBABILITY }
+    speech = response['segments'].reject { |segment| silence?(segment) }
     words = Array(response['words']).select do |word|
       speech.any? { |segment| word['start'].to_f.between?(segment['start'].to_f, segment['end'].to_f) }
     end
-    words.any? ? split_at_pauses(words) : speech
+    pieces = words.any? ? split_at_pauses(words) : speech
+    pieces.map { |piece| piece.merge('text' => self.class.without_loops(piece['text'])) }
+  end
+
+  def silence?(segment)
+    segment['no_speech_prob'].to_f > NO_SPEECH_PROBABILITY && segment['avg_logprob'].to_f < LOW_CONFIDENCE_LOGPROB
   end
 
   def split_at_pauses(words)
@@ -166,10 +179,22 @@ class Llm::SpeechToTextService < Llm::LegacyBaseOpenAiService
       request_timeout: CUSTOM_SERVER_TIMEOUT,
       log_errors: Rails.env.development?
     )
-    @transcription_model = self.class.config_value('AUDIO_TRANSCRIPTION_MODEL') || 'whisper-1'
+    @transcription_model = custom_server_model
     @language = self.class.config_value('AUDIO_TRANSCRIPTION_LANGUAGE')
     # Whisper is steered by a short text in the audio's language: names and jargon it would otherwise misspell.
-    @prompt = self.class.config_value('AUDIO_TRANSCRIPTION_PROMPT')
+    # Not on calls: on short replies split by speaker it made Whisper repeat itself instead.
+    @prompt = self.class.config_value('AUDIO_TRANSCRIPTION_PROMPT') unless call?
+  end
+
+  # Phone audio needs a bigger model than voice notes; calls are transcribed in the background, so the
+  # slower model costs no waiting.
+  def custom_server_model
+    (self.class.config_value('AUDIO_TRANSCRIPTION_CALL_MODEL') if call?) ||
+      self.class.config_value('AUDIO_TRANSCRIPTION_MODEL') || 'whisper-1'
+  end
+
+  def call?
+    @usage_context[:source] == 'call'
   end
 
   def fetch_audio_file
