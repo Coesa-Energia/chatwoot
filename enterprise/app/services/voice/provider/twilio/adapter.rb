@@ -24,7 +24,7 @@ class Voice::Provider::Twilio::Adapter
 
     {
       from: @channel.phone_number,
-      to: to,
+      to: dialable(to),
       url: twilio_call_twiml_url(phone_digits),
       status_callback: twilio_call_status_url(phone_digits),
       status_callback_event: %w[
@@ -32,6 +32,12 @@ class Voice::Provider::Twilio::Adapter
       ],
       status_callback_method: 'POST'
     }
+  end
+
+  # COESA: contacts created from WhatsApp can hold an old Brazilian mobile without the ninth digit
+  # (WhatsApp's wa_id), which the phone network rejects (Twilio 13224, SIP 404).
+  def dialable(number)
+    "+#{Whatsapp::PhoneNormalizers::BrazilPhoneNormalizer.new.normalize(number.to_s.delete_prefix('+'))}"
   end
 
   def twilio_call_twiml_url(phone_digits)
