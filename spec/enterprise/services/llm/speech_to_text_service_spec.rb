@@ -179,10 +179,12 @@ RSpec.describe Llm::SpeechToTextService, type: :service do
 
       after { FileUtils.rm_f(audio_file_path) }
 
-      it 'sends the vocabulary prompt, asks Whisper for verbose_json and logs the audio duration' do
-        expect(audio_api).to receive(:transcribe).with(
-          parameters: hash_including(prompt: 'Coesa Energia, Cemig', response_format: 'verbose_json')
-        ).and_return({ 'text' => ' Bom dia ', 'duration' => 12.5 })
+      it 'asks Whisper for verbose_json without the vocabulary prompt and logs the audio duration' do
+        expect(audio_api).to receive(:transcribe) do |parameters:|
+          expect(parameters).to include(response_format: 'verbose_json')
+          expect(parameters).not_to have_key(:prompt)
+          { 'text' => ' Bom dia ', 'duration' => 12.5 }
+        end
 
         expect(service.perform).to eq('Bom dia')
 
@@ -210,6 +212,70 @@ RSpec.describe Llm::SpeechToTextService, type: :service do
           allow(other.client).to receive(:audio).and_return(audio_api)
         end.perform
       end
+
+      it 'sends the vocabulary prompt on voice notes' do
+        expect(audio_api).to receive(:transcribe).with(
+          parameters: hash_including(prompt: 'Coesa Energia, Cemig')
+        ).and_return({ 'text' => 'Bom dia' })
+
+        described_class.new(blob: attachment.file.blob, account: account).tap do |other|
+          allow(other).to receive(:fetch_audio_file).and_return(audio_file_path)
+          allow(other.client).to receive(:audio).and_return(audio_api)
+        end.perform
+      end
+
+      it 'uses the call model on calls when one is set' do
+        InstallationConfig.find_or_create_by!(name: 'AUDIO_TRANSCRIPTION_CALL_MODEL') { |c| c.value = 'deepdml/faster-whisper-large-v3-turbo-ct2' }
+        call_service = described_class.new(blob: attachment.file.blob, account: account, source: 'call')
+        voice_note_service = described_class.new(blob: attachment.file.blob, account: account)
+
+        expect(call_service.transcription_model).to eq('deepdml/faster-whisper-large-v3-turbo-ct2')
+        expect(voice_note_service.transcription_model).to eq('Systran/faster-whisper-small')
+      end
+    end
+
+    describe '#segments_for' do
+      let(:service) { described_class.new(blob: nil, account: account, source: 'call') }
+
+      before do
+        File.binwrite(audio_file_path, 'audio')
+        allow(service.client).to receive(:audio).and_return(audio_api)
+      end
+
+      after { FileUtils.rm_f(audio_file_path) }
+
+      def word(text, start, finish)
+        { 'word' => text, 'start' => start, 'end' => finish }
+      end
+
+      it "keeps confident speech Whisper scores as likely silence and drops only unsure silence (Whisper's rule)" do
+        allow(audio_api).to receive(:transcribe).and_return(
+          'segments' => [
+            { 'start' => 2.5, 'end' => 3.3, 'no_speech_prob' => 0.67, 'avg_logprob' => -0.82, 'text' => ' Você viu?' },
+            { 'start' => 6.0, 'end' => 7.0, 'no_speech_prob' => 0.9, 'avg_logprob' => -1.4, 'text' => ' Obrigado.' }
+          ],
+          'words' => [word(' Você', 2.58, 2.9), word(' viu?', 2.9, 3.2), word(' Obrigado.', 6.1, 6.8)]
+        )
+
+        expect(service.segments_for(audio_file_path)).to eq([{ 'start' => 2.58, 'text' => ' Você viu?' }])
+      end
+
+      it 'keeps a phrase Whisper repeated in a loop only once' do
+        allow(audio_api).to receive(:transcribe).and_return(
+          'segments' => [{ 'start' => 1.1, 'end' => 7.9, 'no_speech_prob' => 0.3, 'avg_logprob' => -0.8,
+                           'text' => ' Vou fazer um teste, um teste, um teste, um teste, um teste.' }]
+        )
+
+        expect(service.segments_for(audio_file_path)).to eq([{ 'start' => 1.1, 'end' => 7.9, 'no_speech_prob' => 0.3,
+                                                               'avg_logprob' => -0.8, 'text' => ' Vou fazer um teste, um teste.' }])
+      end
+    end
+  end
+
+  describe '.without_loops' do
+    it 'leaves ordinary repetition alone and collapses three or more repeats' do
+      expect(described_class.without_loops('Tudo bem? Tudo bem? Ah, sim.')).to eq('Tudo bem? Tudo bem? Ah, sim.')
+      expect(described_class.without_loops('Alô, tá bom, tá bom, tá bom, tá bom. Ah, sim.')).to eq('Alô, tá bom, tá bom. Ah, sim.')
     end
   end
 end
