@@ -7,6 +7,9 @@ json.message_type message.message_type_before_type_cast
 json.content_type message.content_type
 json.status message.status
 json.content_attributes message.content_attributes
+# Same as the websocket payload (push_event_data): the dashboard needs template_params to draw the
+# WhatsApp template buttons and sender_name for bubbles without a sender when the history is loaded.
+json.additional_attributes message.additional_attributes
 json.created_at message.created_at.to_i
 json.private message.private
 json.source_id message.source_id
