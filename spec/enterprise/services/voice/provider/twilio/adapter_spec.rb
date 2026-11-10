@@ -40,4 +40,26 @@ describe Voice::Provider::Twilio::Adapter do
     expect(result[:agent_id]).to eq(42)
     expect(result[:call_direction]).to eq('outbound')
   end
+
+  # COESA: WhatsApp contacts can hold an old Brazilian mobile without the ninth digit.
+  describe 'Brazilian numbers' do
+    before do
+      allow(calls_double).to receive(:create).and_return(call_instance)
+      allow(Twilio::REST::Client).to receive(:new).and_return(client_double)
+    end
+
+    it 'adds the ninth digit to a legacy mobile number' do
+      adapter.initiate_call(to: '+553195784799')
+
+      expect(calls_double).to have_received(:create).with(hash_including(to: '+5531995784799'))
+    end
+
+    it 'keeps current mobiles and landlines as they are' do
+      adapter.initiate_call(to: '+5531995784799')
+      adapter.initiate_call(to: '+553125950719')
+
+      expect(calls_double).to have_received(:create).with(hash_including(to: '+5531995784799'))
+      expect(calls_double).to have_received(:create).with(hash_including(to: '+553125950719'))
+    end
+  end
 end
