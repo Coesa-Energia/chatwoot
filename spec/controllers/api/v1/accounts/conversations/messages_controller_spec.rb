@@ -266,6 +266,20 @@ RSpec.describe 'Conversation Messages API', type: :request do
         expect(response).to conform_schema(200)
         expect(JSON.parse(response.body, symbolize_names: true)[:meta][:contact][:id]).to eq(conversation.contact_id)
       end
+
+      it 'includes the template params so the dashboard can show the template buttons' do
+        create(:message, account: account, conversation: conversation, inbox: conversation.inbox, message_type: :outgoing,
+                         additional_attributes: { template_params: { name: 'retomar_contato', language: 'pt_BR' } })
+
+        get "/api/v1/accounts/#{account.id}/conversations/#{conversation.display_id}/messages",
+            headers: agent.create_new_auth_token,
+            as: :json
+
+        expect(response).to have_http_status(:success)
+        expect(response).to conform_schema(200)
+        message = JSON.parse(response.body, symbolize_names: true)[:payload].last
+        expect(message[:additional_attributes][:template_params]).to eq(name: 'retomar_contato', language: 'pt_BR')
+      end
     end
   end
 
