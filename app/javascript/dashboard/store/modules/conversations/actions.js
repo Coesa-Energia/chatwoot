@@ -24,6 +24,12 @@ import {
 } from 'dashboard/helper/voice';
 import { applyRoleFilter } from './helpers';
 import {
+  finishInFlightUpload,
+  hasFilesToUpload,
+  holdIfUploadInFlight,
+  startInFlightUpload,
+} from './helpers/inFlightUploads';
+import {
   getUserPermissions,
   getUserRole,
 } from 'dashboard/helper/permissionsHelper';
@@ -405,14 +411,20 @@ const actions = {
 
   sendMessageWithData: async ({ commit }, pendingMessage) => {
     const { conversation_id: conversationId, id } = pendingMessage;
+    const isRetry = hasMessageFailedWithExternalError(pendingMessage);
+    const holdsEchoes = !isRetry && hasFilesToUpload(pendingMessage);
+    if (holdsEchoes) startInFlightUpload(id);
     try {
       commit(types.ADD_MESSAGE, {
         ...pendingMessage,
         status: MESSAGE_STATUS.PROGRESS,
       });
-      const response = hasMessageFailedWithExternalError(pendingMessage)
+      const response = isRetry
         ? await MessageApi.retry(conversationId, id)
         : await MessageApi.create(pendingMessage);
+      const { updated } = holdsEchoes
+        ? finishInFlightUpload(id)
+        : { updated: null };
       commit(types.ADD_MESSAGE, {
         ...response.data,
         status: MESSAGE_STATUS.SENT,
@@ -421,7 +433,21 @@ const actions = {
         ...response.data,
         status: MESSAGE_STATUS.SENT,
       });
+      // A status change (e.g. delivered/failed) that arrived during the upload.
+      if (updated) commit(types.ADD_MESSAGE, updated);
     } catch (error) {
+      const { created, updated } = holdsEchoes
+        ? finishInFlightUpload(id)
+        : { created: null, updated: null };
+      const serverMessage = updated || created;
+      if (serverMessage) {
+        // The request broke (timeout, closed tab...) but the server already
+        // created the message: show it instead of a failed copy that, when
+        // retried, would send the file twice.
+        commit(types.ADD_MESSAGE, serverMessage);
+        commit(types.ADD_CONVERSATION_ATTACHMENTS, serverMessage);
+        return;
+      }
       const errorMessage = error.response
         ? error.response.data.error
         : undefined;
@@ -453,6 +479,7 @@ const actions = {
   },
 
   addMessage({ commit, dispatch, rootGetters }, message) {
+    if (holdIfUploadInFlight(message, 'created')) return;
     commit(types.ADD_MESSAGE, message);
     if (message.message_type === MESSAGE_TYPE.INCOMING) {
       commit(types.SET_CONVERSATION_CAN_REPLY, {
@@ -470,6 +497,7 @@ const actions = {
   },
 
   updateMessage({ commit, dispatch, rootGetters, state }, message) {
+    if (holdIfUploadInFlight(message, 'updated')) return;
     commit(types.ADD_MESSAGE, message);
 
     const contactInfoRequest =

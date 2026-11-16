@@ -11,7 +11,7 @@ import {
 import { useI18n } from 'vue-i18n';
 import Icon from 'next/icon/Icon.vue';
 import { timeStampAppendedURL } from 'dashboard/helper/URLHelper';
-import { downloadFile } from '@chatwoot/utils';
+import { downloadAttachment } from 'dashboard/helper/downloadHelper';
 import { useEmitter } from 'dashboard/composables/emitter';
 import { emitter } from 'shared/helpers/mitt';
 import { useAudioWaveform } from 'dashboard/composables/useAudioWaveform';
@@ -236,7 +236,7 @@ const changePlaybackSpeed = () => {
 
 const downloadAudio = async () => {
   const { fileType, dataUrl, extension } = attachment;
-  downloadFile({ url: dataUrl, type: fileType, extension });
+  downloadAttachment({ url: dataUrl, type: fileType, extension });
 };
 </script>
 
