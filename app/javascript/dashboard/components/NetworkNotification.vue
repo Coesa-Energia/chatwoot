@@ -16,12 +16,14 @@ const { t } = useI18n();
 const route = useRoute();
 
 const RECONNECTED_BANNER_TIMEOUT = 2000;
+const DISCONNECT_GRACE_PERIOD = 5000;
 
 const showNotification = ref(!navigator.onLine);
 const isDisconnected = ref(false);
 const isReconnecting = ref(false);
 const isReconnected = ref(false);
 let reconnectTimeout = null;
+let disconnectGraceTimeout = null;
 
 const bannerText = computed(() => {
   if (isReconnecting.value) return t('NETWORK.NOTIFICATION.RECONNECTING');
@@ -50,12 +52,38 @@ const isInAnyOfTheRoutes = routeName => {
   );
 };
 
+const clearDisconnectGraceTimer = () => {
+  clearTimeout(disconnectGraceTimeout);
+  disconnectGraceTimeout = null;
+};
+
+// ActionCable drops and reopens the socket whenever the tab comes back after
+// being hidden (Alt+Tab, minimize) and has missed its pings; that blip lasts
+// about a second. Only warn when the socket stays down past the grace period.
 const updateWebsocketStatus = () => {
   isDisconnected.value = true;
-  showNotification.value = true;
+  if (showNotification.value || disconnectGraceTimeout) return;
+
+  disconnectGraceTimeout = setTimeout(() => {
+    disconnectGraceTimeout = null;
+    if (isDisconnected.value) showNotification.value = true;
+  }, DISCONNECT_GRACE_PERIOD);
+};
+
+// A blip the user never saw needs no "reconnecting/reconnected" banner either;
+// ReconnectService still refreshes the data in the background.
+const isSilentReconnect = () => {
+  if (showNotification.value) return false;
+
+  clearDisconnectGraceTimer();
+  isDisconnected.value = false;
+  isReconnecting.value = false;
+  return true;
 };
 
 const handleReconnectionCompleted = () => {
+  if (isSilentReconnect()) return;
+
   isDisconnected.value = false;
   isReconnecting.value = false;
   isReconnected.value = true;
@@ -64,6 +92,8 @@ const handleReconnectionCompleted = () => {
 };
 
 const handleReconnecting = () => {
+  if (isSilentReconnect()) return;
+
   if (isInAnyOfTheRoutes(route.name)) {
     isReconnecting.value = true;
     isReconnected.value = false;
@@ -101,6 +131,7 @@ useEmitter(BUS_EVENTS.WEBSOCKET_RECONNECT, handleReconnecting);
 
 onBeforeUnmount(() => {
   clearTimeout(reconnectTimeout);
+  clearDisconnectGraceTimer();
 });
 </script>
 

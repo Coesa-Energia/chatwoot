@@ -1,6 +1,6 @@
 <script setup>
 import { computed, getCurrentInstance, ref, useTemplateRef } from 'vue';
-import { downloadFile } from '@chatwoot/utils';
+import { downloadAttachment } from 'dashboard/helper/downloadHelper';
 import { useEmitter } from 'dashboard/composables/emitter';
 import { emitter } from 'shared/helpers/mitt';
 import Button from 'dashboard/components-next/button/Button.vue';
@@ -89,7 +89,7 @@ const changePlaybackSpeed = () => {
 };
 
 const downloadRecording = () => {
-  downloadFile({ url: props.src, type: 'audio' });
+  downloadAttachment({ url: props.src, type: 'audio' });
 };
 </script>
 

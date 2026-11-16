@@ -10,7 +10,7 @@ import MessageMeta from '../MessageMeta.vue';
 import { useSnakeCase } from 'dashboard/composables/useTransformKeys';
 import { useMessageContext } from '../provider.js';
 import { getMediaFrameStyle } from '../helpers/mediaFrame';
-import { downloadFile } from '@chatwoot/utils';
+import { downloadAttachment as downloadStorageFile } from 'dashboard/helper/downloadHelper';
 
 import GalleryView from 'dashboard/components/widgets/conversation/components/GalleryView.vue';
 
@@ -39,7 +39,7 @@ const downloadAttachment = async () => {
   const { fileType, dataUrl, extension } = attachment.value;
   try {
     isDownloading.value = true;
-    await downloadFile({ url: dataUrl, type: fileType, extension });
+    await downloadStorageFile({ url: dataUrl, type: fileType, extension });
   } catch (error) {
     useAlert(t('GALLERY_VIEW.ERROR_DOWNLOADING'));
   } finally {

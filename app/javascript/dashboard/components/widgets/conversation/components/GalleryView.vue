@@ -7,7 +7,7 @@ import { useStoreGetters } from 'dashboard/composables/store';
 import { useKeyboardEvents } from 'dashboard/composables/useKeyboardEvents';
 import { useImageZoom } from 'dashboard/composables/useImageZoom';
 import { messageTimestamp } from 'shared/helpers/timeHelper';
-import { downloadFile } from '@chatwoot/utils';
+import { downloadAttachment } from 'dashboard/helper/downloadHelper';
 
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import Avatar from 'next/avatar/Avatar.vue';
@@ -135,7 +135,7 @@ const onClickDownload = async () => {
 
   try {
     isDownloading.value = true;
-    await downloadFile({ url, type, extension });
+    await downloadAttachment({ url, type, extension });
   } catch (error) {
     useAlert(t('GALLERY_VIEW.ERROR_DOWNLOADING'));
   } finally {
