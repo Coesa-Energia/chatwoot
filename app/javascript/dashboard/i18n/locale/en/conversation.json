@@ -63,6 +63,10 @@
       "SHOW_ALL": "See all options",
       "SHOW_LESS": "See less"
     },
+    "COESA_OPTIONS": {
+      "LABEL": "Answer the bot",
+      "CHOSEN": "Answer sent"
+    },
     "CONTACT_HISTORY": {
       "OLDER": "Previous conversation",
       "NEWER": "Next conversation",

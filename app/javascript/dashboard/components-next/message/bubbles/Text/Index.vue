@@ -7,6 +7,7 @@ import FormattedContent from './FormattedContent.vue';
 import AttachmentChips from 'next/message/chips/AttachmentChips.vue';
 import TranslationToggle from 'dashboard/components-next/message/TranslationToggle.vue';
 import TemplateButtons from 'next/message/chips/TemplateButtons.vue';
+import CoesaOptions from 'next/message/chips/CoesaOptions.vue';
 import { ATTACHMENT_TYPES, MESSAGE_TYPES } from '../../constants';
 import { MESSAGE_STATUS } from 'shared/constants/messages';
 import { useMessageContext } from '../../provider.js';
@@ -165,6 +166,7 @@ const morphHeight = () => {
         class="gap-2"
       />
       <TemplateButtons />
+      <CoesaOptions />
       <template v-if="isTemplate">
         <div
           v-if="contentAttributes.submittedEmail"
