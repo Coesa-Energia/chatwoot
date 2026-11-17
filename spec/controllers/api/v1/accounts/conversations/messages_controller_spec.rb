@@ -222,6 +222,24 @@ RSpec.describe 'Conversation Messages API', type: :request do
         expect(conversation.messages.first.content_attributes['items'].first['description']).to eq('First option description')
       end
 
+      it 'keeps coesa_opcoes on a private note so the dashboard can show the buttons' do
+        create(:agent_bot_inbox, inbox: inbox, agent_bot: agent_bot)
+        opcoes = [{ titulo: 'Sim, criar', resposta: 'sim' }, { titulo: 'Status', resposta: '/status' }]
+        params = { content: 'Criar o card?', private: true, message_type: 'outgoing', content_attributes: { coesa_opcoes: opcoes } }
+
+        post api_v1_account_conversation_messages_url(account_id: account.id, conversation_id: conversation.display_id),
+             params: params,
+             headers: { api_access_token: agent_bot.access_token.token },
+             as: :json
+
+        expect(response).to have_http_status(:success)
+        message = conversation.messages.last
+        expect(message.private).to be(true)
+        expect(message.sender).to eq(agent_bot)
+        expect(message.content_attributes['coesa_opcoes']).to eq(opcoes.map(&:stringify_keys))
+        expect(response.parsed_body['content_attributes']['coesa_opcoes']).to eq(opcoes.map(&:stringify_keys))
+      end
+
       it 'creates a new outgoing cards message' do
         create(:agent_bot_inbox, inbox: inbox, agent_bot: agent_bot)
         card = build(:bot_message_card)
