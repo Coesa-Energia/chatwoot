@@ -14,7 +14,7 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
-const { orientation, variant, createdAt } = useMessageContext();
+const { orientation, variant, createdAt, isOwnNote } = useMessageContext();
 const store = useStore();
 const { isCloudFeatureEnabled } = useAccount();
 
@@ -187,7 +187,11 @@ const rowLayoutClass = computed(() => {
 // Blend the sparkle with the bubble background: amber on private notes,
 // slate everywhere else. Tokens adapt to dark mode on their own.
 const sparkleColorClass = computed(() => {
-  if (variant.value === MESSAGE_VARIANTS.PRIVATE) {
+  // COESA: received notes are gray (see Base.vue), so only the agent's own notes get amber.
+  if (
+    variant.value === MESSAGE_VARIANTS.PRIVATE &&
+    isOwnNote?.value !== false
+  ) {
     return isOpen.value
       ? 'text-n-amber-12/80'
       : 'text-n-amber-12/40 hover:text-n-amber-12/70';

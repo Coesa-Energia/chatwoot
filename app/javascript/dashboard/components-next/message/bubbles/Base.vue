@@ -28,11 +28,17 @@ const {
   senderType,
   status,
   additionalAttributes,
+  isOwnNote,
 } = useMessageContext();
 const { t } = useI18n();
 
 const isPrivateNote = computed(
   () => variant.value === MESSAGE_VARIANTS.PRIVATE
+);
+
+// COESA: notes the agent receives (bot, automations, other agents) are gray; their own stay amber.
+const isReceivedNote = computed(
+  () => isPrivateNote.value && isOwnNote?.value === false
 );
 
 // A note not typed by a person: AgentBot (incl. automation profiles), Captain or the system
@@ -52,9 +58,19 @@ const noteAuthor = computed(
 );
 
 const metaColorClass = computed(() =>
-  variant.value === MESSAGE_VARIANTS.PRIVATE
+  variant.value === MESSAGE_VARIANTS.PRIVATE && !isReceivedNote.value
     ? 'text-n-amber-12/50'
     : 'text-n-slate-11'
+);
+
+const noteHeaderClass = computed(() =>
+  isReceivedNote.value ? 'text-n-slate-11' : 'text-n-amber-11'
+);
+
+const automationBadgeClass = computed(() =>
+  isReceivedNote.value
+    ? 'bg-n-slate-9 text-white dark:text-n-slate-1'
+    : 'bg-n-amber-9 text-n-amber-12 dark:text-n-amber-3'
 );
 
 const emailMetaClass = computed(() =>
@@ -94,16 +110,27 @@ const flexOrientationClass = computed(() => {
   return map[orientation.value];
 });
 
+const RECEIVED_NOTE_CLASS =
+  'bg-n-slate-3 text-n-slate-12 [&_.prosemirror-mention-node]:font-semibold';
+
 const messageClass = computed(() => {
-  const classToApply = [varaintBaseMap[variant.value]];
+  const classToApply = [
+    isReceivedNote.value ? RECEIVED_NOTE_CLASS : varaintBaseMap[variant.value],
+  ];
 
   // Never confused with a message the customer receives: accent bar + outline, stronger for automations.
   if (isPrivateNote.value) {
+    let accentClass = isAutomatedNote.value
+      ? 'border-n-amber-10 outline-n-amber-8'
+      : 'border-n-amber-9 outline-n-amber-6';
+    if (isReceivedNote.value) {
+      accentClass = isAutomatedNote.value
+        ? 'border-n-slate-10 outline-n-slate-7'
+        : 'border-n-slate-9 outline-n-slate-6';
+    }
     classToApply.push(
       'border-s-4 outline outline-1 -outline-offset-1',
-      isAutomatedNote.value
-        ? 'border-n-amber-10 outline-n-amber-8'
-        : 'border-n-amber-9 outline-n-amber-6'
+      accentClass
     );
   }
 
@@ -156,7 +183,8 @@ const replyToPreview = computed(() => {
   >
     <div
       v-if="isPrivateNote"
-      class="flex flex-wrap items-center gap-1.5 mb-1.5 text-xs font-medium text-n-amber-11"
+      class="flex flex-wrap items-center gap-1.5 mb-1.5 text-xs font-medium"
+      :class="noteHeaderClass"
       data-testid="private-note-header"
     >
       <span class="i-lucide-lock size-3.5 shrink-0" />
@@ -171,7 +199,8 @@ const replyToPreview = computed(() => {
       </span>
       <span
         v-if="isAutomatedNote"
-        class="inline-flex items-center gap-1 px-1.5 rounded-md bg-n-amber-9 text-n-amber-12 dark:text-n-amber-3 font-semibold"
+        class="inline-flex items-center gap-1 px-1.5 rounded-md font-semibold"
+        :class="automationBadgeClass"
         data-testid="private-note-automation-badge"
       >
         <span class="i-lucide-bot size-3.5 shrink-0" />
