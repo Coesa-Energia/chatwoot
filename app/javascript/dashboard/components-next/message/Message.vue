@@ -3,6 +3,7 @@ import { onMounted, computed, ref, toRefs } from 'vue';
 import { useTimeoutFn } from '@vueuse/core';
 import { activeSearchMessageId } from 'dashboard/helper/chatSearchHighlight';
 import { provideMessageContext } from './provider.js';
+import { isOwnPrivateNote } from './helpers/privateNote';
 import { isContactSide } from 'dashboard/store/modules/conversations/helpers';
 import { useTrack } from 'dashboard/composables';
 import { useMapGetter } from 'dashboard/composables/store';
@@ -190,6 +191,18 @@ const isCaptainMessage = computed(() => {
   const senderType = props.sender?.type ?? props.senderType;
   return senderType === SENDER_TYPES.CAPTAIN_ASSISTANT;
 });
+
+// COESA: notes the agent did not write are drawn in gray (see helpers/privateNote.js).
+const isOwnNote = computed(() =>
+  isOwnPrivateNote({
+    isPrivate: props.private,
+    status: props.status,
+    sender: props.sender,
+    senderType: props.senderType,
+    senderId: props.senderId,
+    currentUserId: props.currentUserId,
+  })
+);
 
 /**
  * Computes the message variant based on props
@@ -617,6 +630,7 @@ provideMessageContext({
   contactSide,
   isCaptainMessage,
   isPrivate: computed(() => props.private),
+  isOwnNote,
   variant,
   orientation,
   isBotOrAgentMessage,

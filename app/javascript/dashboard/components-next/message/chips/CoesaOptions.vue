@@ -92,13 +92,13 @@ const choose = async option => {
       v-for="option in options"
       :key="option.resposta"
       type="button"
-      class="skip-context-menu inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg outline outline-1 -outline-offset-1 transition-colors focus-visible:outline-2 focus-visible:outline-n-amber-10"
+      class="skip-context-menu inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg outline outline-1 -outline-offset-1 transition-colors focus-visible:outline-2 focus-visible:outline-n-slate-10"
       :class="
         chosen === option.resposta
-          ? 'bg-n-amber-9 outline-n-amber-10 text-n-amber-12 dark:text-n-amber-3'
+          ? 'bg-n-slate-12 outline-n-slate-12 text-n-slate-1'
           : isAnswered
-            ? 'bg-transparent outline-n-amber-6 text-n-amber-11 opacity-60 cursor-not-allowed'
-            : 'bg-n-amber-3 outline-n-amber-7 text-n-amber-12 hover:bg-n-amber-4 cursor-pointer'
+            ? 'bg-transparent outline-n-slate-6 text-n-slate-11 opacity-60 cursor-not-allowed'
+            : 'bg-n-solid-1 outline-n-slate-7 text-n-slate-12 hover:bg-n-slate-4 cursor-pointer'
       "
       :disabled="isAnswered"
       :aria-pressed="chosen === option.resposta"

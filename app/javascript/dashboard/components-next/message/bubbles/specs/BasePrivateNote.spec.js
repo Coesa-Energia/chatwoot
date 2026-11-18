@@ -8,8 +8,14 @@ vi.mock('../../provider.js', () => ({
   useMessageContext: () => context,
 }));
 
-const mountNote = ({ sender = null, variant = 'private', status = 'sent' }) => {
+const mountNote = ({
+  sender = null,
+  variant = 'private',
+  status = 'sent',
+  isOwnNote = true,
+}) => {
   Object.assign(context, {
+    isOwnNote: ref(isOwnNote),
     variant: ref(variant),
     orientation: ref('right'),
     inReplyTo: ref(null),
@@ -57,6 +63,24 @@ describe('Base bubble private note', () => {
     ).toBe(true);
     expect(mountNote({}).find(badge).exists()).toBe(true);
     expect(mountNote({ status: 'progress' }).find(badge).exists()).toBe(false);
+  });
+
+  it('keeps the agent own note amber and draws a received note in gray', () => {
+    const own = mountNote({ sender: { name: 'Ana', type: 'User' } });
+    expect(own.classes()).toContain('bg-n-solid-amber');
+    expect(own.classes()).not.toContain('bg-n-slate-3');
+
+    const received = mountNote({
+      sender: { name: 'Agente Comercial', type: 'agent_bot' },
+      isOwnNote: false,
+    });
+    expect(received.classes()).toContain('bg-n-slate-3');
+    expect(received.classes()).not.toContain('bg-n-solid-amber');
+    expect(received.classes()).toContain('border-n-slate-10');
+    expect(
+      received.find('[data-testid="private-note-header"]').classes()
+    ).toContain('text-n-slate-11');
+    expect(received.find(badge).classes()).toContain('bg-n-slate-9');
   });
 
   it('shows no note header on a normal message', () => {
