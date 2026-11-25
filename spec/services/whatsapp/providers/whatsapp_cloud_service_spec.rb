@@ -323,6 +323,45 @@ describe Whatsapp::Providers::WhatsappCloudService do
         expect(service.send_template('+123456789', template_info, message)).to eq('message_id')
       end
     end
+
+    context 'with the Marketing Messages API switched on' do
+      let(:marketing_url) { 'https://graph.facebook.com/v22.0/123456789/marketing_messages' }
+      let(:cloud_url) { 'https://graph.facebook.com/v22.0/123456789/messages' }
+
+      before do
+        stub_request(:post, marketing_url).to_return(status: 200, body: whatsapp_response.to_json, headers: response_headers)
+        stub_request(:post, cloud_url).to_return(status: 200, body: whatsapp_response.to_json, headers: response_headers)
+      end
+
+      def send_with_category(category)
+        whatsapp_channel.update!(message_templates: [{ 'name' => 'test_template', 'category' => category }])
+        with_modified_env WHATSAPP_MARKETING_MESSAGES_API: 'true' do
+          service.send_template('+123456789', template_info, message)
+        end
+      end
+
+      it 'sends marketing templates to the marketing_messages endpoint with the same body' do
+        expect(send_with_category('MARKETING')).to eq('message_id')
+        expect(a_request(:post, marketing_url).with(body: template_body.to_json)).to have_been_made.once
+        expect(a_request(:post, cloud_url)).not_to have_been_made
+      end
+
+      it 'keeps utility templates on the messages endpoint' do
+        expect(send_with_category('UTILITY')).to eq('message_id')
+        expect(a_request(:post, cloud_url)).to have_been_made.once
+        expect(a_request(:post, marketing_url)).not_to have_been_made
+      end
+    end
+
+    context 'with the Marketing Messages API switched off' do
+      it 'keeps marketing templates on the messages endpoint' do
+        whatsapp_channel.update!(message_templates: [{ 'name' => 'test_template', 'category' => 'MARKETING' }])
+        stub_request(:post, 'https://graph.facebook.com/v22.0/123456789/messages')
+          .to_return(status: 200, body: whatsapp_response.to_json, headers: response_headers)
+
+        expect(service.send_template('+123456789', template_info, message)).to eq('message_id')
+      end
+    end
   end
 
   describe 'when the recipient is a Business-Scoped User ID (BSUID)' do
