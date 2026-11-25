@@ -25,7 +25,7 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
       template: template_body
     }
 
-    deliver_message("#{phone_id_path}/messages", request_body, message)
+    deliver_message("#{phone_id_path}/#{template_endpoint(template_info[:name])}", request_body, message)
   end
 
   def sync_templates
@@ -106,6 +106,16 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
 
   def csat_template_service
     @csat_template_service ||= Whatsapp::CsatTemplateService.new(whatsapp_channel)
+  end
+
+  # Marketing templates go through the Marketing Messages API (Meta optimizes their delivery); everything else stays on
+  # the Cloud API. Off unless WHATSAPP_MARKETING_MESSAGES_API=true, so it can be switched off without a deploy. While the
+  # WhatsApp account is not onboarded, Meta itself routes these sends through the Cloud API (product_policy defaults to
+  # CLOUD_API_FALLBACK). Docs: developers.facebook.com/documentation/business-messaging/whatsapp/marketing-messages
+  def template_endpoint(template_name)
+    marketing = ActiveModel::Type::Boolean.new.cast(ENV.fetch('WHATSAPP_MARKETING_MESSAGES_API', false)) &&
+                Whatsapp::MarketingUnsubscribeService.marketing_template?(whatsapp_channel, template_name)
+    marketing ? 'marketing_messages' : 'messages'
   end
 
   def api_base_path
